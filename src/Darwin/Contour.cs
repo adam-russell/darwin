@@ -445,6 +445,9 @@ namespace Darwin
 				totalDistance += MathHelper.GetDistance(Points[i].X, Points[i].Y, Points[i - 1].X, Points[i - 1].Y);
 			}
 
+			if (Options.CurrentUserOptions.ContoursAreClosedLoop)
+				totalDistance += MathHelper.GetDistance(Points[Points.Count - 1].X, Points[Points.Count - 1].Y, Points[0].X, Points[0].Y);
+
 			return totalDistance;
 		}
 
@@ -871,8 +874,8 @@ namespace Darwin
 						else
 						{
 							lastPoint = true;
-							vsx = ccx;
-							vsy = ccy;
+							vsx = x;
+							vsy = y;
 							x = Points[0].X;
 							y = Points[0].Y;
 						}
@@ -942,8 +945,6 @@ namespace Darwin
 							else
 							{
 								lastPoint = true;
-								vsx = ccx;
-								vsy = ccy;
 								x = Points[0].X;
 								y = Points[0].Y;
 							}

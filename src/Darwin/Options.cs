@@ -169,7 +169,6 @@ namespace Darwin
 
         [DefaultValue(3.0f)]
         public float ContourSpacing { get; set; } = 3.0f;
-
         [DefaultValue(true)]
         public bool ContoursAreClosedLoop { get; set; } = false;
 

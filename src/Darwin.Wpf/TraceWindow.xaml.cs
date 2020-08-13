@@ -666,7 +666,7 @@ namespace Darwin.Wpf
 			{
 				for (int c = 0; c < edgeMagImage.Width; c++)
 				{
-					// set up area within *temp as the real EdgeMagImage
+					// Set up area within *temp as the real EdgeMagImage
 					temp.SetPixel(left + c, top + r, edgeMagImage.GetPixel(c, r));
 				}
 			}
