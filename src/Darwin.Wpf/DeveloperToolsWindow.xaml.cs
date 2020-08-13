@@ -75,5 +75,32 @@ namespace Darwin.Wpf
                 }
             }
 		}
+
+        private void ExportSegmentationMasks_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                dialog.Description = "Pick an output folder for the training dataset";
+                System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    try
+                    {
+                        this.IsHitTestVisible = false;
+                        Mouse.OverrideCursor = Cursors.Wait;
+
+                        MLSupport.SaveSegmentationMaskDatasetImages(dialog.SelectedPath, _vm.Database);
+
+                        MessageBox.Show("Dataset generation complete.", "Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    finally
+                    {
+                        Mouse.OverrideCursor = null;
+                        this.IsHitTestVisible = true;
+                    }
+                }
+            }
+        }
     }
 }

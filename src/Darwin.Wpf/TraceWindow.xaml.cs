@@ -673,18 +673,12 @@ namespace Darwin.Wpf
 
 			edgeMagImage = temp; //***1.96
 
-			//EdgeMagImage->save("EdgeMagImg.png");
-
-			// create initial evenly spaced contour scaled to zoomed image
-			double spacing = 3; //***005CM declaration moved ouside if() below
-								// contour is initially spaced with larger of 1) space for 200 points or
-								// 2) at three pixels (200 points limits hi res pics from having many points)
-
 			// Scale mContour to current scale of analysis (image) first time thru
 
-			spacing = _vm.Contour.GetTotalDistanceAlongContour() / 200.0;
-			if (spacing < SpaceBetweenPoints)
-				spacing = SpaceBetweenPoints;
+			double spacing = _vm.Contour.GetTotalDistanceAlongContour() / 200.0;
+
+			if (spacing < Options.CurrentUserOptions.ContourSpacing)
+				spacing = Options.CurrentUserOptions.ContourSpacing;
 
 			float ratio = _vm.ZoomRatio * 100f;
 

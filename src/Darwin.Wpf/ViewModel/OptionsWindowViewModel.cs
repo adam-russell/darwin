@@ -21,7 +21,7 @@ using System.Text;
 
 namespace Darwin.Wpf.ViewModel
 {
-    public class OptionsWindowViewModel : INotifyPropertyChanged
+    public class OptionsWindowViewModel : BaseViewModel
     {
         private Options _options;
         public Options Options
@@ -34,19 +34,9 @@ namespace Darwin.Wpf.ViewModel
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public OptionsWindowViewModel(Options options)
         {
             Options = new Options(options);
-        }
-
-        private void RaisePropertyChanged(string propertyName)
-        {
-            var handler = PropertyChanged;
-            if (handler == null) return;
-
-            handler(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

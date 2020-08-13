@@ -303,18 +303,34 @@ namespace Darwin.Wpf.FrameworkElements
 
             if (pointIndex >= 0)
             {
-                if (pointIndex >= 1)
+                if (Options.CurrentUserOptions.ContoursAreClosedLoop)
                 {
-                    dc.DrawLine(Pens[0],
-                        new System.Windows.Point(ItemsSource[pointIndex - 1].X / ContourScale + XOffset, ItemsSource[pointIndex - 1].Y / ContourScale + YOffset),
-                        new System.Windows.Point(dataPoint.X / ContourScale + XOffset, dataPoint.Y / ContourScale));
-                }
+                    int firstIndex = (pointIndex >= 1) ? pointIndex - 1 : ItemsSource.Count - 1;
 
-                if (pointIndex < ItemsSource.Count - 1)
-                {
                     dc.DrawLine(Pens[0],
-                        new System.Windows.Point(ItemsSource[pointIndex + 1].X / ContourScale + XOffset, ItemsSource[pointIndex + 1].Y / ContourScale + YOffset),
+                        new System.Windows.Point(ItemsSource[firstIndex].X / ContourScale + XOffset, ItemsSource[firstIndex].Y / ContourScale + YOffset),
+                        new System.Windows.Point(dataPoint.X / ContourScale + XOffset, dataPoint.Y / ContourScale));
+
+                    int lastIndex = (pointIndex < ItemsSource.Count - 1) ? pointIndex + 1 : 0;
+                    dc.DrawLine(Pens[0],
+                        new System.Windows.Point(ItemsSource[lastIndex].X / ContourScale + XOffset, ItemsSource[lastIndex].Y / ContourScale + YOffset),
                         new System.Windows.Point(dataPoint.X / ContourScale + XOffset, dataPoint.Y / ContourScale + YOffset));
+                }
+                else
+                {
+                    if (pointIndex >= 1)
+                    {
+                        dc.DrawLine(Pens[0],
+                            new System.Windows.Point(ItemsSource[pointIndex - 1].X / ContourScale + XOffset, ItemsSource[pointIndex - 1].Y / ContourScale + YOffset),
+                            new System.Windows.Point(dataPoint.X / ContourScale + XOffset, dataPoint.Y / ContourScale));
+                    }
+
+                    if (pointIndex < ItemsSource.Count - 1)
+                    {
+                        dc.DrawLine(Pens[0],
+                            new System.Windows.Point(ItemsSource[pointIndex + 1].X / ContourScale + XOffset, ItemsSource[pointIndex + 1].Y / ContourScale + YOffset),
+                            new System.Windows.Point(dataPoint.X / ContourScale + XOffset, dataPoint.Y / ContourScale + YOffset));
+                    }
                 }
             }
         }
@@ -343,6 +359,7 @@ namespace Darwin.Wpf.FrameworkElements
                     break;
                 }
             }
+
             foreach (DrawingVisualPlus drawingVisual in removeList)
                 visualChildren.Remove(drawingVisual);
         }

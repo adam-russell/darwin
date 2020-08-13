@@ -183,6 +183,11 @@ namespace Darwin.Helpers
             Trace.WriteLine("done.");
         }
 
+        public static void SaveSegmentationMaskDatasetImages(string datasetDirectory, DarwinDatabase database)
+        {
+            throw new NotImplementedException();
+        }
+
         public static float[] PredictCoordinates(Bitmap image, FloatContour chainPoints, double scale)
         {
             Trace.WriteLine("Predicting coordinates with " + AppSettings.MLModelFilename + " model using Emgu.TF.Lite / TensorFlow Lite");

@@ -46,6 +46,8 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="200" />
@@ -62,9 +64,16 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                         </RadioButton>
                     </StackPanel>
 
-                    <Label Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" FontWeight="Bold">Feature Detection</Label>
+                    <Label Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" FontWeight="Bold">Contours</Label>
+                    <CheckBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" Margin="5" IsChecked="{Binding Path=Options.ContoursAreClosedLoop, Mode=TwoWay}">Contours are closed loop polygons</CheckBox>
 
-                    <CheckBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" Margin="5" IsChecked="{Binding Path=Options.FindCoordinateFeatures, Mode=TwoWay}">Find coordinate features using machine learning model</CheckBox>
+                    <StackPanel Grid.Column="0" Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal">
+                        <Label HorizontalAlignment="Right">Contour Spacing:</Label>
+                        <talex:NumericUpDown Value="{Binding Path=Options.ContourSpacing,Mode=TwoWay}" Minimum="0" Maximum="30" Increment="0.1" DecimalPlaces="1" />
+                    </StackPanel>
+                    
+                    <Label Grid.Column="0" Grid.Row="5" Grid.ColumnSpan="2" FontWeight="Bold">Feature Detection</Label>
+                    <CheckBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="6" Margin="5" IsChecked="{Binding Path=Options.FindCoordinateFeatures, Mode=TwoWay}">Find coordinate features using machine learning model</CheckBox>
                 </Grid>
             </TabItem>
             <TabItem Header="Tracing">

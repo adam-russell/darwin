@@ -93,15 +93,19 @@ namespace Darwin.Database
         {
             get
             {
-                switch (FeatureSetType)
-                {
-                    case FeatureSetType.Bear:
-                        return "Note: Bear MUST be facing your RIGHT!";
+                // TODO: Do we need instructions?
 
-                    case FeatureSetType.DorsalFin:
-                    default:
-                        return "Note: Dolphin MUST swim to your LEFT!";
-                }
+                //switch (FeatureSetType)
+                //{
+                //    case FeatureSetType.Bear:
+                //        return "Note: Bear MUST be facing your RIGHT!";
+
+                //    case FeatureSetType.DorsalFin:
+                //    default:
+                //        return "Note: Dolphin MUST swim to your LEFT!";
+                //}
+
+                return string.Empty;
             }
         }
 

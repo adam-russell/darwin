@@ -623,7 +623,7 @@ namespace Darwin
 				return new Contour();
 
 			int x, y, ccx, ccy, tx, ty, vx, vy, vsx, vsy, qx = 0, qy = 0;
-			int i;                                          //005CT
+			int idx;                                          //005CT
 			double a, b, c, sqrt_b2_4ac, t1, t2, t, tLen;              //005CT
 			double curBearing, prevBearing;                            //005CT
 																	   //double changeInAngle;
@@ -662,19 +662,22 @@ namespace Darwin
 			// will be true when all original contour points have been used
 			bool done = false;
 
-			// point cc (circle center & previous point added to new contour)
+			// Point cc (circle center & previous point added to new contour)
 			ccx = Points[0].X;
 			ccy = Points[0].Y;
-			// point vs (start of edge being tested for intersection with circle)
+			
+			// Point vs (start of edge being tested for intersection with circle)
 			vsx = Points[0].X;
 			vsy = Points[0].Y;
-			// point p (end point of edge being tested for circle intersection)
+			
+			// Point p (end point of edge being tested for circle intersection)
 			x = Points[1].X;
 			y = Points[1].Y;
-			// index of p
-			i = 1;
 
-			Contour newContour = new Contour()
+			// Index of p
+			idx = 1;
+
+			var newContour = new Contour()
 			{
 				Scale = Scale
 			};
@@ -683,7 +686,9 @@ namespace Darwin
 			newContour.AddPoint(ccx, ccy); //005CT
 
 			// bearing into first point should be approximately this
-			prevBearing = (-3.14159 * 0.25); // -45 degrees
+			prevBearing = -Math.PI * 0.25; // -45 degrees
+
+			bool lastPoint = false;
 
 			while (!done)
 			{
@@ -739,20 +744,38 @@ namespace Darwin
 							vsx = qx;
 							vsy = qy;
 						}
-						else // change in bearing is excessive
+						else // Change in bearing is excessive
 						{
-							// skip this point Q and move p forward
-							// next time we calculate edge(cc,p) intersection with circle
-							i++;
-							if (i < NumPoints)
+							// Skip this point Q and move p forward
+							// Next time we calculate edge(cc,p) intersection with circle
+							idx += 1;
+
+							if (lastPoint)
+							{
+								done = true;
+							}
+							else if (idx < NumPoints)
 							{
 								vsx = ccx;
 								vsy = ccy;
-								x = Points[i].X;
-								y = Points[i].Y;
+								x = Points[idx].X;
+								y = Points[idx].Y;
 							}
 							else
-								done = true;
+							{
+								if (!Options.CurrentUserOptions.ContoursAreClosedLoop)
+								{
+									done = true;
+								}
+								else
+								{
+									lastPoint = true;
+									vsx = ccx;
+									vsy = ccy;
+									x = Points[0].X;
+									y = Points[0].Y;
+								}
+							}
 						}
 					}
 					else  // cc != vs
@@ -826,16 +849,34 @@ namespace Darwin
 				else if (tLen < space)
 				{
 					// case(3) move vs and p forward
-					i++;
-					if (i < Points.Count)
+					idx += 1;
+
+					if (lastPoint)
+					{
+						done = true;
+					}
+					else if (idx < Points.Count)
 					{
 						vsx = x;
 						vsy = y;
-						x = Points[i].X;
-						y = Points[i].Y;
+						x = Points[idx].X;
+						y = Points[idx].Y;
 					}
 					else
-						done = true;
+					{
+						if (!Options.CurrentUserOptions.ContoursAreClosedLoop)
+						{
+							done = true;
+						}
+						else
+						{
+							lastPoint = true;
+							vsx = ccx;
+							vsy = ccy;
+							x = Points[0].X;
+							y = Points[0].Y;
+						}
+					}
 				}
 				else // tLen == space
 				{
@@ -881,14 +922,32 @@ namespace Darwin
 						// next time we calculate edge(cc,p) intersection with circle
 						vsx = ccx;
 						vsy = ccy;
-						i++;
-						if (i < Points.Count)
+						idx += 1;
+
+						if (lastPoint)
 						{
-							x = Points[i].X;
-							y = Points[i].Y;
+							done = true;
+						}
+						else if (idx < Points.Count)
+						{
+							x = Points[idx].X;
+							y = Points[idx].Y;
 						}
 						else
-							done = true;
+                        {
+							if (!Options.CurrentUserOptions.ContoursAreClosedLoop)
+							{
+								done = true;
+							}
+							else
+							{
+								lastPoint = true;
+								vsx = ccx;
+								vsy = ccy;
+								x = Points[0].X;
+								y = Points[0].Y;
+							}
+						}
 					}
 				}
 
@@ -935,14 +994,13 @@ namespace Darwin
 		//  
 		// Trims excess points off Contour and reorders if necessary.
 		//
-		//    This Contour is trimmed in the following manner.  The closest point
-		//    to start is found and the closest point to end is found.  All
-		//    points in this Contour following max(closest2StartPos,closest2EndPos) 
-		//    are removed.  All points ahead of min(closest2StartPos,closest2EndPos) 
-		//    are removed.  Then if closest2EndPos < closest2StartPos, the Contour
-		//    is reversed.  Finally, the startPt and endPts are placed at their
-		//    respective ends of this Contour.
-		// 
+		// This Contour is trimmed in the following manner.  The closest point
+		// to start is found and the closest point to end is found.  All
+		// points in this Contour following max(closest2StartPos,closest2EndPos) 
+		// are removed.  All points ahead of min(closest2StartPos,closest2EndPos) 
+		// are removed.  Then if closest2EndPos < closest2StartPos, the Contour
+		// is reversed.  Finally, the startPt and endPts are placed at their
+		// respective ends of this Contour.
 		public bool TrimAndReorder(Darwin.Point startPt, Darwin.Point endPt)
 		{
 			int closest2StartPos = FindPositionOfClosestPoint(startPt.X, startPt.Y);
@@ -984,7 +1042,7 @@ namespace Darwin
 				}
 			}
 
-			// prepend start Pt and append end Pt to this Contour
+			// Prepend start Pt and append end Pt to this Contour
 			AddPoint(startPt.X, startPt.Y, 0);
 			AddPoint(endPt.X, endPt.Y);
 
