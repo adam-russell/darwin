@@ -81,7 +81,8 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
         <converters:NullConverter x:Key="NullConverter" />
     </Window.Resources>
     <Border x:Name="MainWindowBorder" BorderBrush="LightSlateGray" BorderThickness="1">
-        <Grid>
+
+        <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -186,12 +187,23 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
         </DataGrid>-->
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="500" />
                     <ColumnDefinition Width="5" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Grid Grid.Column="0">
+                <controls:HamburgerMenu Grid.Column="0" Background="Blue" MenuIconColor="White" SelectionIndicatorColor="White" MenuItemForeground="White" HorizontalAlignment="Left">
+                    <controls:HamburgerMenu.Content>
+                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Home" SelectionCommand="{Binding ElementName=this_}"/>
+                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Search"/>
+                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Likes"/>
+                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Lists"/>
+                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Profile"/>
+                    </controls:HamburgerMenu.Content>
+                </controls:HamburgerMenu>
+
+                <Grid Grid.Column="1">
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition Height="Auto"/>
@@ -265,9 +277,9 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                     </Grid>
                 </Grid>
 
-                <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />
+                <GridSplitter Grid.Column="2" Width="5" HorizontalAlignment="Stretch" />
 
-                <Grid Grid.Column="2">
+                <Grid Grid.Column="3">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="110" />
                         <RowDefinition Height="5" />
