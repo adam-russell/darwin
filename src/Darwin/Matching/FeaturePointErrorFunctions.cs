@@ -80,7 +80,7 @@ namespace Darwin.Matching
                 List<PointF> coordinates = new List<PointF>();
                 foreach (var featurePoint in landmarkFeatures)
                 {
-                    coordinates.Add(individual.FinOutline.GetFeaturePointCoords(featurePoint));
+                    coordinates.Add(individual.PrimaryImage.FinOutline.GetFeaturePointCoords(featurePoint));
                 }
 
                 // Now, we need to translate them by moving the geometric center of the 
@@ -142,9 +142,9 @@ namespace Darwin.Matching
             foreach (var featurePoint in landmarkFeatures)
             {
                 if (useRemappedOutline)
-                    coordinates[featurePoint] = individual.FinOutline.GetRemappedFeaturePointCoords(featurePoint);
+                    coordinates[featurePoint] = individual.PrimaryImage.FinOutline.GetRemappedFeaturePointCoords(featurePoint);
                 else
-                    coordinates[featurePoint] = individual.FinOutline.GetFeaturePointCoords(featurePoint);
+                    coordinates[featurePoint] = individual.PrimaryImage.FinOutline.GetFeaturePointCoords(featurePoint);
             }
 
             var benchmarkDistance = MathHelper.GetDistance(

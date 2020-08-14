@@ -36,14 +36,14 @@ namespace Darwin.Matching
 
             var maxError = new MatchError { Error = 5000 };
 
-            if (databaseFin.FinOutline?.FeatureSet?.Features.ContainsKey(Features.FeatureType.BrowCurvature) != true ||
-                unknownFin.FinOutline?.FeatureSet?.Features.ContainsKey(Features.FeatureType.BrowCurvature) != true)
+            if (databaseFin.PrimaryImage.FinOutline?.FeatureSet?.Features.ContainsKey(Features.FeatureType.BrowCurvature) != true ||
+                unknownFin.PrimaryImage.FinOutline?.FeatureSet?.Features.ContainsKey(Features.FeatureType.BrowCurvature) != true)
             {
                 return maxError;
             }
 
-            var unknownCurvature = unknownFin.FinOutline?.FeatureSet?.Features[Features.FeatureType.BrowCurvature].Value;
-            var databaseCurvature = databaseFin.FinOutline?.FeatureSet?.Features[Features.FeatureType.BrowCurvature].Value;
+            var unknownCurvature = unknownFin.PrimaryImage.FinOutline?.FeatureSet?.Features[Features.FeatureType.BrowCurvature].Value;
+            var databaseCurvature = databaseFin.PrimaryImage.FinOutline?.FeatureSet?.Features[Features.FeatureType.BrowCurvature].Value;
 
             if (unknownCurvature == null || databaseCurvature == null)
                 return maxError;
@@ -67,14 +67,14 @@ namespace Darwin.Matching
 
             var maxError = new MatchError { Error = 1 };
 
-            if (databaseFin.FinOutline?.FeatureSet?.Features.ContainsKey(Features.FeatureType.HasMouthDent) != true ||
-                unknownFin.FinOutline?.FeatureSet?.Features.ContainsKey(Features.FeatureType.BrowCurvature) != true)
+            if (databaseFin.PrimaryImage.FinOutline?.FeatureSet?.Features.ContainsKey(Features.FeatureType.HasMouthDent) != true ||
+                unknownFin.PrimaryImage.FinOutline?.FeatureSet?.Features.ContainsKey(Features.FeatureType.BrowCurvature) != true)
             {
                 return maxError;
             }
 
-            var unknownHasMouthDent = unknownFin.FinOutline?.FeatureSet?.Features[Features.FeatureType.HasMouthDent].Value;
-            var databaseHasMouthDent = databaseFin.FinOutline?.FeatureSet?.Features[Features.FeatureType.HasMouthDent].Value;
+            var unknownHasMouthDent = unknownFin.PrimaryImage.FinOutline?.FeatureSet?.Features[Features.FeatureType.HasMouthDent].Value;
+            var databaseHasMouthDent = databaseFin.PrimaryImage.FinOutline?.FeatureSet?.Features[Features.FeatureType.HasMouthDent].Value;
 
             if (unknownHasMouthDent == null || databaseHasMouthDent == null)
                 return maxError;

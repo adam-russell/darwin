@@ -629,8 +629,8 @@ namespace Darwin.Wpf.ViewModel
 
 			Bitmap = bitmap;
 
-			DatabaseFin.OriginalFinImage = new Bitmap(bitmap);
-			DatabaseFin.ImageFilename = DatabaseFin.OriginalImageFilename = filename;
+			DatabaseFin.PrimaryImage.OriginalFinImage = new Bitmap(bitmap);
+			DatabaseFin.PrimaryImage.ImageFilename = DatabaseFin.PrimaryImage.OriginalImageFilename = filename;
 		}
 
 		public void SaveFinz(string filename)
@@ -679,12 +679,12 @@ namespace Darwin.Wpf.ViewModel
 
 		public void UpdateDatabaseFin()
         {
-			DatabaseFin.Scale = NormScale;
-			DatabaseFin.FinOutline = Outline;
-			DatabaseFin.FinImage = new Bitmap(Bitmap);
+			DatabaseFin.PrimaryImage.FinOutline.Scale = NormScale;
+			DatabaseFin.PrimaryImage.FinOutline = Outline;
+			DatabaseFin.PrimaryImage.FinImage = new Bitmap(Bitmap);
 
-			if (DatabaseFin.ImageMods == null)
-				DatabaseFin.ImageMods = new List<ImageMod>();
+			if (DatabaseFin.PrimaryImage.ImageMods == null)
+				DatabaseFin.PrimaryImage.ImageMods = new List<ImageMod>();
 
 			var addedMods = new List<ImageMod>();
 
@@ -702,7 +702,7 @@ namespace Darwin.Wpf.ViewModel
 
 			// We're adding mods in case we opened up an old Finz file/etc.  So we don't blow away previous
 			// mods done to the image.
-			DatabaseFin.ImageMods = DatabaseFin.ImageMods.Concat(addedMods).ToList();
+			DatabaseFin.PrimaryImage.ImageMods = DatabaseFin.PrimaryImage.ImageMods.Concat(addedMods).ToList();
 		}
 
 		private void LoadFin(DatabaseFin fin)
@@ -713,18 +713,18 @@ namespace Darwin.Wpf.ViewModel
 				WindowTitle += " - " + Path.GetFileName(fin.FinFilename);
 
 			// TODO: Hack for HiDPI
-			fin.FinImage.SetResolution(96, 96);
+			fin.PrimaryImage.FinImage.SetResolution(96, 96);
 
 			DatabaseFin = fin;
 
-			Bitmap = fin.FinImage ?? fin.OriginalFinImage;
+			Bitmap = fin.PrimaryImage.FinImage ?? fin.PrimaryImage.OriginalFinImage;
 
-			if (fin.FinOutline == null || fin.FinOutline.ChainPoints == null)
+			if (fin.PrimaryImage.FinOutline == null || fin.PrimaryImage.FinOutline.ChainPoints == null)
 				Contour = null;
 			else
-				Contour = new Contour(fin.FinOutline, fin.Scale);
+				Contour = new Contour(fin.PrimaryImage.FinOutline, fin.PrimaryImage.FinOutline.Scale);
 
-			Outline = fin.FinOutline;
+			Outline = fin.PrimaryImage.FinOutline;
 
 			LoadCoordinateFeaturePoints();
 
@@ -743,7 +743,7 @@ namespace Darwin.Wpf.ViewModel
 			TraceLocked = true;
 			TraceFinalized = true;
 
-			NormScale = (float)fin.Scale;
+			NormScale = (float)fin.PrimaryImage.FinOutline.Scale;
 
 			TraceTool = TraceToolType.Hand;
 			ZoomRatio = 1.0f;

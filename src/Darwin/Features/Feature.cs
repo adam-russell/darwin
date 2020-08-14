@@ -80,16 +80,9 @@ namespace Darwin.Features
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public Feature()
         {
             IsEmpty = true;
-        }
-
-        protected virtual void RaisePropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -26,20 +26,21 @@ namespace Darwin.Database
         public long id { get; set; }
         public string idcode { get; set; }
         public string name { get; set; }
+        public string ThumbnailFilename { get; set; }
         public long fkdamagecategoryid { get; set; }
     }
 
-    public class DBImage
-    {
-        public long id { get; set; }
-        public long fkindividualid { get; set; }
-        public string imagefilename { get; set; }
-        public string original_imagefilename { get; set; }
-        public string dateofsighting { get; set; }
-        public string rollandframe { get; set; }
-        public string locationcode { get; set; }
-        public string shortdescription { get; set; }
-    }
+    //public class DBImage
+    //{
+    //    public long id { get; set; }
+    //    public long fkindividualid { get; set; }
+    //    public string imagefilename { get; set; }
+    //    public string original_imagefilename { get; set; }
+    //    public string dateofsighting { get; set; }
+    //    public string rollandframe { get; set; }
+    //    public string locationcode { get; set; }
+    //    public string shortdescription { get; set; }
+    //}
 
     public class DBThumbnail
     {
@@ -57,7 +58,7 @@ namespace Darwin.Database
         public int endle { get; set; }
         public int notchposition { get; set; }
         public int endte { get; set; }
-        public long fkindividualid { get; set; }
+        public long fkimageid { get; set; }
     }
 
     public class DBPoint

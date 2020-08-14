@@ -45,6 +45,8 @@ namespace Darwin
 
     public class Outline
     {
+        public double Scale; // image to Outline scale change
+
         private FloatContour _chainPoints;
         public FloatContour ChainPoints { get => _chainPoints; set => _chainPoints = value; }
 
@@ -101,6 +103,7 @@ namespace Darwin
             _chainPoints = new FloatContour(); // ***008OL
             _chainPoints.ContourToFloatContour(c); //***008OL
             _chain = new Chain(_chainPoints);
+            Scale = scale;
 
             FeatureSet = FeatureSet.Create(featuresType, image, scale, _chain, _chainPoints);
 
@@ -128,9 +131,16 @@ namespace Darwin
             _chainPoints = fc;
             _chain = new Chain(_chainPoints);
             _remappedChainPoints = null;
+            
         }
 
-        public Outline(FloatContour fc, FeatureSetType featuresType, FeatureSet features)
+        public Outline(FloatContour fc, FeatureSetType featuresType, double scale)
+            : this(fc, featuresType)
+        {
+            Scale = scale;
+        }
+
+        public Outline(FloatContour fc, FeatureSetType featuresType, FeatureSet features, double scale)
         {
             // called prior to reading indices of each feature pt and the
             // user mod bits
@@ -141,6 +151,7 @@ namespace Darwin
             _chainPoints = fc;
             _chain = new Chain(_chainPoints);
             _remappedChainPoints = null;
+            Scale = scale;
         }
 
         //////////////////////////////////////////////////////////////
@@ -179,7 +190,7 @@ namespace Darwin
 
         public void RediscoverFeaturePoints(FeatureSetType featuresType, DatabaseFin fin)
         {
-            FeatureSet = FeatureSet.Create(featuresType, fin.FinImage, fin.Scale, _chain, _chainPoints);
+            FeatureSet = FeatureSet.Create(featuresType, fin.PrimaryImage.FinImage, fin.PrimaryImage.FinOutline.Scale, _chain, _chainPoints);
         }
         
         public bool ContainsAllFeatureTypes(List<FeatureType> featureTypes)

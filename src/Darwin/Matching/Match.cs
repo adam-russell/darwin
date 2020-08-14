@@ -267,10 +267,10 @@ namespace Darwin.Matching
 
             // If the current unknown is missing any feature points, rediscover them
             // algorithmically
-            if (UnknownFin.FinOutline != null && (!UnknownFin.FinOutline.ContainsAllFeaturePointTypes(distinctFeaturePointList) || !UnknownFin.FinOutline.ContainsAllFeatureTypes(distinctFeatureList)))
+            if (UnknownFin.PrimaryImage.FinOutline != null && (!UnknownFin.PrimaryImage.FinOutline.ContainsAllFeaturePointTypes(distinctFeaturePointList) || !UnknownFin.PrimaryImage.FinOutline.ContainsAllFeatureTypes(distinctFeatureList)))
             {
                 Trace.WriteLine("Unknown " + UnknownFin.IDCode + " is missing features needed for matching.  Rediscovering..");
-                UnknownFin.FinOutline.RediscoverFeaturePoints(Database.CatalogScheme.FeatureSetType, UnknownFin);
+                UnknownFin.PrimaryImage.FinOutline.RediscoverFeaturePoints(Database.CatalogScheme.FeatureSetType, UnknownFin);
             }
 
             return Database.ContainsAllFeaturePointTypes(distinctFeaturePointList) && Database.ContainsAllFeatureTypes(distinctFeatureList);
@@ -376,7 +376,7 @@ namespace Darwin.Matching
                             matchErrorResult = factorResult;
 
                             if (factorResult.Contour1 != null)
-                                UnknownFin.FinOutline.RemappedChainPoints = factorResult.Contour1;
+                                UnknownFin.PrimaryImage.FinOutline.RemappedChainPoints = factorResult.Contour1;
 
                             if (saveRawRatios != null)
                                 matchErrorResult.RawRatios = saveRawRatios;
@@ -425,7 +425,7 @@ namespace Darwin.Matching
                     matchErrorResult.Contour2, //***005CM
                     thisDBFin.ID,
                     // TODO - This image filename stuff is a little ugly.
-                    (string.IsNullOrEmpty(thisDBFin.OriginalImageFilename)) ? thisDBFin.ImageFilename : thisDBFin.OriginalImageFilename,
+                    (string.IsNullOrEmpty(thisDBFin.PrimaryImage.OriginalImageFilename)) ? thisDBFin.PrimaryImage.ImageFilename : thisDBFin.PrimaryImage.OriginalImageFilename,
                     thisDBFin.ThumbnailFilenameUri,
                     matchIndex,
                     rawError,
@@ -433,8 +433,8 @@ namespace Darwin.Matching
                     thisDBFin.IDCode,
                     thisDBFin.Name,
                     thisDBFin.DamageCategory,
-                    thisDBFin.DateOfSighting,
-                    thisDBFin.LocationCode);
+                    thisDBFin.PrimaryImage.DateOfSighting,
+                    thisDBFin.PrimaryImage.LocationCode);
 
                 if (matchErrorResult.RHat != null)
                     r.RHat = matchErrorResult.RHat;
@@ -535,8 +535,8 @@ namespace Darwin.Matching
 
             // If the current unknown is missing any feature points, rediscover them
             // algorithmically
-            if (Database.CatalogScheme != null && UnknownFin.FinOutline != null && (!UnknownFin.FinOutline.ContainsAllFeaturePointTypes(distinctFeaturePointList) || !UnknownFin.FinOutline.ContainsAllFeatureTypes(distinctFeatureList)))
-                UnknownFin.FinOutline.RediscoverFeaturePoints(Database.CatalogScheme.FeatureSetType, UnknownFin);
+            if (Database.CatalogScheme != null && UnknownFin.PrimaryImage.FinOutline != null && (!UnknownFin.PrimaryImage.FinOutline.ContainsAllFeaturePointTypes(distinctFeaturePointList) || !UnknownFin.PrimaryImage.FinOutline.ContainsAllFeatureTypes(distinctFeatureList)))
+                UnknownFin.PrimaryImage.FinOutline.RediscoverFeaturePoints(Database.CatalogScheme.FeatureSetType, UnknownFin);
         }
     }
 }

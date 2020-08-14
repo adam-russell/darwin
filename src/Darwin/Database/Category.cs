@@ -75,15 +75,5 @@ namespace Darwin.Database
             IsSelected = category.IsSelected;
             Order = category.Order;
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void RaisePropertyChanged(string propertyName)
-        {
-            var handler = PropertyChanged;
-            if (handler == null) return;
-
-            handler(this, new PropertyChangedEventArgs(propertyName));
-        }
     }
 }

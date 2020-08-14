@@ -148,15 +148,15 @@ namespace Darwin.Helpers
                 if (!string.IsNullOrEmpty(fin?.IDCode))
                     Trace.WriteLine("Exporting " + fin.IDCode);
 
-                if (fin.FinOutline.FeatureSet.CoordinateFeaturePoints == null ||
-                    fin.FinOutline.FeatureSet.CoordinateFeaturePoints.Count < 1 ||
-                    !fin.FinOutline.FeatureSet.CoordinateFeaturePoints.ContainsKey(Features.FeaturePointType.Eye))
+                if (fin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePoints == null ||
+                    fin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePoints.Count < 1 ||
+                    !fin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePoints.ContainsKey(Features.FeaturePointType.Eye))
                 {
                     // If we don't have the features we need, skip to the next one
                     continue;
                 }
 
-                var mlImage = ConvertDatabaseFinToMLImage(fin.FinImage, fin.FinOutline.ChainPoints, fin.Scale);
+                var mlImage = ConvertDatabaseFinToMLImage(fin.PrimaryImage.FinImage, fin.PrimaryImage.FinOutline.ChainPoints, fin.PrimaryImage.FinOutline.Scale);
 
                 string imageFilename = individualNum.ToString().PadLeft(6, '0') + ".jpg";
 
@@ -165,10 +165,10 @@ namespace Darwin.Helpers
                 csvRecords.Add(new MLCsvRecord
                 {
                     image = imageFilename,
-                    eye_x = mlImage.XRatio * (float)(fin.FinOutline.FeatureSet.CoordinateFeaturePoints[Features.FeaturePointType.Eye].Coordinate.X / fin.Scale - mlImage.XMin),
-                    eye_y = mlImage.YRatio * (float)(fin.FinOutline.FeatureSet.CoordinateFeaturePoints[Features.FeaturePointType.Eye].Coordinate.Y / fin.Scale - mlImage.YMin),
-                    nasalfold_x = mlImage.XRatio * (float)(fin.FinOutline.FeatureSet.CoordinateFeaturePoints[Features.FeaturePointType.NasalLateralCommissure].Coordinate.X / fin.Scale - mlImage.XMin),
-                    nasalfold_y = mlImage.YRatio * (float)(fin.FinOutline.FeatureSet.CoordinateFeaturePoints[Features.FeaturePointType.NasalLateralCommissure].Coordinate.Y / fin.Scale - mlImage.YMin)
+                    eye_x = mlImage.XRatio * (float)(fin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePoints[Features.FeaturePointType.Eye].Coordinate.X / fin.PrimaryImage.FinOutline.Scale - mlImage.XMin),
+                    eye_y = mlImage.YRatio * (float)(fin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePoints[Features.FeaturePointType.Eye].Coordinate.Y / fin.PrimaryImage.FinOutline.Scale - mlImage.YMin),
+                    nasalfold_x = mlImage.XRatio * (float)(fin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePoints[Features.FeaturePointType.NasalLateralCommissure].Coordinate.X / fin.PrimaryImage.FinOutline.Scale - mlImage.XMin),
+                    nasalfold_y = mlImage.YRatio * (float)(fin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePoints[Features.FeaturePointType.NasalLateralCommissure].Coordinate.Y / fin.PrimaryImage.FinOutline.Scale - mlImage.YMin)
                 });
 
                 individualNum += 1;

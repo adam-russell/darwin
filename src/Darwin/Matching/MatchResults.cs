@@ -372,28 +372,28 @@ namespace Darwin.Matching
                 if (thisDBFin.IDCode != dbFinID)
                     Trace.WriteLine("Disaster " + thisDBFin.IDCode + " " + dbFinID);
 
-                FloatContour mappedUnknownContour = unkFin.FinOutline.ChainPoints.MapContour(
-                        unkFin.FinOutline.ChainPoints[uTip],
-                        unkFin.FinOutline.ChainPoints[uBegin],
-                        unkFin.FinOutline.ChainPoints[uEnd],
-                        thisDBFin.FinOutline.ChainPoints[dbTip],
-                        thisDBFin.FinOutline.ChainPoints[dbBegin],
-                        thisDBFin.FinOutline.ChainPoints[dbEnd]);
+                FloatContour mappedUnknownContour = unkFin.PrimaryImage.FinOutline.ChainPoints.MapContour(
+                        unkFin.PrimaryImage.FinOutline.ChainPoints[uTip],
+                        unkFin.PrimaryImage.FinOutline.ChainPoints[uBegin],
+                        unkFin.PrimaryImage.FinOutline.ChainPoints[uEnd],
+                        thisDBFin.PrimaryImage.FinOutline.ChainPoints[dbTip],
+                        thisDBFin.PrimaryImage.FinOutline.ChainPoints[dbBegin],
+                        thisDBFin.PrimaryImage.FinOutline.ChainPoints[dbEnd]);
 
                 Result r = new Result(
                         mappedUnknownContour,                      //***1.3 - Mem Leak - constructor make copy now
-                        thisDBFin.FinOutline.ChainPoints, //***1.3 - Mem Leak - constructor make copy now
+                        thisDBFin.PrimaryImage.FinOutline.ChainPoints, //***1.3 - Mem Leak - constructor make copy now
                         thisDBFin.ID,
                         // TODO - This image filename stuff is a little ugly.
-                        (string.IsNullOrEmpty(thisDBFin.OriginalImageFilename)) ? thisDBFin.ImageFilename : thisDBFin.OriginalImageFilename,
+                        (string.IsNullOrEmpty(thisDBFin.PrimaryImage.OriginalImageFilename)) ? thisDBFin.PrimaryImage.ImageFilename : thisDBFin.PrimaryImage.OriginalImageFilename,
                         thisDBFin.ThumbnailFilenameUri,
                         dbFinPosition - 1, // position of fin in database
                         double.Parse(error),
                         thisDBFin.IDCode,
                         thisDBFin.Name,
                         thisDBFin.DamageCategory,
-                        thisDBFin.DateOfSighting,
-                        thisDBFin.LocationCode);
+                        thisDBFin.PrimaryImage.DateOfSighting,
+                        thisDBFin.PrimaryImage.LocationCode);
 
                 r.SetMappingControlPoints(
                         uBegin, uTip, uEnd,  // beginning, tip & end of unknown fin

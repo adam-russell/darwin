@@ -63,7 +63,7 @@ namespace Darwin.Wpf
                     WaveletUtil.GenerateCoefficientFiles(
                         dialog.SelectedPath,
                         _vm.DatabaseFin.IDCode,
-                        _vm.DatabaseFin.FinOutline.Chain.Data,
+                        _vm.DatabaseFin.PrimaryImage.FinOutline.Chain.Data,
                         _vm.NumWaveletLevels);
 
                     MessageBox.Show("Coefficient File Generation Complete", "Generate Coefficient Files", MessageBoxButton.OK);

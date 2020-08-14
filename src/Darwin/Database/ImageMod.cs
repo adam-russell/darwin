@@ -63,6 +63,18 @@ namespace Darwin.Database
             xMin, yMin,      // boundaries for cropping
             xMax, yMax;      // ditto
 
+        public ImageMod(ImageMod modToCopy)
+        {
+            Op = modToCopy.Op;
+            min = modToCopy.min;
+            max = modToCopy.max;
+            amount = modToCopy.amount;
+            xMin = modToCopy.xMin;
+            yMin = modToCopy.yMin;
+            xMax = modToCopy.xMax;
+            yMax = modToCopy.yMax;
+        }
+
         // the values are used depending on the ImageModtype
         // op == IMAG_flip, no values used
         // op == IMG_contrast, min is val1, and max is val2
@@ -162,7 +174,6 @@ namespace Darwin.Database
         // op == IMG_undo, no values used
         // op == IMG_redo, no values used
         public void Get(out ImageModType op, out int val1, out int val2, out int val3, out int val4)
-
         {
             val1 = val2 = val3 = val4 = 0;
             // the values are used depending on the ImageModtype

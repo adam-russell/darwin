@@ -129,10 +129,16 @@ namespace Darwin.Wpf.ViewModel
             {
                 foreach (var individual in Database.AllFins)
                 {
-                    var newFeatureOutline = new Outline(individual.FinOutline.ChainPoints, SelectedScheme.FeatureSetType);
-                    newFeatureOutline.RediscoverFeaturePoints(SelectedScheme.FeatureSetType, individual);
-                    individual.FinOutline = newFeatureOutline;
-                    Database.UpdateOutline(individual, true);
+                    if (individual.Images != null)
+                    {
+                        foreach (var image in individual.Images)
+                        {
+                            var newFeatureOutline = new Outline(image.FinOutline.ChainPoints, SelectedScheme.FeatureSetType);
+                            newFeatureOutline.RediscoverFeaturePoints(SelectedScheme.FeatureSetType, individual);
+                            image.FinOutline = newFeatureOutline;
+                            Database.UpdateOutline(image, true);
+                        }
+                    }
                 }
 
                 Database.InvalidateCache();

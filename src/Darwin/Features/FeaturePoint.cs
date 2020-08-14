@@ -82,8 +82,6 @@ namespace Darwin.Features
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public FeaturePoint()
         {
             IsEmpty = true;
@@ -96,11 +94,6 @@ namespace Darwin.Features
             _userSetPosition = featurePoint._userSetPosition;
             _isEmpty = featurePoint._isEmpty;
             _ignore = featurePoint._ignore;
-        }
-
-        protected void RaisePropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

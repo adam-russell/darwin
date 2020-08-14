@@ -218,31 +218,31 @@ namespace Darwin.Wpf.ViewModel
         {
             get
             {
-                if (DatabaseFin == null || DatabaseFin.FinOutline == null || DatabaseFin.FinOutline.FeatureSet == null)
+                if (DatabaseFin == null || DatabaseFin.PrimaryImage.FinOutline == null || DatabaseFin.PrimaryImage.FinOutline.FeatureSet == null)
                     return string.Empty;
 
                 StringBuilder sb = new StringBuilder();
 
-                if (DatabaseFin.FinOutline.FeatureSet.FeaturePointList != null)
+                if (DatabaseFin.PrimaryImage.FinOutline.FeatureSet.FeaturePointList != null)
                 {
-                    foreach (var fp in DatabaseFin.FinOutline.FeatureSet.FeaturePointList)
+                    foreach (var fp in DatabaseFin.PrimaryImage.FinOutline.FeatureSet.FeaturePointList)
                     {
                         if (!fp.Ignore)
                             sb.AppendLine(fp.Name + ": " + fp.Position.ToString());
                     }
                 }
 
-                if (DatabaseFin.FinOutline.FeatureSet.Features != null)
+                if (DatabaseFin.PrimaryImage.FinOutline.FeatureSet.Features != null)
                 {
-                    foreach (var f in DatabaseFin.FinOutline.FeatureSet.Features.Values)
+                    foreach (var f in DatabaseFin.PrimaryImage.FinOutline.FeatureSet.Features.Values)
                     {
                         sb.AppendLine(f.Name + ": " + f.Value?.ToString("N2"));
                     }
                 }
 
-                if (DatabaseFin.FinOutline.FeatureSet.CoordinateFeaturePointList != null)
+                if (DatabaseFin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePointList != null)
                 {
-                    foreach (var f in DatabaseFin.FinOutline.FeatureSet.CoordinateFeaturePointList)
+                    foreach (var f in DatabaseFin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePointList)
                     {
                         if (f.Coordinate != null)
                             sb.AppendLine(f.Name + ": (" + f.Coordinate?.X + ", " + f.Coordinate?.Y + ")");
@@ -277,31 +277,31 @@ namespace Darwin.Wpf.ViewModel
         {
             get
             {
-                if (ComparisonFin == null || ComparisonFin.FinOutline == null || ComparisonFin.FinOutline.FeatureSet == null)
+                if (ComparisonFin == null || ComparisonFin.PrimaryImage.FinOutline == null || ComparisonFin.PrimaryImage.FinOutline.FeatureSet == null)
                     return string.Empty;
 
                 StringBuilder sb = new StringBuilder();
 
-                if (ComparisonFin.FinOutline.FeatureSet.FeaturePointList != null)
+                if (ComparisonFin.PrimaryImage.FinOutline.FeatureSet.FeaturePointList != null)
                 {
-                    foreach (var fp in ComparisonFin.FinOutline.FeatureSet.FeaturePointList)
+                    foreach (var fp in ComparisonFin.PrimaryImage.FinOutline.FeatureSet.FeaturePointList)
                     {
                         if (!fp.Ignore)
                             sb.AppendLine(fp.Name + ": " + fp.Position.ToString());
                     }
                 }
 
-                if (ComparisonFin.FinOutline.FeatureSet.Features != null)
+                if (ComparisonFin.PrimaryImage.FinOutline.FeatureSet.Features != null)
                 {
-                    foreach (var f in ComparisonFin.FinOutline.FeatureSet.Features.Values)
+                    foreach (var f in ComparisonFin.PrimaryImage.FinOutline.FeatureSet.Features.Values)
                     {
                         sb.AppendLine(f.Name + ": " + f.Value?.ToString("N2"));
                     }
                 }
 
-                if (ComparisonFin.FinOutline.FeatureSet.CoordinateFeaturePointList != null)
+                if (ComparisonFin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePointList != null)
                 {
-                    foreach (var f in ComparisonFin.FinOutline.FeatureSet.CoordinateFeaturePointList)
+                    foreach (var f in ComparisonFin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePointList)
                     {
                         if (f.Coordinate != null)
                             sb.AppendLine(f.Name + ": (" + f.Coordinate?.X + ", " + f.Coordinate?.Y + ")");
@@ -388,8 +388,8 @@ namespace Darwin.Wpf.ViewModel
         {
             if (Database != null)
             {
-                var newContour = new Contour(DatabaseFin.FinOutline.ChainPoints);
-                DatabaseFin.FinOutline = new Outline(newContour, Database.CatalogScheme.FeatureSetType, DatabaseFin.FinImage, DatabaseFin.Scale);
+                var newContour = new Contour(DatabaseFin.PrimaryImage.FinOutline.ChainPoints);
+                DatabaseFin.PrimaryImage.FinOutline = new Outline(newContour, Database.CatalogScheme.FeatureSetType, DatabaseFin.PrimaryImage.FinImage, DatabaseFin.PrimaryImage.FinOutline.Scale);
 
                 newContour?.ClipToBounds();
 
@@ -404,9 +404,9 @@ namespace Darwin.Wpf.ViewModel
             if (DatabaseFin == null)
                 return;
 
-            var featurePositions = DatabaseFin.FinOutline?.FeaturePointPositions;
+            var featurePositions = DatabaseFin.PrimaryImage.FinOutline?.FeaturePointPositions;
 
-            var clippedContour = new Contour(DatabaseFin.FinOutline.ChainPoints);
+            var clippedContour = new Contour(DatabaseFin.PrimaryImage.FinOutline.ChainPoints);
 
             if (CoordinateFeaturePoints == null)
                 CoordinateFeaturePoints = new ObservableNotifiableCollection<CoordinateFeaturePoint>();
@@ -414,11 +414,11 @@ namespace Darwin.Wpf.ViewModel
 
             if (ComparisonFin == null)
             {
-                if (DatabaseFin.FinOutline != null &&
-                    DatabaseFin.FinOutline.FeatureSet != null &&
-                    DatabaseFin.FinOutline.FeatureSet.CoordinateFeaturePointList != null)
+                if (DatabaseFin.PrimaryImage.FinOutline != null &&
+                    DatabaseFin.PrimaryImage.FinOutline.FeatureSet != null &&
+                    DatabaseFin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePointList != null)
                 {
-                    foreach (var coordFeature in DatabaseFin.FinOutline.FeatureSet.CoordinateFeaturePointList)
+                    foreach (var coordFeature in DatabaseFin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePointList)
                     {
                         var featureCopy = new CoordinateFeaturePoint(coordFeature);
                         featureCopy.Coordinate.X -= clippedContour.XMin;
@@ -434,7 +434,7 @@ namespace Darwin.Wpf.ViewModel
                 int xMin = clippedContour.XMin;
                 int yMin = clippedContour.YMin;
 
-                var clippedComparisonContour = new Contour(ComparisonFin.FinOutline.ChainPoints);
+                var clippedComparisonContour = new Contour(ComparisonFin.PrimaryImage.FinOutline.ChainPoints);
 
                 if (clippedComparisonContour.XMin < xMin)
                     xMin = clippedComparisonContour.XMin;
@@ -445,7 +445,7 @@ namespace Darwin.Wpf.ViewModel
                 clippedContour?.ClipToBounds(xMin, yMin);
                 clippedComparisonContour?.ClipToBounds(xMin, yMin);
 
-                clippedComparisonContour?.SetFeaturePointPositions(ComparisonFin.FinOutline?.FeaturePointPositions);
+                clippedComparisonContour?.SetFeaturePointPositions(ComparisonFin.PrimaryImage.FinOutline?.FeaturePointPositions);
 
                 DisplayComparisonContour = clippedComparisonContour;
             }
@@ -454,7 +454,7 @@ namespace Darwin.Wpf.ViewModel
 
             DisplayContour = clippedContour;
 
-            Chain newChain = new Chain(DatabaseFin.FinOutline?.Chain);
+            Chain newChain = new Chain(DatabaseFin.PrimaryImage.FinOutline?.Chain);
 
             newChain.Smooth7();
 
@@ -462,7 +462,7 @@ namespace Darwin.Wpf.ViewModel
 
             if (ComparisonFin != null)
             {
-                Chain newComparisonChain = new Chain(ComparisonFin.FinOutline?.Chain);
+                Chain newComparisonChain = new Chain(ComparisonFin.PrimaryImage.FinOutline?.Chain);
                 newComparisonChain.Smooth7();
                 DisplayComparisonChain = newComparisonChain;
             }

@@ -165,10 +165,10 @@ namespace Darwin.Wpf.ViewModel
                 _unknownShowOriginalImage = value;
                 RaisePropertyChanged("UnknownShowOriginalImage");
 
-                if (_unknownShowOriginalImage && DatabaseFin.OriginalFinImage != null)
-                    UnknownImageSource = DatabaseFin.OriginalFinImage.ToImageSource();
+                if (_unknownShowOriginalImage && DatabaseFin.PrimaryImage.OriginalFinImage != null)
+                    UnknownImageSource = DatabaseFin.PrimaryImage.OriginalFinImage.ToImageSource();
                 else
-                    UnknownImageSource = DatabaseFin.FinImage.ToImageSource();
+                    UnknownImageSource = DatabaseFin.PrimaryImage.FinImage.ToImageSource();
             }
         }
 
@@ -346,8 +346,8 @@ namespace Darwin.Wpf.ViewModel
 
             DatabaseFin = unknownFin;
 
-            if (DatabaseFin != null && DatabaseFin.FinImage != null)
-                UnknownImageSource = DatabaseFin.FinImage.ToImageSource();
+            if (DatabaseFin != null && DatabaseFin.PrimaryImage.FinImage != null)
+                UnknownImageSource = DatabaseFin.PrimaryImage.FinImage.ToImageSource();
 
             MatchResults = matchResults;
             Database = database;
@@ -380,15 +380,15 @@ namespace Darwin.Wpf.ViewModel
                 DatabaseFin selectedFin = FullyLoadFinByID(SelectedResult.DatabaseID);
 
                 if (SelectedShowOriginalImage)
-                    SelectedImageSource = selectedFin.OriginalFinImage.ToImageSource();
+                    SelectedImageSource = selectedFin.PrimaryImage.OriginalFinImage.ToImageSource();
                 else
-                    SelectedImageSource = selectedFin.FinImage.ToImageSource();
+                    SelectedImageSource = selectedFin.PrimaryImage.FinImage.ToImageSource();
             }
         }
 
         public void SaveMatchResults(out string finzSaveFilename, out string resultsSaveFilename)
         {
-            string baseFilename = (string.IsNullOrEmpty(DatabaseFin.FinFilename)) ? DatabaseFin.ImageFilename : DatabaseFin.FinFilename;
+            string baseFilename = (string.IsNullOrEmpty(DatabaseFin.FinFilename)) ? DatabaseFin.PrimaryImage.ImageFilename : DatabaseFin.FinFilename;
             finzSaveFilename = Path.Combine(Options.CurrentUserOptions.CurrentTracedFinsPath, Path.GetFileNameWithoutExtension(baseFilename) + ".finz");
             finzSaveFilename = CatalogSupport.SaveFinz(Database.CatalogScheme, DatabaseFin, finzSaveFilename, false);
 

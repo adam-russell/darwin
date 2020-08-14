@@ -29,11 +29,9 @@ using System.Windows.Media;
 
 namespace Darwin.Wpf.ViewModel
 {
-    public class MainWindowViewModel : INotifyPropertyChanged
+    public class MainWindowViewModel : BaseViewModel
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        public string WindowTitle
+        public new string WindowTitle
         {
             get
             {
@@ -239,14 +237,14 @@ namespace Darwin.Wpf.ViewModel
             else
             {
                 // TODO: Cache images?
-                if (!string.IsNullOrEmpty(SelectedFin.ImageFilename))
+                if (!string.IsNullOrEmpty(SelectedFin.PrimaryImage.ImageFilename))
                 {
                     CatalogSupport.UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentSurveyAreaPath, SelectedFin);
 
-                    SelectedContour = new Contour(SelectedFin.FinOutline.ChainPoints, SelectedFin.Scale);
+                    SelectedContour = new Contour(SelectedFin.PrimaryImage.FinOutline.ChainPoints, SelectedFin.PrimaryImage.FinOutline.Scale);
 
                     string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath,
-                        (string.IsNullOrEmpty(SelectedFin.OriginalImageFilename)) ? SelectedFin.ImageFilename : SelectedFin.OriginalImageFilename);
+                        (string.IsNullOrEmpty(SelectedFin.PrimaryImage.OriginalImageFilename)) ? SelectedFin.PrimaryImage.ImageFilename : SelectedFin.PrimaryImage.OriginalImageFilename);
 
                     if (File.Exists(fullImageFilename))
                     {
@@ -261,9 +259,9 @@ namespace Darwin.Wpf.ViewModel
                             SelectedOriginalImageSource = bitmap.ToImageSource();
 
                             // TODO: Refactor this so we're not doing it every time, which is a little crazy
-                            if (SelectedFin.ImageMods != null && SelectedFin.ImageMods.Count > 0)
+                            if (SelectedFin.PrimaryImage.ImageMods != null && SelectedFin.PrimaryImage.ImageMods.Count > 0)
                             {
-                                bitmap = ModificationHelper.ApplyImageModificationsToOriginal(bitmap, SelectedFin.ImageMods);
+                                bitmap = ModificationHelper.ApplyImageModificationsToOriginal(bitmap, SelectedFin.PrimaryImage.ImageMods);
                                // TODO: HiDPI hack
                                 bitmap.SetResolution(96, 96);
                             }
@@ -279,14 +277,6 @@ namespace Darwin.Wpf.ViewModel
                     }
                 }
             }
-        }
-
-        private void RaisePropertyChanged(string propertyName)
-        {
-            var handler = PropertyChanged;
-            if (handler == null) return;
-
-            handler(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

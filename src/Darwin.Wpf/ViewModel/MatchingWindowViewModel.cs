@@ -272,7 +272,7 @@ namespace Darwin.Wpf.ViewModel
                     true);
             }
 
-            UpdateOutlines(DatabaseFin.FinOutline.ChainPoints, null);
+            UpdateOutlines(DatabaseFin.PrimaryImage.FinOutline.ChainPoints, null);
 
             ProgressBarVisibility = Visibility.Hidden;
 

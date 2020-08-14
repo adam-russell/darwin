@@ -71,43 +71,19 @@ namespace Darwin.Database
 {
     public class DatabaseFin : BaseEntity
     {
-        public Bitmap OriginalFinImage;
-        public Bitmap FinImage;      // modified fin image from TraceWin, ...
-
-        //public long DatabaseID { get; set; }
-
-        private Outline _finOutline;
         private string _IDCode;
         private string _name;
-        private string _dateOfSighting;
-        private string _rollAndFrame;
-        private string _locationCode;
         private string _damageCategory;
-        private string _shortDescription;
-        private string _imageFilename; //  001DB
         private string _thumbnailFileName;
-        public char[,] ThumbnailPixmap;
-        public int ThumbnailRows;
-
-        //  1.4 - new members for tracking image modifications during tracing
-        public double XMin, YMin, XMax, YMax; // internal cropping bounds
-        public double Scale;                     // image to Outline scale change
-
-        public List<ImageMod> ImageMods;    //  1.8 - for list of image modifications
-        public string OriginalImageFilename; //  1.8 - filename of original unmodified image
 
         private string _finFilename;
-
-        public string FinFilename   //  1.6 - for name of fin file if fin saved outside DB
+        public string FinFilename  // 1.6 - for name of fin file if fin saved outside DB
         {
             get => _finFilename;
             set
             {
                 _finFilename = value;
                 RaisePropertyChanged("FinFilename");
-
-                if (string.IsNullOrEmpty(OriginalImageFilename))
-                    OriginalImageFilename = value;
             }
         }
 
@@ -143,38 +119,6 @@ namespace Darwin.Database
                 FieldsChanged = true;
             }
         }
-        public string DateOfSighting
-        {
-            get => _dateOfSighting;
-            set
-            {
-                _dateOfSighting = value;
-                RaisePropertyChanged("DateOfSighting");
-                FieldsChanged = true;
-            }
-        }
-
-        public string RollAndFrame
-        {
-            get => _rollAndFrame;
-            set
-            {
-                _rollAndFrame = value;
-                RaisePropertyChanged("RollAndFrame");
-                FieldsChanged = true;
-            }
-        }
-
-        public string LocationCode
-        {
-            get => _locationCode;
-            set
-            {
-                _locationCode = value;
-                RaisePropertyChanged("LocationCode");
-                FieldsChanged = true;
-            }
-        }
 
         public string DamageCategory
         {
@@ -184,27 +128,6 @@ namespace Darwin.Database
                 _damageCategory = value;
                 RaisePropertyChanged("DamageCategory");
                 FieldsChanged = true;
-            }
-        }
-
-        public string ShortDescription
-        {
-            get => _shortDescription;
-            set
-            {
-                _shortDescription = value;
-                RaisePropertyChanged("ShortDescription");
-                FieldsChanged = true;
-            }
-        }
-
-        public string ImageFilename
-        {
-            get => _imageFilename;
-            set
-            {
-                _imageFilename = value;
-                RaisePropertyChanged("ImageFilename");
             }
         }
 
@@ -219,6 +142,44 @@ namespace Darwin.Database
             }
         }
 
+        private List<DatabaseImage> _images;
+        public List<DatabaseImage> Images
+        {
+            get => _images;
+            set
+            {
+                _images = value;
+                RaisePropertyChanged("Images");
+            }
+        }
+
+        private void CheckImagesCollection()
+        {
+            if (_images == null)
+                _images = new List<DatabaseImage>();
+
+            if (_images.Count < 1)
+                _images.Add(new DatabaseImage());
+        }
+        public DatabaseImage PrimaryImage
+        {
+            get
+            {
+                CheckImagesCollection();
+
+                // Relies on this list being sorted by order
+                return _images[0];
+            }
+            //set
+            //{
+            //    CheckImagesCollection();
+
+            //    _images[0] = value;
+
+            //    RaisePropertyChanged("PrimaryImage");
+            //}
+        }
+
         public string ThumbnailFilenameUri
         {
             get
@@ -230,21 +191,8 @@ namespace Darwin.Database
             }
         }
 
-        public Outline FinOutline //  008OL
-        {
-            get => _finOutline;
-            set
-            {
-                _finOutline = value;
-                RaisePropertyChanged("FinOutline");
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
         public DatabaseFin()
         {
-
         }
 
         //                                                **
@@ -265,126 +213,73 @@ namespace Darwin.Database
             string shortDescription
         )
         {
-            ImageFilename = filename; //  001DB
-            FinOutline = new Outline(outline); //  006DF,008OL
+            FinFilename = string.Empty; //  1.6
+
             IDCode = idcode;
             Name = name;
-            DateOfSighting = dateOfSighting;
-            RollAndFrame = rollAndFrame;
-            LocationCode = locationCode;
             DamageCategory = damageCategory;
-            ShortDescription = shortDescription;
-            ThumbnailPixmap = null;
-            ThumbnailRows = 0;
-            XMin = 0.0; //  1.4
-            XMax = 0.0; //  1.4
-            YMin = 0.0; //  1.4
-            YMax = 0.0; //  1.4
-            Scale = 1.0; //  1.4
-            FinImage = null; //  1.5
-            FinFilename = string.Empty; //  1.6
+
+            _images = new List<DatabaseImage>();
+            _images.Add(new DatabaseImage(
+                filename,
+                outline,
+                dateOfSighting,
+                rollAndFrame,
+                locationCode,
+                shortDescription));
 
             //  1.5 - need some way to CATCH error thrown when image file
             //         does not exist or is unsupported type  --
             //         program now crashes when database image is misplaced or misnamed
 
-            OriginalFinImage = new Bitmap(ImageFilename); //  001DB
+            //OriginalFinImage = new Bitmap(ImageFilename); //  001DB
 
             FieldsChanged = false;
         }
 
-        //  1.99 - new constructor used by SQLlite database code
-        //                                                **
-        //
+        /*
+         *             DatabaseFin fin = new DatabaseFin(id,
+                individual.idcode,
+                individual.name,
+                damagecategory.Name,
+                images);*/
+
+        //  1.99 - new constructor used by SQLite database code
         // Added. Called in Database::getFin().
-        //
         public DatabaseFin(
             long id,
-            string filename, //  001DB
-            Outline outline, //  008OL
 			string idcode,
 			string name,
-			string dateOfSighting,
-			string rollAndFrame,
-			string locationCode,
 			string damageCategory,
-			string shortDescription,
-			long datapos
+			List<DatabaseImage> images
 		)
         {
             ID = id;
-            ImageFilename = filename; //  001DB
-			FinOutline = new Outline(outline); //  006DF,008OL
             IDCode = idcode;
             Name = name;
-            DateOfSighting = dateOfSighting;
-            RollAndFrame = rollAndFrame;
-            LocationCode = locationCode;
             DamageCategory = damageCategory;
-            ShortDescription = shortDescription;
-            ID = datapos;
-            XMin = 0.0; //  1.4
-            XMax = 0.0; //  1.4
-            YMin= 0.0; //  1.4
-            YMax = 0.0; //  1.4
-            Scale = 1.0; //  1.4
-            FinImage = null; //  1.5
+
+            //Scale = 1.0; //  1.4
+            //FinImage = null; //  1.5
             FinFilename = string.Empty; //  1.6
-            OriginalFinImage = null;
+
+            Images = images;
 
             FieldsChanged = false;
         }
 
         public DatabaseFin(DatabaseFin fin)
         {
-            ImageFilename = fin.ImageFilename;        //  001DB
-			OriginalFinImage = null;  //   major change JHS
-            FinImage = null; //  1.5
             ID = fin.ID; //  001DB
-            FinOutline = new Outline(fin.FinOutline); //  006DF,008OL
             IDCode = fin.IDCode;
             Name = fin.Name;
-            DateOfSighting = fin.DateOfSighting;
-            RollAndFrame = fin.RollAndFrame;
-            LocationCode = fin.LocationCode;
+
+            Images = DatabaseImage.CopyDatabaseImageList(fin.Images);
+
             DamageCategory = fin.DamageCategory;
-            ShortDescription = fin.ShortDescription;
-            // TODO
-            ThumbnailPixmap = null; //new char*[fin.mThumbnailRows];
-            ThumbnailRows = fin.ThumbnailRows;
-
-            XMin = fin.XMin; //  1.4
-            XMax = fin.XMax; //  1.4
-            YMin = fin.YMin; //  1.4
-            YMax = fin.YMax; //  1.4
-            Scale = fin.Scale; //  1.4
-            FinFilename = fin.FinFilename; //  1.6
-            OriginalImageFilename = fin.OriginalImageFilename; //  1.8
-
-            ImageMods = fin.ImageMods; //  1.8
-
-            //  1.5 - just set pointer to original copy from TraceWindow
-            //  1.8 - we actually create a COPY of the modified image here
-            if (null != fin.FinImage)
-                FinImage = new Bitmap(fin.FinImage);
-
-            //  1.8 - and we create a COPY of the original image here
-            if (null != fin.OriginalFinImage)
-                OriginalFinImage = new Bitmap(fin.OriginalFinImage);
-
-            // TODO
-            //for (int i = 0; i < fin.mThumbnailRows; i++)
-            //{
-            //    mThumbnailPixmap[i] = new char[strlen(fin->mThumbnailPixmap[i]) + 1];
-            //    strcpy(mThumbnailPixmap[i], fin->mThumbnailPixmap[i]);
-            //}
+            FinFilename = fin.FinFilename;
 
             FieldsChanged = false;
-        }
-
-        protected virtual void RaisePropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public void SaveSightingData(string filename)
@@ -394,13 +289,13 @@ namespace Darwin.Database
                 writer.WriteLine(
                     IDCode?.StripCRLFTab() + "\t" +
                     Name?.StripCRLFTab() + "\t" +
-                    DateOfSighting?.StripCRLFTab() + "\t" +
-                    RollAndFrame?.StripCRLFTab() + "\t" +
-                    LocationCode?.StripCRLFTab() + "\t" +
+                    PrimaryImage.DateOfSighting?.StripCRLFTab() + "\t" +
+                    PrimaryImage.RollAndFrame?.StripCRLFTab() + "\t" +
+                    PrimaryImage.LocationCode?.StripCRLFTab() + "\t" +
                     DamageCategory?.StripCRLFTab() + "\t" +
-                    ShortDescription?.StripCRLFTab() + "\t" +
-                    OriginalImageFilename + "\t" +
-                    ImageFilename);
+                    PrimaryImage.ShortDescription?.StripCRLFTab() + "\t" +
+                    PrimaryImage.OriginalImageFilename + "\t" +
+                    PrimaryImage.ImageFilename);
             }
         }
     }

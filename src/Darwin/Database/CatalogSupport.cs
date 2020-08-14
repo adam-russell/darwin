@@ -82,19 +82,19 @@ namespace Darwin.Database
         {
 			// TODO:
 			// Probably not the best "flag" to look at.  We're saving OriginalImageFilename in the database for newer fins
-			if (string.IsNullOrEmpty(fin.OriginalImageFilename))
+			if (string.IsNullOrEmpty(fin.PrimaryImage.OriginalImageFilename))
 			{
 				List<ImageMod> imageMods;
 				bool thumbOnly;
 				string originalFilename;
 				float normScale;
 
-				string fullFilename = Path.Combine(basePath, fin.ImageFilename);
+				string fullFilename = Path.Combine(basePath, fin.PrimaryImage.ImageFilename);
 
 				PngHelper.ParsePngText(fullFilename, out normScale, out imageMods, out thumbOnly, out originalFilename);
 
-				fin.ImageMods = imageMods;
-				fin.Scale = normScale;
+				fin.PrimaryImage.ImageMods = imageMods;
+				fin.PrimaryImage.FinOutline.Scale = normScale;
 
 				// This is a little hacky, but we're going to get the bottom directory name, and append that to
 				// the filename below.
@@ -105,8 +105,8 @@ namespace Darwin.Database
 					originalFilename = Path.Combine(bottomDirectoryName, originalFilename);
 
 					// TODO Original isn't right -- need to replay imagemods, maybe?
-					fin.OriginalImageFilename = originalFilename;
-					fin.ImageFilename = originalFilename;
+					fin.PrimaryImage.OriginalImageFilename = originalFilename;
+					fin.PrimaryImage.ImageFilename = originalFilename;
 				}
 				// TODO: Save these changes back to the database?
 			}
@@ -151,8 +151,8 @@ namespace Darwin.Database
 
 				fin.FinFilename = filename;
 
-                var baseimgfilename = Path.GetFileName(fin.ImageFilename);
-                fin.ImageFilename = Path.Combine(fullDirectoryName, baseimgfilename);
+                var baseimgfilename = Path.GetFileName(fin.PrimaryImage.ImageFilename);
+                fin.PrimaryImage.ImageFilename = Path.Combine(fullDirectoryName, baseimgfilename);
 
 				List<ImageMod> imageMods;
 				bool thumbOnly;
@@ -160,34 +160,34 @@ namespace Darwin.Database
 				float normScale;
 
 				// The old version kept this info inside PNG text.  The newer version saves it all in the SQLite database.
-				PngHelper.ParsePngText(fin.ImageFilename, out normScale, out imageMods, out thumbOnly, out originalFilenameFromPng);
+				PngHelper.ParsePngText(fin.PrimaryImage.ImageFilename, out normScale, out imageMods, out thumbOnly, out originalFilenameFromPng);
 
 				if (imageMods != null && imageMods.Count > 0)
-					fin.ImageMods = imageMods;
+					fin.PrimaryImage.ImageMods = imageMods;
 
 				if (normScale != 1.0)
-					fin.Scale = normScale;
+					fin.PrimaryImage.FinOutline.Scale = normScale;
 
-				string originalFilenameToUse = (string.IsNullOrEmpty(originalFilenameFromPng)) ? fin.OriginalImageFilename : originalFilenameFromPng;
+				string originalFilenameToUse = (string.IsNullOrEmpty(originalFilenameFromPng)) ? fin.PrimaryImage.OriginalImageFilename : originalFilenameFromPng;
 
 				if (!string.IsNullOrEmpty(originalFilenameToUse))
 				{
-					fin.OriginalImageFilename = Path.Combine(fullDirectoryName, Path.GetFileName(originalFilenameToUse));
+					fin.PrimaryImage.OriginalImageFilename = Path.Combine(fullDirectoryName, Path.GetFileName(originalFilenameToUse));
 
 					// We're loading the image this way because Bitmap keeps a lock on the original file, and
 					// we want to try to delete the file below.  So we open the file in another object in a using statement
 					// then copy it over to our actual working object.
-					using (var originalImageFromFile = (Bitmap)Image.FromFile(fin.OriginalImageFilename))
+					using (var originalImageFromFile = (Bitmap)Image.FromFile(fin.PrimaryImage.OriginalImageFilename))
 					{
-						fin.OriginalFinImage = new Bitmap(originalImageFromFile);
-						fin.OriginalFinImage?.SetResolution(96, 96);
+						fin.PrimaryImage.OriginalFinImage = new Bitmap(originalImageFromFile);
+						fin.PrimaryImage.OriginalFinImage?.SetResolution(96, 96);
 
-						if (fin.ImageMods != null)
-							fin.FinImage = ModificationHelper.ApplyImageModificationsToOriginal(fin.OriginalFinImage, fin.ImageMods);
+						if (fin.PrimaryImage.ImageMods != null)
+							fin.PrimaryImage.FinImage = ModificationHelper.ApplyImageModificationsToOriginal(fin.PrimaryImage.OriginalFinImage, fin.PrimaryImage.ImageMods);
                         else
-							fin.FinImage = new Bitmap(fin.OriginalFinImage);
+							fin.PrimaryImage.FinImage = new Bitmap(fin.PrimaryImage.OriginalFinImage);
 
-						fin.FinImage?.SetResolution(96, 96);
+						fin.PrimaryImage.FinImage?.SetResolution(96, 96);
 					}
 				}
 
@@ -311,34 +311,34 @@ namespace Darwin.Database
 			{
 				Directory.CreateDirectory(fullDirectoryName);
 
-				string originalDestination = Path.Combine(fullDirectoryName, Path.GetFileName(fin.OriginalImageFilename));
+				string originalDestination = Path.Combine(fullDirectoryName, Path.GetFileName(fin.PrimaryImage.OriginalImageFilename));
 
-				if (File.Exists(fin.OriginalImageFilename))
+				if (File.Exists(fin.PrimaryImage.OriginalImageFilename))
 				{
-					File.Copy(fin.OriginalImageFilename, originalDestination);
+					File.Copy(fin.PrimaryImage.OriginalImageFilename, originalDestination);
 				}
-				else if (fin.OriginalFinImage != null)
+				else if (fin.PrimaryImage.OriginalFinImage != null)
 				{
 					var imageFormat = BitmapHelper.GetImageFormatFromExtension(originalDestination);
 
 					if (imageFormat == ImageFormat.Png)
-						fin.OriginalFinImage.SaveAsCompressedPng(originalDestination);
+						fin.PrimaryImage.OriginalFinImage.SaveAsCompressedPng(originalDestination);
 					else
-						fin.OriginalFinImage.Save(originalDestination, imageFormat);
+						fin.PrimaryImage.OriginalFinImage.Save(originalDestination, imageFormat);
 				}
 
-				fin.OriginalImageFilename = originalDestination;
+				fin.PrimaryImage.OriginalImageFilename = originalDestination;
 
 				// replace ".finz" with "_wDarwinMods.png" for modified image filename
 
-				fin.ImageFilename = Path.Combine(fullDirectoryName, Path.GetFileNameWithoutExtension(filename) + AppSettings.DarwinModsFilenameAppendPng);
+				fin.PrimaryImage.ImageFilename = Path.Combine(fullDirectoryName, Path.GetFileNameWithoutExtension(filename) + AppSettings.DarwinModsFilenameAppendPng);
 
 				//fin.FinImage.SaveAsCompressedPng(fin.ImageFilename);
 
 				// Saving a thumbnail to save disk space.  We'll reconstruct this based on image mods when we open
 				// it back up.
-				var finImageThumbnail = BitmapHelper.ResizeKeepAspectRatio(fin.FinImage, FinzThumbnailMaxDim, FinzThumbnailMaxDim);
-				finImageThumbnail.SaveAsCompressedPng(fin.ImageFilename);
+				var finImageThumbnail = BitmapHelper.ResizeKeepAspectRatio(fin.PrimaryImage.FinImage, FinzThumbnailMaxDim, FinzThumbnailMaxDim);
+				finImageThumbnail.SaveAsCompressedPng(fin.PrimaryImage.ImageFilename);
 
 				string dbFilename = Path.Combine(fullDirectoryName, "database.db");
 
@@ -398,7 +398,7 @@ namespace Darwin.Database
 			if (databaseFin == null)
 				throw new ArgumentNullException(nameof(databaseFin));
 
-			if (string.IsNullOrEmpty(databaseFin.OriginalImageFilename) || databaseFin.OriginalFinImage == null)
+			if (string.IsNullOrEmpty(databaseFin.PrimaryImage.OriginalImageFilename) || databaseFin.PrimaryImage.OriginalFinImage == null)
 				throw new ArgumentOutOfRangeException(nameof(databaseFin));
 
 			// First, copy the images to the catalog folder
@@ -406,42 +406,42 @@ namespace Darwin.Database
 			// Check the original image.  If we still have the actual original image file, just copy it.  If
 			// not, then save the one we have in memory to the folder.
 
-			string originalImageSaveAs = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, Path.GetFileName(databaseFin.OriginalImageFilename));
+			string originalImageSaveAs = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, Path.GetFileName(databaseFin.PrimaryImage.OriginalImageFilename));
 
 			// If we already have an item in the database with the same filename, try a few others
 			if (File.Exists(originalImageSaveAs))
 				originalImageSaveAs = FileHelper.FindUniqueFilename(originalImageSaveAs);
 
-			if (File.Exists(databaseFin.OriginalImageFilename))
+			if (File.Exists(databaseFin.PrimaryImage.OriginalImageFilename))
             {
-				File.Copy(databaseFin.OriginalImageFilename, originalImageSaveAs);
+				File.Copy(databaseFin.PrimaryImage.OriginalImageFilename, originalImageSaveAs);
             }
 			else
             {
 				var imageFormat = BitmapHelper.GetImageFormatFromExtension(originalImageSaveAs);
 
 				if (imageFormat == ImageFormat.Png)
-					databaseFin.OriginalFinImage.SaveAsCompressedPng(originalImageSaveAs);
+					databaseFin.PrimaryImage.OriginalFinImage.SaveAsCompressedPng(originalImageSaveAs);
 				else
-					databaseFin.OriginalFinImage.Save(originalImageSaveAs, imageFormat);
+					databaseFin.PrimaryImage.OriginalFinImage.Save(originalImageSaveAs, imageFormat);
             }
 
 			// Now save the modified image (or the original if for some reason we don't have the modified one)
 			string modifiedImageSaveAs = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
 				Path.GetFileNameWithoutExtension(originalImageSaveAs) + AppSettings.DarwinModsFilenameAppendPng);
 
-			if (databaseFin.FinImage != null)
+			if (databaseFin.PrimaryImage.FinImage != null)
             {
-				databaseFin.FinImage.SaveAsCompressedPng(modifiedImageSaveAs);
+				databaseFin.PrimaryImage.FinImage.SaveAsCompressedPng(modifiedImageSaveAs);
             }
 			else
             {
-				databaseFin.OriginalFinImage.SaveAsCompressedPng(modifiedImageSaveAs);
+				databaseFin.PrimaryImage.OriginalFinImage.SaveAsCompressedPng(modifiedImageSaveAs);
             }
 
 			// Now let's overwrite the filenames without any paths
-			databaseFin.OriginalImageFilename = Path.GetFileName(originalImageSaveAs);
-			databaseFin.ImageFilename = Path.GetFileName(modifiedImageSaveAs);
+			databaseFin.PrimaryImage.OriginalImageFilename = Path.GetFileName(originalImageSaveAs);
+			databaseFin.PrimaryImage.ImageFilename = Path.GetFileName(modifiedImageSaveAs);
 
 			// Finally, add it to the database
 			database.Add(databaseFin);
@@ -496,12 +496,11 @@ namespace Darwin.Database
 						DatabaseFin finToSave = new DatabaseFin(fin);
 						//UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentSurveyAreaPath, finToSave);
 
-						var imageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath, finToSave.ImageFilename);
+						var imageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath, finToSave.PrimaryImage.ImageFilename);
 						if (File.Exists(imageFilename))
 							archive.CreateEntryFromFile(imageFilename, Path.GetFileName(imageFilename));
 
-
-						string originalImageFilename = (string.IsNullOrEmpty(fin.OriginalImageFilename)) ? GetOriginalImageFilenameFromPng(imageFilename) : fin.OriginalImageFilename;
+						string originalImageFilename = string.IsNullOrEmpty(fin.PrimaryImage.OriginalImageFilename) ? GetOriginalImageFilenameFromPng(imageFilename) : fin.PrimaryImage.OriginalImageFilename;
 
 						if (!string.IsNullOrEmpty(originalImageFilename))
 						{
@@ -520,12 +519,12 @@ namespace Darwin.Database
 		{
 			DatabaseFin finCopy = new DatabaseFin(fin);
 			// TODO: Cache images?
-			if (!string.IsNullOrEmpty(finCopy.ImageFilename))
+			if (!string.IsNullOrEmpty(finCopy.PrimaryImage.ImageFilename))
 			{
 				CatalogSupport.UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentSurveyAreaPath, finCopy);
 
 				string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath,
-					(string.IsNullOrEmpty(finCopy.OriginalImageFilename)) ? finCopy.ImageFilename : finCopy.OriginalImageFilename);
+					(string.IsNullOrEmpty(finCopy.PrimaryImage.OriginalImageFilename)) ? finCopy.PrimaryImage.ImageFilename : finCopy.PrimaryImage.OriginalImageFilename);
 
 				if (File.Exists(fullImageFilename))
 				{
@@ -535,23 +534,23 @@ namespace Darwin.Database
 					// TODO: Hack for HiDPI -- this should be more intelligent.
 					bitmap.SetResolution(96, 96);
 
-					finCopy.OriginalFinImage = new Bitmap(bitmap);
+					finCopy.PrimaryImage.OriginalFinImage = new Bitmap(bitmap);
 
 					// TODO: Refactor this so we're not doing it every time, which is a little crazy
-					if (finCopy.ImageMods != null && finCopy.ImageMods.Count > 0)
+					if (finCopy.PrimaryImage.ImageMods != null && finCopy.PrimaryImage.ImageMods.Count > 0)
 					{
-						bitmap = ModificationHelper.ApplyImageModificationsToOriginal(bitmap, finCopy.ImageMods);
+						bitmap = ModificationHelper.ApplyImageModificationsToOriginal(bitmap, finCopy.PrimaryImage.ImageMods);
 						// TODO: HiDPI hack
 						bitmap.SetResolution(96, 96);
 					}
 
-					finCopy.FinImage = bitmap;
+					finCopy.PrimaryImage.FinImage = bitmap;
 				}
 			}
 
-			if (!string.IsNullOrEmpty(finCopy.OriginalImageFilename) && !File.Exists(finCopy.OriginalImageFilename))
+			if (!string.IsNullOrEmpty(finCopy.PrimaryImage.OriginalImageFilename) && !File.Exists(finCopy.PrimaryImage.OriginalImageFilename))
 			{
-				finCopy.OriginalImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath, finCopy.OriginalImageFilename);
+				finCopy.PrimaryImage.OriginalImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath, finCopy.PrimaryImage.OriginalImageFilename);
 			}
 
 			return finCopy;

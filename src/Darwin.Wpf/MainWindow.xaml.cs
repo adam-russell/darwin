@@ -292,7 +292,7 @@ namespace Darwin.Wpf
             _vm.Fins = new ObservableNotifiableCollection<DatabaseFin>(
                 _vm.DarwinDatabase
                 .GetAllFins()
-                .Select(x => { x.ThumbnailFilename = x.ImageFilename; return x; })
+                .Select(x => { x.ThumbnailFilename = x.PrimaryImage.ImageFilename; return x; })
                 .ToList());
 
             if (!initialLoad)
@@ -306,7 +306,7 @@ namespace Darwin.Wpf
             _vm.Fins = new ObservableNotifiableCollection<DatabaseFin>(
                 _vm.DarwinDatabase
                 .GetAllFins()
-                .Select(x => { x.ThumbnailFilename = x.ImageFilename; return x; })
+                .Select(x => { x.ThumbnailFilename = x.PrimaryImage.ImageFilename; return x; })
                 .ToList());
 
             SelectFirstFin();
@@ -318,7 +318,7 @@ namespace Darwin.Wpf
             _vm.Fins = new ObservableNotifiableCollection<DatabaseFin>(
                 _vm.DarwinDatabase
                 .GetAllFins()
-                .Select(x => { x.ThumbnailFilename = x.ImageFilename; return x; })
+                .Select(x => { x.ThumbnailFilename = x.PrimaryImage.ImageFilename; return x; })
                 .ToList());
 
             // Select the last fin, and scroll to it so the user can see it
@@ -669,8 +669,8 @@ namespace Darwin.Wpf
             if (_vm.SelectedFin != null)
             {
                 var fin = _vm.FullyLoadFin();
-                fin.FinOutline.ChainPoints = null;
-                fin.FinImage = fin.OriginalFinImage;
+                fin.PrimaryImage.FinOutline.ChainPoints = null;
+                fin.PrimaryImage.FinImage = fin.PrimaryImage.OriginalFinImage;
                 var vm = new TraceWindowViewModel(fin, _vm.DarwinDatabase, "Viewing " + fin.IDCode + " Original Image", this);
                 TraceWindow traceWindow = new TraceWindow(vm);
                 traceWindow.Show();

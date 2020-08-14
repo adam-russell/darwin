@@ -40,7 +40,7 @@ namespace Darwin.Database
         private const string SettingsCatalogSchemeName = "CatalogSchemeName";
         private const string SettingsFeatureSetType = "FeatureSetType";
 
-        public const int LatestDBVersion = 6;
+        public const int LatestDBVersion = 7;
 
         private CatalogScheme _catalogScheme;
         public override CatalogScheme CatalogScheme
@@ -72,9 +72,7 @@ namespace Darwin.Database
             {
                 // TODO: The thumbnail part should be temporary
                 if (_allFins == null)
-                    _allFins = GetAllFins()
-                        .Select(x => { x.ThumbnailFilename = x.ImageFilename; return x; })
-                        .ToList();
+                    _allFins = GetAllFins();
 
                 return _allFins;
             }
@@ -118,168 +116,6 @@ namespace Darwin.Database
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "<Pending>")]
-        private void SetVersion(SQLiteConnection conn, long version)
-        {
-            using (var cmd = new SQLiteCommand(conn))
-            {
-                cmd.CommandText = "PRAGMA user_version = " + version.ToString();
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        private void CheckVersionAndUpgrade(SQLiteConnection conn)
-        {
-            long version = 0;
-            using (var cmd = new SQLiteCommand(conn))
-            {
-                cmd.CommandText = "PRAGMA user_version;";
-                var rdr = cmd.ExecuteReader();
-
-                if (rdr.Read())
-                    version = (long)rdr[0];
-            }
-
-            // Maybe this should be a little more generic, but just hardcoding version upgrades right now
-            if (version < LatestDBVersion)
-            {
-                if (version < 2)
-                    UpgradeToVersion2(conn);
-
-                if (version < 3)
-                    UpgradeToVersion3(conn);
-
-                if (version < 4)
-                    UpgradeToVersion4(conn);
-
-                if (version < 5)
-                    UpgradeToVersion5(conn);
-
-                UpgradeToVersion6(conn);
-            }
-        }
-
-        private void UpgradeToVersion2(SQLiteConnection conn)
-        {
-            try
-            {
-                const string AddScaleToOutlines = "ALTER TABLE Outlines ADD COLUMN Scale REAL DEFAULT NULL";
-
-                using (var cmd = new SQLiteCommand(conn))
-                {
-                    cmd.CommandText = AddScaleToOutlines;
-                    cmd.ExecuteNonQuery();
-                }
-
-                const string AddOriginalImageFilename = "ALTER TABLE Images ADD COLUMN OriginalImageFilename TEXT DEFAULT NULL";
-                using (var cmd2 = new SQLiteCommand(conn))
-                {
-                    cmd2.CommandText = AddOriginalImageFilename;
-                    cmd2.ExecuteNonQuery();
-                }
-
-                SetVersion(conn, 2);
-            }
-            catch { }
-        }
-
-        private void UpgradeToVersion3(SQLiteConnection conn)
-        {
-            try
-            {
-                const string CreateFeaturePointsTable = @"CREATE TABLE IF NOT EXISTS OutlineFeaturePoints(
-                        ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Type INTEGER,
-                        Position INTEGER,
-                        UserSetPosition INTEGER,
-                        fkOutlineID INTEGER
-                    );
-                    CREATE INDEX IF NOT EXISTS IX_OutlineFeaturePoints_fkOutlineID ON OutlineFeaturePoints (fkOutlineID);";
-
-                using (var cmd = new SQLiteCommand(conn))
-                {
-                    cmd.CommandText = CreateFeaturePointsTable;
-                    cmd.ExecuteNonQuery();
-                }
-
-                SetVersion(conn, 3);
-            }
-            catch { }
-        }
-
-        private void UpgradeToVersion4(SQLiteConnection conn)
-        {
-            try
-            {
-                const string CreateSettingsTable = @"CREATE TABLE IF NOT EXISTS Settings (
-                        Key TEXT,
-                        Value TEXT
-                    );
-                    CREATE INDEX IF NOT EXISTS IX_Settings_Key ON Settings (Key);";
-
-                using (var cmd = new SQLiteCommand(conn))
-                {
-                    cmd.CommandText = CreateSettingsTable;
-                    cmd.ExecuteNonQuery();
-                }
-
-                SetVersion(conn, 4);
-            }
-            catch { }
-        }
-
-        private void UpgradeToVersion5(SQLiteConnection conn)
-        {
-            try
-            {
-                const string AlterOutlineFeaturePoints = @"ALTER TABLE OutlineFeaturePoints ADD COLUMN Ignore INTEGER DEFAULT 0";
-
-                using (var cmd = new SQLiteCommand(conn))
-                {
-                    cmd.CommandText = AlterOutlineFeaturePoints;
-                    cmd.ExecuteNonQuery();
-                }
-
-                SetVersion(conn, 5);
-            }
-            catch { }
-        }
-
-        private void UpgradeToVersion6(SQLiteConnection conn)
-        {
-            try
-            {
-                const string AddFeatureTables = @"CREATE TABLE IF NOT EXISTS CoordinateFeaturePoints (
-                        ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Type INTEGER,
-                        X INTEGER,
-                        Y INTEGER,
-                        UserSetPosition INTEGER,
-                        Ignore INTEGER,
-                        fkOutlineID INTEGER
-                    );
-                    CREATE INDEX IF NOT EXISTS IX_CoordinateFeaturePoints_fkOutlineID ON CoordinateFeaturePoints (fkOutlineID);
-
-                    CREATE TABLE IF NOT EXISTS Features (
-                        ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        Type INTEGER,
-                        Value REAL,
-                        Ignore INTEGER,
-                        fkOutlineID INTEGER
-                    );
-                    CREATE INDEX IF NOT EXISTS IX_Features_fkOutlineID ON Features (fkOutlineID);";
-
-                using (var cmd = new SQLiteCommand(conn))
-                {
-                    cmd.CommandText = AddFeatureTables;
-                    cmd.ExecuteNonQuery();
-                }
-
-                SetVersion(conn, 6);
-            }
-            catch { }
-        }
-
         // *****************************************************************************
         //
         // Returns complete DatabaseFin<ColorImage>. mDataPos field will be used to map to id in 
@@ -288,96 +124,77 @@ namespace Darwin.Database
         public override DatabaseFin GetFin(long id)
         {
             DBIndividual individual;
-            DBImage image;
-            DBOutline outline;
             //DBThumbnail thumbnail;
             Category damagecategory;
-            Outline finOutline;
             FloatContour fc = new FloatContour();
 
             individual = SelectIndividualByID(id);
             damagecategory = SelectDamageCategoryByID(individual.fkdamagecategoryid);
-            image = SelectImageByFkIndividualID(id);
-            outline = SelectOutlineByFkIndividualID(id);
-            //thumbnail = SelectThumbnailByFkImageID(image.id);
-            List<DBPoint> points = SelectPointsByFkOutlineID(outline.id);
-
-            // Although having both of these blocks of code seems uesless, this ensures that
-            // the given path contains only the image filename.  If the given path contains
-            // more, then the first code block will strip it down.
-
-            // Strip path info
-            image.imagefilename = Path.GetFileName(image.imagefilename);
-            // Add current path info
-            image.imagefilename = Path.Combine(new string[] { Options.CatalogFolderName, image.imagefilename });
-
-            if (!string.IsNullOrEmpty(image.original_imagefilename))
-            {
-                image.original_imagefilename = Path.Combine(new string[] { Options.CatalogFolderName, Path.GetFileName(image.original_imagefilename) });
-            }
-
-            // assumes list is returned as FIFO (queue)... should be due to use of ORDER BY OrderID
-            foreach (var p in points)
-            {
-                fc.AddPoint(p.xcoordinate, p.ycoordinate);
-            }
-
-            var featurePoints = SelectFeaturePointsByFkOutlineID(outline.id);
-
-            if (featurePoints != null && featurePoints.Count > 0)
-            {
-                var coordinateFeaturePoints = SelectCoordinateFeaturePointsByFkOutlineID(outline.id);
-                var features = SelectFeaturesByFkOutlineID(outline.id);
-
-                var featureSet = FeatureSet.Load(CatalogScheme.FeatureSetType, featurePoints, coordinateFeaturePoints, features);
-                finOutline = new Outline(fc, CatalogScheme.FeatureSetType, featureSet);
-            }
-            else
-            {
-                finOutline = new Outline(fc, CatalogScheme.FeatureSetType);
-                finOutline.SetFeaturePoint(FeaturePointType.LeadingEdgeBegin, outline.beginle);
-                finOutline.SetFeaturePoint(FeaturePointType.LeadingEdgeEnd, outline.endle);
-                finOutline.SetFeaturePoint(FeaturePointType.Notch, outline.notchposition);
-                finOutline.SetFeaturePoint(FeaturePointType.Tip, outline.tipposition);
-                finOutline.SetFeaturePoint(FeaturePointType.PointOfInflection, outline.endte);
-            }
 
             // TODO?
             // finOutline.SetLEAngle(0.0, true);
 
+            var images = SelectImagesByFkIndividualID(id);
+
+            if (images != null)
+            {
+                foreach (var image in images)
+                {
+                    var outline = SelectOutlineByFkImageID(id);
+                    //thumbnail = SelectThumbnailByFkImageID(image.id);
+                    List<DBPoint> points = SelectPointsByFkOutlineID(outline.id);
+
+                    // Although having both of these blocks of code seems uesless, this ensures that
+                    // the given path contains only the image filename.  If the given path contains
+                    // more, then the first code block will strip it down.
+
+                    //// Strip path info
+                    //image.imagefilename = Path.GetFileName(image.imagefilename);
+                    //// Add current path info
+                    //image.imagefilename = Path.Combine(new string[] { Options.CatalogFolderName, image.imagefilename });
+
+                    //if (!string.IsNullOrEmpty(image.original_imagefilename))
+                    //{
+                    //    image.original_imagefilename = Path.Combine(new string[] { Options.CatalogFolderName, Path.GetFileName(image.original_imagefilename) });
+                    //}
+
+                    // assumes list is returned as FIFO (queue)... should be due to use of ORDER BY OrderID
+                    foreach (var p in points)
+                    {
+                        fc.AddPoint(p.xcoordinate, p.ycoordinate);
+                    }
+
+                    var featurePoints = SelectFeaturePointsByFkOutlineID(outline.id);
+
+                    Outline finOutline;
+
+                    if (featurePoints != null && featurePoints.Count > 0)
+                    {
+                        var coordinateFeaturePoints = SelectCoordinateFeaturePointsByFkOutlineID(outline.id);
+                        var features = SelectFeaturesByFkOutlineID(outline.id);
+
+                        var featureSet = FeatureSet.Load(CatalogScheme.FeatureSetType, featurePoints, coordinateFeaturePoints, features);
+                        finOutline = new Outline(fc, CatalogScheme.FeatureSetType, featureSet, outline.scale);
+                    }
+                    else
+                    {
+                        finOutline = new Outline(fc, CatalogScheme.FeatureSetType, outline.scale);
+                        finOutline.SetFeaturePoint(FeaturePointType.LeadingEdgeBegin, outline.beginle);
+                        finOutline.SetFeaturePoint(FeaturePointType.LeadingEdgeEnd, outline.endle);
+                        finOutline.SetFeaturePoint(FeaturePointType.Notch, outline.notchposition);
+                        finOutline.SetFeaturePoint(FeaturePointType.Tip, outline.tipposition);
+                        finOutline.SetFeaturePoint(FeaturePointType.PointOfInflection, outline.endte);
+                    }
+
+                    image.FinOutline = finOutline;
+                }
+            }
+
             DatabaseFin fin = new DatabaseFin(id,
-                image.imagefilename,
-                finOutline,
                 individual.idcode,
                 individual.name,
-                image.dateofsighting,
-                image.rollandframe,
-                image.locationcode,
                 damagecategory.Name,
-                image.shortdescription,
-                individual.id);
-
-            // TODO: Move/look at constructors
-            fin.Scale = outline.scale;
-
-            fin.OriginalImageFilename = image.original_imagefilename;
-
-            if (image != null)
-            {
-                var imageMods = SelectImageModificationsByFkImageID(image.id);
-
-                var finMods = new List<ImageMod>();
-
-                if (imageMods != null)
-                {
-                    foreach (var mod in imageMods)
-                    {
-                        finMods.Add(new ImageMod((ImageModType)mod.operation, mod.value1, mod.value2, mod.value3, mod.value4));
-                    }
-                }
-
-                fin.ImageMods = finMods;
-            }
+                images);
 
             return fin;
         }
@@ -408,13 +225,12 @@ namespace Darwin.Database
             InvalidateAllFins();
 
             Category dmgCat;
-            Outline finOutline;
             FloatContour fc;
             int numPoints;
 
             //***054 - assume that the image filename contains path
             // information which must be stripped BEFORE saving fin
-            fin.ImageFilename = Path.GetFileName(fin.ImageFilename);
+            fin.PrimaryImage.ImageFilename = Path.GetFileName(fin.PrimaryImage.ImageFilename);
 
             DBIndividual individual = new DBIndividual();
 
@@ -433,46 +249,46 @@ namespace Darwin.Database
                     individual.fkdamagecategoryid = dmgCat.ID;
                     InsertIndividual(conn, ref individual);
 
-                    finOutline = fin.FinOutline;
-
-                    DBOutline outline = new DBOutline();
-                    outline.scale = fin.Scale;
-                    outline.beginle = finOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeBegin);
-                    outline.endle = finOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeEnd);
-                    outline.notchposition = finOutline.GetFeaturePoint(FeaturePointType.Notch);
-                    outline.tipposition = finOutline.GetFeaturePoint(FeaturePointType.Tip);
-                    outline.endte = finOutline.GetFeaturePoint(FeaturePointType.PointOfInflection);
-                    outline.fkindividualid = individual.id;
-                    InsertOutline(conn, ref outline);
-
-                    List<DBPoint> points = new List<DBPoint>();
-                    numPoints = finOutline.Length;
-                    fc = finOutline.ChainPoints;
-                    for (int i = 0; i < numPoints; i++)
+                    if (fin.Images != null)
                     {
-                        points.Add(new DBPoint
+                        foreach (var image in fin.Images)
                         {
-                            xcoordinate = fc[i].X,
-                            ycoordinate = fc[i].Y,
-                            orderid = i,
-                            fkoutlineid = outline.id
-                        });
+                            var imageCopy = image;
+                            image.ID = InsertImage(conn, individual.id, ref imageCopy);
+
+                            InsertImageModifications(conn, imageCopy.ID, image.ImageMods);
+
+                            var outline = new DBOutline();
+                            outline.scale = image.FinOutline.Scale;
+                            outline.beginle = image.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeBegin);
+                            outline.endle = image.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeEnd);
+                            outline.notchposition = image.FinOutline.GetFeaturePoint(FeaturePointType.Notch);
+                            outline.tipposition = image.FinOutline.GetFeaturePoint(FeaturePointType.Tip);
+                            outline.endte = image.FinOutline.GetFeaturePoint(FeaturePointType.PointOfInflection);
+                            outline.fkimageid = image.ID;
+                            InsertOutline(conn, ref outline);
+
+                            List<DBPoint> points = new List<DBPoint>();
+
+                            numPoints = image.FinOutline.Length;
+                            fc = image.FinOutline.ChainPoints;
+                            for (int i = 0; i < numPoints; i++)
+                            {
+                                points.Add(new DBPoint
+                                {
+                                    xcoordinate = fc[i].X,
+                                    ycoordinate = fc[i].Y,
+                                    orderid = i,
+                                    fkoutlineid = outline.id
+                                });
+                            }
+                            InsertPoints(conn, points);
+
+                            InsertFeatures(conn, outline.id, image.FinOutline.FeatureSet.FeatureList);
+                            InsertFeaturePoints(conn, outline.id, image.FinOutline.FeatureSet.FeaturePointList);
+                            InsertCoordinateFeaturePoints(conn, outline.id, image.FinOutline.FeatureSet.CoordinateFeaturePointList);
+                        }
                     }
-                    InsertPoints(conn, points);
-
-                    InsertFeatures(conn, outline.id, finOutline.FeatureSet.FeatureList);
-                    InsertFeaturePoints(conn, outline.id, finOutline.FeatureSet.FeaturePointList);
-                    InsertCoordinateFeaturePoints(conn, outline.id, finOutline.FeatureSet.CoordinateFeaturePointList);
-
-                    DBImage image = new DBImage();
-                    image.dateofsighting = fin.DateOfSighting;
-                    image.imagefilename = fin.ImageFilename;
-                    image.original_imagefilename = fin.OriginalImageFilename;
-                    image.locationcode = fin.LocationCode;
-                    image.rollandframe = fin.RollAndFrame;
-                    image.shortdescription = fin.ShortDescription;
-                    image.fkindividualid = individual.id;
-                    InsertImage(conn, ref image);
 
                     // Fake thumbnail to keep the old version working
                     // Commenting the below lines breaks the old version
@@ -480,9 +296,7 @@ namespace Darwin.Database
                     //thumbnail.rows = 433;
                     //thumbnail.pixmap = FakeThumbnail;
                     //thumbnail.fkimageid = image.id;
-                    //InsertThumbnail(conn, ref thumbnail);
-
-                    InsertImageModifications(conn, image.id, fin.ImageMods);
+                    //InsertThumbnail(conn, ref thumbnail);   
 
                     transaction.Commit();
                 }
@@ -499,9 +313,7 @@ namespace Darwin.Database
         {
             InvalidateAllFins();
 
-            DBImage image;
             DBOutline outline;
-            DBThumbnail thumbnail;
             Category dmgCat;
             FloatContour fc;
             int i, numPoints;
@@ -521,64 +333,79 @@ namespace Darwin.Database
                     individual.fkdamagecategoryid = dmgCat.ID;
                     UpdateDBIndividual(conn, individual);
 
-                    // we do this as we don't know what the outline id is
-                    outline = SelectOutlineByFkIndividualID(individual.id);
-                    outline.scale = fin.Scale;
-                    outline.beginle = fin.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeBegin);
-                    outline.endle = fin.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeEnd);
-                    outline.notchposition = fin.FinOutline.GetFeaturePoint(FeaturePointType.Notch);
-                    outline.tipposition = fin.FinOutline.GetFeaturePoint(FeaturePointType.Tip);
-                    outline.endte = fin.FinOutline.GetFeaturePoint(FeaturePointType.PointOfInflection);
-                    outline.fkindividualid = individual.id;
-                    UpdateOutline(conn, outline);
-
-                    List<DBPoint> points = new List<DBPoint>();
-                    numPoints = fin.FinOutline.Length;
-                    fc = fin.FinOutline.ChainPoints;
-
-                    for (i = 0; i < numPoints; i++)
-                    {
-                        points.Add(new DBPoint
-                        {
-                            xcoordinate = fc[i].X,
-                            ycoordinate = fc[i].Y,
-                            orderid = i,
-                            fkoutlineid = outline.id
-                        });
-                    }
-                    DeletePoints(conn, outline.id);
-
-                    InsertPoints(conn, points);
-
-                    DeleteFeaturesIndividualID(conn, outline.id);
-                    InsertFeatures(conn, outline.id, fin.FinOutline.FeatureSet.FeatureList);
-
-                    DeleteOutlineFeaturePointsByOutlineID(conn, outline.id);
-                    InsertFeaturePoints(conn, outline.id, fin.FinOutline.FeatureSet.FeaturePointList);
-
-                    DeleteCoordinateFeaturePointsByIndividualID(conn, outline.id);
-                    InsertCoordinateFeaturePoints(conn, outline.id, fin.FinOutline.FeatureSet.CoordinateFeaturePointList);
-
                     // query db as we don't know the image id
-                    image = SelectImageByFkIndividualID(individual.id);
-                    image.dateofsighting = fin.DateOfSighting;
-                    image.imagefilename = fin.ImageFilename;
-                    image.original_imagefilename = fin.OriginalImageFilename;
-                    image.locationcode = fin.LocationCode;
-                    image.rollandframe = fin.RollAndFrame;
-                    image.shortdescription = fin.ShortDescription;
-                    image.fkindividualid = individual.id;
-                    UpdateImage(conn, image);
+                    //image = SelectImageByFkIndividualID(individual.id);
+                    //image.dateofsighting = fin.DateOfSighting;
+                    //image.imagefilename = fin.ImageFilename;
+                    //image.original_imagefilename = fin.OriginalImageFilename;
+                    //image.locationcode = fin.LocationCode;
+                    //image.rollandframe = fin.RollAndFrame;
+                    //image.shortdescription = fin.ShortDescription;
+                    //image.fkindividualid = individual.id;
 
+                    // TODO: Any removals?
+                    if (fin.Images != null)
+                    {
+                        foreach (var image in fin.Images)
+                        {
+                            image.IndividualId = individual.id;
+                            if (image.ID == 0)
+                            {
+                                var imageCopy = image;
+                                image.ID = InsertImage(conn, individual.id, ref imageCopy);
+                            }
+                            else
+                            {
+                                UpdateImage(conn, image);
+                            }
+
+
+                            // we do this as we don't know what the outline id is
+                            outline = SelectOutlineByFkImageID(image.ID);
+                            outline.scale = image.FinOutline.Scale;
+                            outline.beginle = image.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeBegin);
+                            outline.endle = image.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeEnd);
+                            outline.notchposition = image.FinOutline.GetFeaturePoint(FeaturePointType.Notch);
+                            outline.tipposition = image.FinOutline.GetFeaturePoint(FeaturePointType.Tip);
+                            outline.endte = image.FinOutline.GetFeaturePoint(FeaturePointType.PointOfInflection);
+                            outline.fkimageid = image.ID;
+                            UpdateOutline(conn, outline);
+
+                            List<DBPoint> points = new List<DBPoint>();
+                            numPoints = image.FinOutline.Length;
+                            fc = image.FinOutline.ChainPoints;
+
+                            for (i = 0; i < numPoints; i++)
+                            {
+                                points.Add(new DBPoint
+                                {
+                                    xcoordinate = fc[i].X,
+                                    ycoordinate = fc[i].Y,
+                                    orderid = i,
+                                    fkoutlineid = outline.id
+                                });
+                            }
+                            DeletePoints(conn, outline.id);
+
+                            InsertPoints(conn, points);
+
+                            DeleteFeaturesIndividualID(conn, outline.id);
+                            InsertFeatures(conn, outline.id, image.FinOutline.FeatureSet.FeatureList);
+
+                            DeleteOutlineFeaturePointsByOutlineID(conn, outline.id);
+                            InsertFeaturePoints(conn, outline.id, image.FinOutline.FeatureSet.FeaturePointList);
+
+                            DeleteCoordinateFeaturePointsByIndividualID(conn, outline.id);
+                            InsertCoordinateFeaturePoints(conn, outline.id, image.FinOutline.FeatureSet.CoordinateFeaturePointList);
+                        }
+                    }
+                    
                     // query db as we don't know the thumbnail id
-                    thumbnail = SelectThumbnailByFkImageID(image.id);
-                    thumbnail.rows = fin.ThumbnailRows;
-                    thumbnail.pixmap = new string(fin.ThumbnailPixmap.Cast<char>().ToArray());
+                    //thumbnail = SelectThumbnailByFkImageID(image.id);
+                    //thumbnail.rows = fin.ThumbnailRows;
+                    //thumbnail.pixmap = new string(fin.ThumbnailPixmap.Cast<char>().ToArray());
 
-                    UpdateThumbnail(conn, thumbnail);
-
-                    DeleteImageModifications(conn, image.id);
-                    InsertImageModifications(conn, image.id, fin.ImageMods);
+                    //UpdateThumbnail(conn, thumbnail);
 
                     transaction.Commit();
                 }
@@ -591,17 +418,17 @@ namespace Darwin.Database
             InvalidateAllFins();
         }
 
-        public override void UpdateOutline(DatabaseFin data, bool preventInvalidate = false)
+        public override void UpdateOutline(DatabaseImage databaseImage, bool preventInvalidate = false)
         {
             if (!preventInvalidate)
                 InvalidateAllFins();
 
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            if (databaseImage == null)
+                throw new ArgumentNullException(nameof(databaseImage));
 
             // Invalid ID
-            if (data.ID < 1)
-                throw new ArgumentOutOfRangeException(nameof(data));
+            if (databaseImage.ID < 1)
+                throw new ArgumentOutOfRangeException(nameof(databaseImage));
 
             using (var conn = new SQLiteConnection(_connectionString))
             {
@@ -610,19 +437,19 @@ namespace Darwin.Database
                 using (var transaction = conn.BeginTransaction())
                 {
                     // we do this as we don't know what the outline id is
-                    var outline = SelectOutlineByFkIndividualID(data.ID);
-                    outline.scale = data.Scale;
-                    outline.beginle = data.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeBegin);
-                    outline.endle = data.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeEnd);
-                    outline.notchposition = data.FinOutline.GetFeaturePoint(FeaturePointType.Notch);
-                    outline.tipposition = data.FinOutline.GetFeaturePoint(FeaturePointType.Tip);
-                    outline.endte = data.FinOutline.GetFeaturePoint(FeaturePointType.PointOfInflection);
-                    outline.fkindividualid = data.ID;
+                    var outline = SelectOutlineByFkImageID(databaseImage.ID);
+                    outline.scale = databaseImage.FinOutline.Scale;
+                    outline.beginle = databaseImage.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeBegin);
+                    outline.endle = databaseImage.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeEnd);
+                    outline.notchposition = databaseImage.FinOutline.GetFeaturePoint(FeaturePointType.Notch);
+                    outline.tipposition = databaseImage.FinOutline.GetFeaturePoint(FeaturePointType.Tip);
+                    outline.endte = databaseImage.FinOutline.GetFeaturePoint(FeaturePointType.PointOfInflection);
+                    outline.fkimageid = databaseImage.ID;
                     UpdateOutline(conn, outline);
 
                     List<DBPoint> points = new List<DBPoint>();
-                    var numPoints = data.FinOutline.Length;
-                    var fc = data.FinOutline.ChainPoints;
+                    var numPoints = databaseImage.FinOutline.Length;
+                    var fc = databaseImage.FinOutline.ChainPoints;
 
                     for (var i = 0; i < numPoints; i++)
                     {
@@ -639,13 +466,13 @@ namespace Darwin.Database
                     InsertPoints(conn, points);
 
                     DeleteFeaturesIndividualID(conn, outline.id);
-                    InsertFeatures(conn, outline.id, data.FinOutline.FeatureSet.FeatureList);
+                    InsertFeatures(conn, outline.id, databaseImage.FinOutline.FeatureSet.FeatureList);
 
                     DeleteOutlineFeaturePointsByOutlineID(conn, outline.id);
-                    InsertFeaturePoints(conn, outline.id, data.FinOutline.FeatureSet.FeaturePointList);
+                    InsertFeaturePoints(conn, outline.id, databaseImage.FinOutline.FeatureSet.FeaturePointList);
 
                     DeleteCoordinateFeaturePointsByIndividualID(conn, outline.id);
-                    InsertCoordinateFeaturePoints(conn, outline.id, data.FinOutline.FeatureSet.CoordinateFeaturePointList);
+                    InsertCoordinateFeaturePoints(conn, outline.id, databaseImage.FinOutline.FeatureSet.CoordinateFeaturePointList);
 
                     transaction.Commit();
                 }
@@ -682,13 +509,13 @@ namespace Darwin.Database
 
             foreach (var individual in AllFins)
             {
-                if (individual.FinOutline == null || individual.FinOutline.FeatureSet.Features == null)
+                if (individual.PrimaryImage.FinOutline == null || individual.PrimaryImage.FinOutline.FeatureSet.Features == null)
                     return false;
 
                 foreach (var type in featureTypes)
                 {
-                    if (!individual.FinOutline.FeatureSet.Features.ContainsKey(type)
-                        || individual.FinOutline.FeatureSet.Features[type].IsEmpty)
+                    if (!individual.PrimaryImage.FinOutline.FeatureSet.Features.ContainsKey(type)
+                        || individual.PrimaryImage.FinOutline.FeatureSet.Features[type].IsEmpty)
                     {
                         return false;
                     }
@@ -708,13 +535,13 @@ namespace Darwin.Database
 
             foreach (var individual in AllFins)
             {
-                if (individual.FinOutline == null || individual.FinOutline.FeatureSet.FeaturePoints == null)
+                if (individual.PrimaryImage.FinOutline == null || individual.PrimaryImage.FinOutline.FeatureSet.FeaturePoints == null)
                     return false;
 
                 foreach (var type in featurePointTypes)
                 {
-                    if (!individual.FinOutline.FeatureSet.FeaturePoints.ContainsKey(type)
-                        || individual.FinOutline.FeatureSet.FeaturePoints[type].IsEmpty)
+                    if (!individual.PrimaryImage.FinOutline.FeatureSet.FeaturePoints.ContainsKey(type)
+                        || individual.PrimaryImage.FinOutline.FeatureSet.FeaturePoints[type].IsEmpty)
                     {
                         return false;
                     }
@@ -732,8 +559,6 @@ namespace Darwin.Database
         {
             InvalidateAllFins();
 
-            DBOutline outline;
-            DBImage image;
             long id;
 
             // mDataPos field will be used to map to id in db for individuals
@@ -745,13 +570,19 @@ namespace Darwin.Database
 
                 using (var transaction = conn.BeginTransaction())
                 {
-                    outline = SelectOutlineByFkIndividualID(id);
-                    image = SelectImageByFkIndividualID(id);
+                    
+                    var images = SelectImagesByFkIndividualID(id);
+                    
+                    foreach (var image in images)
+                    {
+                        DeleteImage(conn, image.ID);
+                        DeleteThumbnailByFkImageID(conn, image.ID);
+                        var outline = SelectOutlineByFkImageID(image.ID);
 
-                    DeletePoints(conn, outline.id);
-                    DeleteOutlineByFkIndividualID(conn, id);
-                    DeleteThumbnailByFkImageID(conn, image.id);
-                    DeleteImage(conn, image.id);
+                        DeletePoints(conn, outline.id);
+                        DeleteOutlineByFkImageID(conn, image.ID);
+                    }
+
                     DeleteIndividual(conn, id);
 
                     transaction.Commit();
@@ -781,7 +612,8 @@ namespace Darwin.Database
                             id = rdr.SafeGetInt("ID"),
                             idcode = rdr.SafeGetString("IDCode"),
                             name = rdr.SafeGetStringStripNone("Name"),
-                            fkdamagecategoryid = rdr.SafeGetInt("fkDamageCategoryID")
+                            fkdamagecategoryid = rdr.SafeGetInt("fkDamageCategoryID"),
+                            ThumbnailFilename = rdr.SafeGetString("ThumbnailFilename")
                         };
 
                         individuals.Add(individual);
@@ -816,7 +648,8 @@ namespace Darwin.Database
                                 id = rdr.SafeGetInt("ID"),
                                 idcode = rdr.SafeGetString("IDCode"),
                                 name = rdr.SafeGetStringStripNone("Name"),
-                                fkdamagecategoryid = rdr.SafeGetInt("fkDamageCategoryID")
+                                fkdamagecategoryid = rdr.SafeGetInt("fkDamageCategoryID"),
+                                ThumbnailFilename = rdr.SafeGetString("ThumbnailFilename")
                             };
                         }
                     }
@@ -1113,51 +946,51 @@ namespace Darwin.Database
         //
         // Populates given list<DBImage> with all rows from Images table.
         //
-        private List<DBImage> SelectAllImages()
-        {
-            using (var conn = new SQLiteConnection(_connectionString))
-            {
-                using (var cmd = new SQLiteCommand(conn))
-                {
-                    conn.Open();
+        //private List<DatabaseImage> SelectAllImages()
+        //{
+        //    using (var conn = new SQLiteConnection(_connectionString))
+        //    {
+        //        using (var cmd = new SQLiteCommand(conn))
+        //        {
+        //            conn.Open();
 
-                    cmd.CommandText = "SELECT * FROM Images;";
+        //            cmd.CommandText = "SELECT * FROM Images;";
 
-                    var images = new List<DBImage>();
+        //            var images = new List<DatabaseImage>();
 
-                    using (var rdr = cmd.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            var img = new DBImage
-                            {
-                                id = rdr.SafeGetInt("ID"),
-                                imagefilename = rdr.SafeGetString("ImageFilename"),
-                                original_imagefilename = rdr.SafeGetString("OriginalImageFilename"),
-                                dateofsighting = rdr.SafeGetStringStripNone("DateOfSighting"),
-                                rollandframe = rdr.SafeGetStringStripNone("RollAndFrame"),
-                                locationcode = rdr.SafeGetStringStripNone("LocationCode"),
-                                shortdescription = rdr.SafeGetStringStripNone("ShortDescription"),
-                                fkindividualid = rdr.SafeGetInt("fkIndividualID")
-                            };
+        //            using (var rdr = cmd.ExecuteReader())
+        //            {
+        //                while (rdr.Read())
+        //                {
+        //                    var img = new DatabaseImage
+        //                    {
+        //                        ID = rdr.SafeGetInt("ID"),
+        //                        ImageFilename = rdr.SafeGetString("ImageFilename"),
+        //                        OriginalImageFilename = rdr.SafeGetString("OriginalImageFilename"),
+        //                        DateOfSighting = rdr.SafeGetStringStripNone("DateOfSighting"),
+        //                        RollAndFrame = rdr.SafeGetStringStripNone("RollAndFrame"),
+        //                        LocationCode = rdr.SafeGetStringStripNone("LocationCode"),
+        //                        ShortDescription = rdr.SafeGetStringStripNone("ShortDescription"),
+        //                        IndividualId = rdr.SafeGetInt("fkIndividualID")
+        //                    };
 
-                            images.Add(img);
-                        }
-                    }
+        //                    images.Add(img);
+        //                }
+        //            }
 
-                    conn.Close();
+        //            conn.Close();
 
-                    return images;
-                }
-            }
-        }
+        //            return images;
+        //        }
+        //    }
+        //}
 
         // *****************************************************************************
         //
         // Populates given list<DBImage> with all rows from Images table where
         // the fkIndividualID equals the given int.
         //
-        private List<DBImage> SelectImagesByFkIndividualID(long fkindividualid)
+        private List<DatabaseImage> SelectImagesByFkIndividualID(long fkindividualid)
         {
             using (var conn = new SQLiteConnection(_connectionString))
             {
@@ -1168,23 +1001,39 @@ namespace Darwin.Database
                     cmd.CommandText = "SELECT * FROM Images WHERE fkIndividualID = @fkIndividualID;";
                     cmd.Parameters.AddWithValue("@fkIndividualID", fkindividualid);
 
-                    var images = new List<DBImage>();
+                    var images = new List<DatabaseImage>();
 
                     using (var rdr = cmd.ExecuteReader())
                     {
                         while (rdr.Read())
                         {
-                            var img = new DBImage
+                            var img = new DatabaseImage
                             {
-                                id = rdr.SafeGetInt("ID"),
-                                imagefilename = rdr.SafeGetString("ImageFilename"),
-                                original_imagefilename = rdr.SafeGetString("OriginalImageFilename"),
-                                dateofsighting = rdr.SafeGetStringStripNone("DateOfSighting"),
-                                rollandframe = rdr.SafeGetStringStripNone("RollAndFrame"),
-                                locationcode = rdr.SafeGetStringStripNone("LocationCode"),
-                                shortdescription = rdr.SafeGetStringStripNone("ShortDescription"),
-                                fkindividualid = rdr.SafeGetInt("fkIndividualID")
+                                ID = rdr.SafeGetInt("ID"),
+                                ImageFilename = rdr.SafeGetString("ImageFilename"),
+                                OriginalImageFilename = rdr.SafeGetString("OriginalImageFilename"),
+                                DateOfSighting = rdr.SafeGetStringStripNone("DateOfSighting"),
+                                RollAndFrame = rdr.SafeGetStringStripNone("RollAndFrame"),
+                                LocationCode = rdr.SafeGetStringStripNone("LocationCode"),
+                                ShortDescription = rdr.SafeGetStringStripNone("ShortDescription"),
+                                IndividualId = rdr.SafeGetInt("fkIndividualID"),
+                                CropImageFilename = rdr.SafeGetString("CropImageFilename"),
+                                OrderId = rdr.SafeGetInt("OrderId")
                             };
+
+                            var imageMods = SelectImageModificationsByFkImageID(img.ID);
+
+                            var mods = new List<ImageMod>();
+
+                            if (imageMods != null)
+                            {
+                                foreach (var mod in imageMods)
+                                {
+                                    mods.Add(new ImageMod((ImageModType)mod.operation, mod.value1, mod.value2, mod.value3, mod.value4));
+                                }
+                            }
+
+                            img.ImageMods = mods;
 
                             images.Add(img);
                         }
@@ -1201,61 +1050,61 @@ namespace Darwin.Database
         //
         // Returns DBImage of row with given fkIndividualID
         //
-        private DBImage SelectImageByFkIndividualID(long fkindividualid)
-        {
-            var images = SelectImagesByFkIndividualID(fkindividualid);
+        //private DBImage SelectImageByFkIndividualID(long fkindividualid)
+        //{
+        //    var images = SelectImagesByFkIndividualID(fkindividualid);
 
-            return images?.FirstOrDefault();
-        }
+        //    return images?.FirstOrDefault();
+        //}
 
         // *****************************************************************************
         //
         // This returns all the Outlines rows as a list of DBOutline structs.
         //
-        private List<DBOutline> selectAllOutlines()
-        {
-            using (var conn = new SQLiteConnection(_connectionString))
-            {
-                using (var cmd = new SQLiteCommand(conn))
-                {
-                    conn.Open();
+        //private List<DBOutline> selectAllOutlines()
+        //{
+        //    using (var conn = new SQLiteConnection(_connectionString))
+        //    {
+        //        using (var cmd = new SQLiteCommand(conn))
+        //        {
+        //            conn.Open();
 
-                    cmd.CommandText = "SELECT * FROM Outlines;";
+        //            cmd.CommandText = "SELECT * FROM Outlines;";
 
-                    var outlines = new List<DBOutline>();
-                    using (var rdr = cmd.ExecuteReader())
-                    {
-                        while (rdr.Read())
-                        {
-                            var outline = new DBOutline
-                            {
-                                id = rdr.SafeGetInt("ID"),
-                                scale = rdr.SafeGetDouble("Scale", 1.0),
-                                tipposition = rdr.SafeGetInt("TipPosition"),
-                                beginle = rdr.SafeGetInt("BeginLE"),
-                                endle = rdr.SafeGetInt("EndLE"),
-                                notchposition = rdr.SafeGetInt("NotchPosition"),
-                                endte = rdr.SafeGetInt("EndTE"),
-                                fkindividualid = rdr.SafeGetInt("fkIndividualID")
-                            };
+        //            var outlines = new List<DBOutline>();
+        //            using (var rdr = cmd.ExecuteReader())
+        //            {
+        //                while (rdr.Read())
+        //                {
+        //                    var outline = new DBOutline
+        //                    {
+        //                        id = rdr.SafeGetInt("ID"),
+        //                        scale = rdr.SafeGetDouble("Scale", 1.0),
+        //                        tipposition = rdr.SafeGetInt("TipPosition"),
+        //                        beginle = rdr.SafeGetInt("BeginLE"),
+        //                        endle = rdr.SafeGetInt("EndLE"),
+        //                        notchposition = rdr.SafeGetInt("NotchPosition"),
+        //                        endte = rdr.SafeGetInt("EndTE"),
+        //                        fkimageid = rdr.SafeGetInt("fkImageID")
+        //                    };
 
-                            outlines.Add(outline);
-                        }
-                    }
+        //                    outlines.Add(outline);
+        //                }
+        //            }
 
-                    conn.Close();
+        //            conn.Close();
 
-                    return outlines;
-                }
-            }
-        }
+        //            return outlines;
+        //        }
+        //    }
+        //}
 
         // *****************************************************************************
         //
         // Returns DBOutline from Outlines table where the fkIndividualID equals
         // the given int.
         //
-        private DBOutline SelectOutlineByFkIndividualID(long fkindividualid)
+        private DBOutline SelectOutlineByFkImageID(long fkImageID)
         {
             using (var conn = new SQLiteConnection(_connectionString))
             {
@@ -1263,13 +1112,12 @@ namespace Darwin.Database
                 {
                     conn.Open();
 
-                    cmd.CommandText = "SELECT * FROM Outlines WHERE fkIndividualID = @fkIndividualID;";
-                    cmd.Parameters.AddWithValue("@fkIndividualID", fkindividualid);
+                    cmd.CommandText = "SELECT * FROM Outlines WHERE fkImageID = @fkImageID;";
+                    cmd.Parameters.AddWithValue("@fkImageID", fkImageID);
 
                     DBOutline outline = null;
                     using (var rdr = cmd.ExecuteReader())
                     {
-
                         if (rdr.Read())
                         {
                             outline = new DBOutline
@@ -1281,7 +1129,7 @@ namespace Darwin.Database
                                 endle = rdr.SafeGetInt("EndLE"),
                                 notchposition = rdr.SafeGetInt("NotchPosition"),
                                 endte = rdr.SafeGetInt("EndTE"),
-                                fkindividualid = rdr.SafeGetInt("fkIndividualID")
+                                fkimageid = rdr.SafeGetInt("fkIndividualID")
                             };
                         }
                     }
@@ -1683,8 +1531,8 @@ namespace Darwin.Database
         {
             using (var cmd = new SQLiteCommand(conn))
             {
-                cmd.CommandText = "INSERT INTO Outlines (ID, Scale, TipPosition, BeginLE, EndLE, NotchPosition, EndTE, fkIndividualID) " +
-                    "VALUES (NULL, @Scale, @TipPosition, @BeginLE, @EndLE, @NotchPosition, @EndTE, @fkIndividualID);";
+                cmd.CommandText = "INSERT INTO Outlines (ID, Scale, TipPosition, BeginLE, EndLE, NotchPosition, EndTE, fkImageID) " +
+                    "VALUES (NULL, @Scale, @TipPosition, @BeginLE, @EndLE, @NotchPosition, @EndTE, @fkImageID);";
 
                 cmd.Parameters.AddWithValue("@Scale", outline.scale);
                 cmd.Parameters.AddWithValue("@TipPosition", outline.tipposition);
@@ -1692,7 +1540,7 @@ namespace Darwin.Database
                 cmd.Parameters.AddWithValue("@EndLE", outline.endle);
                 cmd.Parameters.AddWithValue("@NotchPosition", outline.notchposition);
                 cmd.Parameters.AddWithValue("@EndTE", outline.endte);
-                cmd.Parameters.AddWithValue("@fkIndividualID", outline.fkindividualid);
+                cmd.Parameters.AddWithValue("@fkImageID", outline.fkimageid);
 
                 cmd.ExecuteNonQuery();
 
@@ -1706,25 +1554,27 @@ namespace Darwin.Database
         //
         // Inserts DBImage into Images table
         //
-        private long InsertImage(SQLiteConnection conn, ref DBImage image)
+        private long InsertImage(SQLiteConnection conn, long individualId, ref DatabaseImage image)
         {
             using (var cmd = new SQLiteCommand(conn))
             {
-                cmd.CommandText = "INSERT INTO Images(ID, ImageFilename, OriginalImageFilename, DateOfSighting, RollAndFrame, LocationCode, ShortDescription, fkIndividualID) " +
-                    "VALUES (NULL, @ImageFilename, @OriginalImageFilename, @DateOfSighting, @RollAndFrame, @LocationCode, @ShortDescription, @fkIndividualID);";
-                cmd.Parameters.AddWithValue("@ImageFilename", image.imagefilename);
-                cmd.Parameters.AddWithValue("@OriginalImageFilename", image.original_imagefilename);
-                cmd.Parameters.AddWithValue("@DateOfSighting", image.dateofsighting);
-                cmd.Parameters.AddWithValue("@RollAndFrame", image.rollandframe);
-                cmd.Parameters.AddWithValue("@LocationCode", image.locationcode);
-                cmd.Parameters.AddWithValue("@ShortDescription", image.shortdescription);
-                cmd.Parameters.AddWithValue("@fkIndividualID", image.fkindividualid);
+                cmd.CommandText = "INSERT INTO Images(ID, ImageFilename, OriginalImageFilename, DateOfSighting, RollAndFrame, LocationCode, ShortDescription, CropImageFilename, OrderId, fkIndividualID) " +
+                    "VALUES (NULL, @ImageFilename, @OriginalImageFilename, @DateOfSighting, @RollAndFrame, @LocationCode, @ShortDescription, @CropImageFilename, @OrderId, @fkIndividualID);";
+                cmd.Parameters.AddWithValue("@ImageFilename", image.ImageFilename);
+                cmd.Parameters.AddWithValue("@OriginalImageFilename", image.OriginalImageFilename);
+                cmd.Parameters.AddWithValue("@DateOfSighting", image.DateOfSighting);
+                cmd.Parameters.AddWithValue("@RollAndFrame", image.RollAndFrame);
+                cmd.Parameters.AddWithValue("@LocationCode", image.LocationCode);
+                cmd.Parameters.AddWithValue("@ShortDescription", image.ShortDescription);
+                cmd.Parameters.AddWithValue("@CropImageFilename", image.CropImageFilename);
+                cmd.Parameters.AddWithValue("@OrderId", image.OrderId);
+                cmd.Parameters.AddWithValue("@fkIndividualID", individualId);
 
                 cmd.ExecuteNonQuery();
 
-                image.id = conn.LastInsertRowId;
+                image.ID = conn.LastInsertRowId;
 
-                return image.id;
+                return image.ID;
             }
         }
 
@@ -1889,7 +1739,7 @@ namespace Darwin.Database
                 cmd.Parameters.AddWithValue("@BeginLE", outline.beginle);
                 cmd.Parameters.AddWithValue("@EndLE", outline.endle);
                 cmd.Parameters.AddWithValue("@NotchPosition", outline.notchposition);
-                cmd.Parameters.AddWithValue("@fkIndividualID", outline.fkindividualid);
+                cmd.Parameters.AddWithValue("@fkImageID", outline.fkimageid);
                 cmd.Parameters.AddWithValue("@ID", outline.id);
 
                 cmd.ExecuteNonQuery();
@@ -1930,12 +1780,15 @@ namespace Darwin.Database
                 cmd.CommandText = "UPDATE Individuals SET " +
                     "IDCode = @IDCode, " +
                     "Name = @Name, " +
-                    "fkDamageCategoryID = @fkDamageCategoryID " +
+                    "fkDamageCategoryID = @fkDamageCategoryID, " +
+                    "ThumbnailFilename = @ThumbnailFilename " +
                     "WHERE ID = @ID";
 
                 cmd.Parameters.AddWithValue("@IDCode", individual.idcode);
                 cmd.Parameters.AddWithValue("@Name", individual.name);
                 cmd.Parameters.AddWithValue("@fkDamageCategoryID", individual.fkdamagecategoryid);
+                cmd.Parameters.AddWithValue("@ThumbnailFilename", individual.ThumbnailFilename);
+
                 cmd.Parameters.AddWithValue("@ID", individual.id);
 
                 cmd.ExecuteNonQuery();
@@ -1946,7 +1799,7 @@ namespace Darwin.Database
         // Updates row in Images table using given DBImage struct.  Uses ID
         // field for identifying row.
         //
-        private void UpdateImage(SQLiteConnection conn, DBImage image)
+        private void UpdateImage(SQLiteConnection conn, DatabaseImage image)
         {
             using (var cmd = new SQLiteCommand(conn))
             {
@@ -1957,20 +1810,27 @@ namespace Darwin.Database
                     "RollAndFrame = @RollAndFrame, " +
                     "LocationCode = @LocationCode, " +
                     "ShortDescription = @ShortDescription, " +
-                    "fkIndividualID = @fkIndividualID " +
+                    "fkIndividualID = @fkIndividualID, " +
+                    "CropImageFilename = @CropImageFilename, " +
+                    "OrderId = @OrderId " +
                     "WHERE ID = @ID";
 
-                cmd.Parameters.AddWithValue("@ImageFilename", image.imagefilename);
-                cmd.Parameters.AddWithValue("@OriginalImageFilename", image.original_imagefilename);
-                cmd.Parameters.AddWithValue("@DateOfSighting", image.dateofsighting);
-                cmd.Parameters.AddWithValue("@RollAndFrame", image.rollandframe);
-                cmd.Parameters.AddWithValue("@LocationCode", image.locationcode);
-                cmd.Parameters.AddWithValue("@ShortDescription", image.shortdescription);
-                cmd.Parameters.AddWithValue("@fkIndividualID", image.fkindividualid);
-                cmd.Parameters.AddWithValue("@ID", image.id);
+                cmd.Parameters.AddWithValue("@ImageFilename", image.ImageFilename);
+                cmd.Parameters.AddWithValue("@OriginalImageFilename", image.OriginalImageFilename);
+                cmd.Parameters.AddWithValue("@DateOfSighting", image.DateOfSighting);
+                cmd.Parameters.AddWithValue("@RollAndFrame", image.RollAndFrame);
+                cmd.Parameters.AddWithValue("@LocationCode", image.LocationCode);
+                cmd.Parameters.AddWithValue("@ShortDescription", image.ShortDescription);
+                cmd.Parameters.AddWithValue("@CropImageFilename", image.CropImageFilename);
+                cmd.Parameters.AddWithValue("@Order", image.OrderId);
+                cmd.Parameters.AddWithValue("@fkIndividualID", image.IndividualId);
+                cmd.Parameters.AddWithValue("@ID", image.ID);
 
                 cmd.ExecuteNonQuery();
             }
+
+            DeleteImageModifications(conn, image.ID);
+            InsertImageModifications(conn, image.ID, image.ImageMods);
         }
 
         // *****************************************************************************
@@ -2096,12 +1956,12 @@ namespace Darwin.Database
         //
         // Delete outline from Outlines table using fkIndividualID  
         //
-        private void DeleteOutlineByFkIndividualID(SQLiteConnection conn, long fkIndividualID)
+        private void DeleteOutlineByFkImageID(SQLiteConnection conn, long fkImageID)
         {
             using (var cmd = new SQLiteCommand(conn))
             {
-                cmd.CommandText = "DELETE FROM Outlines WHERE fkIndividualID = @ID";
-                cmd.Parameters.AddWithValue("@ID", fkIndividualID);
+                cmd.CommandText = "DELETE FROM Outlines WHERE fkImageID = @ID";
+                cmd.Parameters.AddWithValue("@ID", fkImageID);
 
                 cmd.ExecuteNonQuery();
             }
@@ -2256,6 +2116,7 @@ namespace Darwin.Database
                         ID INTEGER PRIMARY KEY,
                         IDCode TEXT,
                         Name TEXT,
+                        ThumbnailFilename TEXT DEFAULT NULL,
                         fkDamageCategoryID INTEGER
                     );
 
@@ -2264,10 +2125,12 @@ namespace Darwin.Database
                         fkIndividualID INTEGER,
                         ImageFilename TEXT,
                         OriginalImageFilename TEXT DEFAULT NULL,
+                        CropImageFilename TEXT DEFAULT NULL,
                         DateOfSighting TEXT,
                         RollAndFrame TEXT,
                         LocationCode TEXT,
-                        ShortDescription TEXT
+                        ShortDescription TEXT,
+                        OrderId INTEGER
                     );
 
                     CREATE TABLE IF NOT EXISTS ImageModifications ( 
@@ -2296,7 +2159,7 @@ namespace Darwin.Database
                         EndLE INTEGER,
                         NotchPosition INTEGER,
                         EndTE INTEGER,
-                        fkIndividualID INTEGER
+                        fkImageID INTEGER
                     );
 
                     CREATE TABLE IF NOT EXISTS OutlineFeaturePoints (
@@ -2346,7 +2209,7 @@ namespace Darwin.Database
 
                     CREATE INDEX IF NOT EXISTS img_indiv ON Images (fkIndividualID);
 
-                    CREATE INDEX IF NOT EXISTS outln_indiv ON Outlines (fkIndividualID);
+                    CREATE INDEX IF NOT EXISTS IX_Outline_fkImageID ON Outlines (fkImageID);
 
                     CREATE INDEX IF NOT EXISTS IX_OutlineFeaturePoints_fkOutlineID ON OutlineFeaturePoints (fkOutlineID);
 
@@ -2383,444 +2246,277 @@ namespace Darwin.Database
             }
         }
 
-        private const string FakeThumbnail = @"25 25 407 2
-!! c #000000
-!# c #4A5D6B
-!$ c #5E7F86
-!% c #9CC7AC
-!& c #C0DCD0
-!'' c #E7FBF2
-!(c #F2FBF6
-!) c #FEFFFF
-!* c #FEFFFA
-!+ c #F4FFEF
-!, c #FEFEFC
-!- c #FDFDFB
-!. c #EFFDEE
-!/ c #F3FFE6
-!0 c #C9EECF
-!1 c #AADACE
-!2 c #98BEA5
-!3 c #AFD9CD
-!4 c #CCE2CB
-!5 c #C5EFD7
-!6 c #C3E5D7
-!7 c #C0E0DB
-!8 c #B4DFB2
-!9 c #A2C9AE
-!: c #B1D0BE
-!; c #878B8E
-!< c #839B83
-!= c #84A4A3
-!> c #739887
-!? c #7A9C81
-!@ c #B1BEB7
-!A c #ADC2AF
-!B c #DAFBF2
-!C c #DCFBD9
-!D c #C5FADE
-!E c #F1FCEE
-!F c #EEFDE6
-!G c #EBFFF3
-!H c #C4E2BC
-!I c #A5CFAB
-!J c #BEFADE
-!K c #D9FFDB
-!L c #E3FFF3
-!M c #F1FFFA
-!N c #FBFDEF
-!O c #F6FFFD
-!P c #FBFDF0
-!Q c #F6FFFC
-!R c #F1FFF9
-!S c #8EACAC
-!T c #A3B5A9
-!U c #ABC6BF
-!V c #C1D7CA
-!W c #E1F1D4
-!X c #E8FFEA
-!Y c #DEFAE1
-!Z c #B9E0CE
-![c #8BBBA1
-!\ c #82B094
-!]
-        c #7AA47C
-!^ c #88B29E
-!_ c #BADEC4
-!` c #EEFFED
-!a c #FDFDFD
-!b c #FAFFF6
-!c c #B283A5
-!d c #160D3A
-!e c #0B0231
-!f c #0D042F
-!g c #0A052E
-!h c #FFFFFB
-!i c #FEFFF5
-!j c #A9C5B7
-!k c #ABC7B8
-!l c #E7F7DC
-!m c #CBF3D9
-!n c #799A89
-!o c #56716A
-!p c #5B7F59
-!q c #486B4A
-!r c #56794F
-!s c #668971
-!t c #6D948F
-!u c #6D9477
-!v c #7CA793
-!w c #93B5A4
-!x c #BCDACE
-!y c #CEF8E2
-!z c #CBC2B1
-!{ c #130A3F
-!| c #08012D
-!}
-    c #070127
-!~c #050126
-! c #0D022D
-#! c #B2DBB9
-## c #DAFBCC
-#$ c #A8AC9E
-#% c #B4CFD6
-#& c #99BEAD
-#'' c #AAD8BB
-#( c #C5E7D9
-#) c #D7F3DD
-#* c #D0F1DE
-#+ c #B9DBDC
-#, c #B9DAD3
-#- c #BEDCDA
-#. c #A4CCC3
-#/ c #84B6B7
-#0 c #90B594
-#1 c #7EA391
-#2 c #7AA87A
-#3 c #2A1D53
-#4 c #07002C
-#5 c #060223
-#6 c #05021F
-#7 c #03001F
-#8 c #060121
-#9 c #050122
-#: c #CBFCCF
-#; c #E2FAE2
-#< c #DEFFFB
-#= c #A6C3CB
-#> c #97B8B1
-#? c #A0BCB0
-#@ c #ACD1C0
-#A c #D7E9E9
-#B c #F0FDEC
-#C c #D3F1D7
-#D c #E5F4DD
-#E c #E5FAE9
-#F c #E0F7E3
-#G c #D9EEDF
-#H c #D0E4C8
-#I c #E4FDDD
-#J c #D2E6CA
-#K c #0F023A
-#L c #030024
-#M c #060024
-#N c #050124
-#O c #231B40
-#P c #D4E9DA
-#Q c #D3F1D5
-#R c #D9F1D7
-#S c #A4C9A0
-#T c #D5E7D7
-#U c #E9FEEB
-#V c #FCFFEE
-#W c #F7FEEC
-#X c #DEF9EA
-#Y c #DEF2CD
-#Z c #CAE5BC
-#[ c #EDF3D1
-#\ c #E9FFEE
-#] c #E7FCED
-#^ c #D1ECE7
-#_ c #DAF6DD
-#` c #09032F
-#a c #0B0430
-#b c #040021
-#c c #050221
-#d c #070029
-#e c #E3FAF0
-#f c #EEFFF7
-#g c #DCFDE2
-#h c #DAFCE4
-#i c #C0DABD
-#j c #D1DFCE
-#k c #C4DCDC
-#l c #B5D4C5
-#m c #BADFD7
-#n c #95ACA2
-#o c #86A898
-#p c #8FA895
-#q c #678778
-#r c #789D8B
-#s c #A7D0B2
-#t c #CAE4CB
-#u c #080031
-#v c #060029
-#w c #060028
-#x c #060022
-#y c #050021
-#z c #06011F
-#{ c #91A5A3
-#| c #FEFFF7
-#} c #FEFFF9
-#~ c #FEFEFE
-# c #FFFFFD
-$! c #9FB0A8
-$# c #768888
-$$ c #6F9073
-$% c #81A192
-$& c #91B99E
-$'' c #99C19F
-$(c #D7F0D3
-$) c #DAF7DB
-$* c #EEFFEA
-$+ c #F6FFFB
-$, c #EBFFF0
-$- c #0B002D
-$. c #060026
-$/ c #DAF5CA
-$0 c #E7FEEE
-$1 c #E5FCE2
-$2 c #EAFDE1
-$3 c #E7FFE4
-$4 c #CEE9E0
-$5 c #DDF5E7
-$6 c #D5E4CF
-$7 c #BCE3D1
-$8 c #B8CECC
-$9 c #AAD0D1
-$: c #92B7AF
-$; c #83B3A5
-$< c #9DAA99
-$= c #8EB19D
-$> c #0C013D
-$? c #090329
-$@ c #07002E
-$A c #040020
-$B c #070123
-$C c #E2F8E3
-$D c #E0FBD8
-$E c #F0FFF4
-$F c #E2FBE5
-$G c #C6E2D3
-$H c #90A499
-$I c #98B5B1
-$J c #789C80
-$K c #70807F
-$L c #87A186
-$M c #A7CFC7
-$N c #C8EED7
-$O c #C2D3C0
-$P c #D1EBE0
-$Q c #130238
-$R c #090327
-$S c #030325
-$T c #060129
-$U c #06002C
-$V c #030126
-$W c #BBDDBC
-$X c #BFE8CA
-$Y c #C0E5BC
-$Z c #A9CEAC
-$[c #84B190
-$\ c #A4C9AA
-$]
-    c #99A4B8
-$^ c #C0D7C7
-$_ c #CDEBE3
-$` c #C7DBBF
-$a c #B6DABE
-$b c #B1D9BF
-$c c #C7DED6
-$d c #DDF7EC
-$e c #15063F
-$f c #060227
-$g c #04001D
-$h c #04001B
-$i c #070026
-$j c #B7D0B0
-$k c #FFF9F2
-$l c #ABC8AA
-$m c #FAFFFF
-$n c #68985E
-$o c #D0E8DB
-$p c #C7E1D4
-$q c #C5E0CF
-$r c #CBE3D5
-$s c #C6E8DA
-$t c #D1EAE4
-$u c #BFE4C5
-$v c #0E0137
-$w c #060225
-$x c #04001F
-$y c #2F2B42
-$z c #98BD9B
-${ c #A4C5AA
-$| c #9DBEAB
-$}
-c #F4F4F2
-$~c #6B817E
-$ c #607475
-%! c #6B886A
-%# c #647F90
-%$ c #76A07A
-%% c #7F8981
-%& c #0B0133
-%'' c #0C0227
-%(c #050020
-%) c #040229
-%* c #05002B
-%+ c #08012B
-%, c #261839
-%- c #588252
-%. c #7DA07F
-%/ c #73A08C
-%0 c #688F5A
-%1 c #587771
-%2 c #475258
-%3 c #5F815C
-%4 c #506B5C
-%5 c #667467
-%6 c #0A0231
-%7 c #040120
-%8 c #06021D
-%9 c #050025
-%: c #06012A
-%; c #040322
-%< c #070125
-%= c #86816D
-%> c #689368
-%? c #94B48F
-%@ c #68895C
-%A c #557357
-%B c #375C64
-%C c #466659
-%D c #3D574C
-%E c #0D023E
-%F c #040027
-%G c #050028
-%H c #050029
-%I c #040028
-%J c #1A0838
-%K c #D5C496
-%L c #A0C2AA
-%M c #B5D1A8
-%N c #4A5456
-%O c #395B43
-%P c #567150
-%Q c #070030
-%R c #07031E
-%S c #07012F
-%T c #070033
-%U c #090029
-%V c #190835
-%W c #1E0839
-%X c #220931
-%Y c #2C1438
-%Z c #351A39
-%[c #CCA878
-%\ c #516A67
-%] c #738C88
-%^ c #1F0A4B
-%_ c #10002F
-%` c #090031
-%a c #170338
-%b c #1C0A32
-%c c #1C0533
-%d c #150B47
-%e c #11052D
-%f c #07022B
-%g c #05002F
-%h c #412244
-%i c #41183A
-%j c #3D2034
-%k c #55254F
-%l c #522E48
-%m c #5F3751
-%n c #6D4C61
-%o c #6F7978
-%p c #1F0737
-%q c #271135
-%r c #18012D
-%s c #1B0128
-%t c #290F32
-%u c #28113F
-%v c #220C32
-%w c #21002B
-%x c #351C53
-%y c #35194C
-%z c #3A1646
-%{ c #320C47
-%| c #030221
-%} c #0A012C
-%~ c #130127
-% c #371838
-&! c #93749D
-&# c #A39185
-&$ c #4E2A38
-&% c #6A4264
-&& c #8D63A2
-&'' c #663855
-&( c #37143E
-&) c #270A36
-&* c #1B0931
-&+ c #281040
-&, c #1D0535
-&- c #1E0235
-&. c #260A33
-&/ c #220F3D
-&0 c #1D0F42
-&1 c #290A43
-&2 c #4E2A4E
-&3 c #41264F
-&4 c #A0839F
-&5 c #2E133C
-&6 c #3E0E42
-&7 c #DAE4E6
-&8 c #EAD9C7
-&9 c #FAFFD7
-&: c #573454
-&; c #AD82DB
-&< c #533453
-&= c #5B3564
-&> c #714A5F
-&? c #877680
-&@ c #5F4A71
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!#!$!%!&!''!(!)!*!+!,!*!-!.!/!0!1!2!3!4!5!6!7!8!9!:
-!;!<!=!>!?!@!A!B!C!D!E!F!)!G!H!I!J!K!L!M!N!O!P!Q!R
-!S!T!U!V!W!X!Y!Z![!\!]!^!_!`!a!,!*!b!c!d!e!f!g!h!i
-!j!k!l!m!n!o!p!q!r!s!t!u!v!w!x!y!z!{!|!}!~!~!#!##
-#$#%#&#''#(#)#*#+#,#-#.#/#0#1#2#3#4#5#6#7#8#9#:#;#<
-#=#>#?#@#A#B#C#D#E#F#G#H#I#J#K#4#L#M#9#9#N#O#P#Q#R
-#S#T#U#V#W#X#Y#Z#[#\#]#^#_#`#a!}!~#b#c#6#d#e#f#g#h
-#i#j#k#l#m#n#o#p#q#r#s#t#u#v#w#d#x#y#z#x#{#|#}#~#
-$!$#$$$%$&$''$($)$*$+$,$-#4#d$.!~#9#8#M#z$/$0$1$2$3
-$4$5$6$7$8$9$:$;$<$=$>$?$@$A#9#9#9#M$.$B$C$D$E$F$G
-$H$I$J$K$L$M$N$O$P$Q$R$S$T#9#9$U#9!}$V$W$X$Y$Z$[$\
-$]$^$_$`$a$b$c$d$e$.#d$B#z#M#8$f$g#8$h$i$j$k$l$m$n
-$o$p$q$r$s$t$u$v#d#M!}!~#8#9#9$w#x#d$x#z$y$z${$|$}
-$~$%!%#%$%%%&%''$T$B#d$.#x!}#b%(%)%*$B%+%,%-%.%/%0
-%1%2%3%4%5%6#8%7%8!}#y!}%9$T#y%:!~#N%;#L%<%=%>%?%@
-%A%B%C%D%E!~#N!~#c$T%F%G!~%H$T$U%G#9#c%I#d%J%K%L%M
-%N%O%P%Q%R!~!~#9#7!}#N$f$f%S%I%T$f!~%U%V%W%X%Y%Z%[
-%\%]%^%_%`%a%b%c%d%e$.!~%f%g$w%H#9%:%h%i%j%k%l%m%n
-%o%p%q%r%s%t%u%v%w%x%y%z%{%|#5%:%}%~%&!&#&$&%&&&''
-&(&)&*&+&,&-&.&/&0&1&2&3&4&5&6&7&8&9&:&;&<&=&>&?&@
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-";
+        #region Versioning and Updates
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "<Pending>")]
+        private void SetVersion(SQLiteConnection conn, long version)
+        {
+            using (var cmd = new SQLiteCommand(conn))
+            {
+                cmd.CommandText = "PRAGMA user_version = " + version.ToString();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private void CheckVersionAndUpgrade(SQLiteConnection conn)
+        {
+            long version = 0;
+            using (var cmd = new SQLiteCommand(conn))
+            {
+                cmd.CommandText = "PRAGMA user_version;";
+                var rdr = cmd.ExecuteReader();
+
+                if (rdr.Read())
+                {
+                    version = (long)rdr[0];
+                    rdr.Close();
+                }
+            }
+
+            // Maybe this should be a little more generic, but just hardcoding version upgrades right now
+            if (version < LatestDBVersion)
+            {
+
+                if (version < 2)
+                    UpgradeToVersion2(conn);
+
+                if (version < 3)
+                    UpgradeToVersion3(conn);
+
+                if (version < 4)
+                    UpgradeToVersion4(conn);
+
+                if (version < 5)
+                    UpgradeToVersion5(conn);
+
+                if (version < 6)
+                    UpgradeToVersion6(conn);
+
+                UpgradeToVersion7(conn);
+            }
+        }
+
+        private void UpgradeToVersion2(SQLiteConnection conn)
+        {
+            try
+            {
+                const string AddScaleToOutlines = "ALTER TABLE Outlines ADD COLUMN Scale REAL DEFAULT NULL";
+
+                using (var cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = AddScaleToOutlines;
+                    cmd.ExecuteNonQuery();
+                }
+
+                const string AddOriginalImageFilename = "ALTER TABLE Images ADD COLUMN OriginalImageFilename TEXT DEFAULT NULL";
+                using (var cmd2 = new SQLiteCommand(conn))
+                {
+                    cmd2.CommandText = AddOriginalImageFilename;
+                    cmd2.ExecuteNonQuery();
+                }
+
+                SetVersion(conn, 2);
+            }
+            catch { }
+        }
+
+        private void UpgradeToVersion3(SQLiteConnection conn)
+        {
+            try
+            {
+                const string CreateFeaturePointsTable = @"CREATE TABLE IF NOT EXISTS OutlineFeaturePoints(
+                        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Type INTEGER,
+                        Position INTEGER,
+                        UserSetPosition INTEGER,
+                        fkOutlineID INTEGER
+                    );
+                    CREATE INDEX IF NOT EXISTS IX_OutlineFeaturePoints_fkOutlineID ON OutlineFeaturePoints (fkOutlineID);";
+
+                using (var cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = CreateFeaturePointsTable;
+                    cmd.ExecuteNonQuery();
+                }
+
+                SetVersion(conn, 3);
+            }
+            catch { }
+        }
+
+        private void UpgradeToVersion4(SQLiteConnection conn)
+        {
+            try
+            {
+                const string CreateSettingsTable = @"CREATE TABLE IF NOT EXISTS Settings (
+                        Key TEXT,
+                        Value TEXT
+                    );
+                    CREATE INDEX IF NOT EXISTS IX_Settings_Key ON Settings (Key);";
+
+                using (var cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = CreateSettingsTable;
+                    cmd.ExecuteNonQuery();
+                }
+
+                SetVersion(conn, 4);
+            }
+            catch { }
+        }
+
+        private void UpgradeToVersion5(SQLiteConnection conn)
+        {
+            try
+            {
+                const string AlterOutlineFeaturePoints = @"ALTER TABLE OutlineFeaturePoints ADD COLUMN Ignore INTEGER DEFAULT 0";
+
+                using (var cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = AlterOutlineFeaturePoints;
+                    cmd.ExecuteNonQuery();
+                }
+
+                SetVersion(conn, 5);
+            }
+            catch { }
+        }
+
+        private void UpgradeToVersion6(SQLiteConnection conn)
+        {
+            try
+            {
+                const string AddFeatureTables = @"CREATE TABLE IF NOT EXISTS CoordinateFeaturePoints (
+                        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Type INTEGER,
+                        X INTEGER,
+                        Y INTEGER,
+                        UserSetPosition INTEGER,
+                        Ignore INTEGER,
+                        fkOutlineID INTEGER
+                    );
+                    CREATE INDEX IF NOT EXISTS IX_CoordinateFeaturePoints_fkOutlineID ON CoordinateFeaturePoints (fkOutlineID);
+
+                    CREATE TABLE IF NOT EXISTS Features (
+                        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Type INTEGER,
+                        Value REAL,
+                        Ignore INTEGER,
+                        fkOutlineID INTEGER
+                    );
+                    CREATE INDEX IF NOT EXISTS IX_Features_fkOutlineID ON Features (fkOutlineID);";
+
+                using (var cmd = new SQLiteCommand(conn))
+                {
+                    cmd.CommandText = AddFeatureTables;
+                    cmd.ExecuteNonQuery();
+                }
+
+                SetVersion(conn, 6);
+            }
+            catch { }
+        }
+
+        private void UpgradeToVersion7(SQLiteConnection conn)
+        {
+            try
+            {
+                using (var transaction = conn.BeginTransaction())
+                {
+                    const string Version7Updates =
+                    @"ALTER TABLE Individuals ADD COLUMN ThumbnailFilename TEXT DEFAULT NULL;
+
+                    ALTER TABLE Images ADD COLUMN CropImageFilename TEXT DEFAULT NULL;
+                    ALTER TABLE Images ADD COLUMN OrderId INTEGER DEFAULT 100;
+
+                    ALTER TABLE Outlines ADD COLUMN fkImageID INTEGER DEFAULT 0;";
+
+                    using (var cmd = new SQLiteCommand(conn))
+                    {
+                        cmd.CommandText = Version7Updates;
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // Now, update fkImageID in Outlines so it's the right ID, because we're going to drop fkIndividualID next
+                    const string UpdateOutlineImageIds = "UPDATE Outlines SET fkImageID = (SELECT i.ID FROM Images i WHERE i.fkIndividualID = Outlines.fkIndividualID LIMIT 1)";
+                    using (var cmdImageIds = new SQLiteCommand(conn))
+                    {
+                        cmdImageIds.CommandText = UpdateOutlineImageIds;
+                        cmdImageIds.ExecuteNonQuery();
+                    }
+
+                    // And update the thumbnails
+                    const string UpdateIndividualThumbnails = "UPDATE Individuals SET ThumbnailFilename = (SELECT i.ImageFilename FROM Images i WHERE i.fkIndividualID = Individuals.ID LIMIT 1)";
+                    using (var cmdThumbnails = new SQLiteCommand(conn))
+                    {
+                        cmdThumbnails.CommandText = UpdateIndividualThumbnails;
+                        cmdThumbnails.ExecuteNonQuery();
+                    }
+
+                    transaction.Commit();
+                }
+
+                //const string CleanupOutlinesTable1 = @"DROP INDEX outln_indiv;";
+                //using (var cmdOutlines1 = new SQLiteCommand(conn))
+                //{
+                //    cmdOutlines1.CommandText = CleanupOutlinesTable1;
+                //    cmdOutlines1.ExecuteNonQuery();
+                //}
+
+                using (var transaction2 = conn.BeginTransaction())
+                {
+                    const string createCopy = @"CREATE TABLE IF NOT EXISTS OutlinesCopy (
+                        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        Scale REAL DEFAULT NULL,
+                        TipPosition INTEGER,
+                        BeginLE INTEGER,
+                        EndLE INTEGER,
+                        NotchPosition INTEGER,
+                        EndTE INTEGER,
+                        fkImageID INTEGER
+                    );
+
+                    INSERT INTO OutlinesCopy(ID, Scale, TipPosition, BeginLE, EndLE, NotchPosition, EndTE, fkImageID)
+                        SELECT ID, Scale, TipPosition, BeginLE, EndLE, NotchPosition, EndTE, fkImageID
+                        FROM Outlines;";
+                    using (var cmdOutlines1 = new SQLiteCommand(conn))
+                    {
+                        cmdOutlines1.CommandText = createCopy;
+                        cmdOutlines1.ExecuteNonQuery();
+                    }
+
+                    const string CleanupOutlinesTable2 = @"CREATE INDEX IF NOT EXISTS IX_Outline_fkImageID ON Outlines (fkImageID);";
+
+                    using (var cmdOutlines2 = new SQLiteCommand(conn))
+                    {
+                        cmdOutlines2.CommandText = CleanupOutlinesTable2;
+                        cmdOutlines2.ExecuteNonQuery();
+                    }
+
+                    transaction2.Commit();
+                }
+
+                using (var transaction3 = conn.BeginTransaction())
+                {
+                    const string dropAndRename = @"
+                        DROP TABLE Outlines;
+
+                        ALTER TABLE OutlinesCopy RENAME TO Outlines;";
+
+                    using (var cmdOutlines3 = new SQLiteCommand(conn))
+                    {
+                        cmdOutlines3.CommandText = dropAndRename;
+                        cmdOutlines3.ExecuteNonQuery();
+                    }
+
+                    transaction3.Commit();
+                }
+
+                SetVersion(conn, 7);
+            }
+            catch { }
+        }
+
+        #endregion
     }
 }
  
