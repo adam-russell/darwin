@@ -32,30 +32,13 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.IO;
 using Darwin.Features;
+using Darwin.Helpers;
+using System.Drawing.Imaging;
 
 namespace Darwin.Wpf.ViewModel
 {
-	public class TraceWindowViewModel : INotifyPropertyChanged
+	public class TraceWindowViewModel : BaseViewModel
 	{
-		public event PropertyChangedEventHandler PropertyChanged;
-
-		private string _windowTitle;
-		public string WindowTitle
-		{
-			get
-			{
-				if (!string.IsNullOrEmpty(_windowTitle))
-					return _windowTitle;
-
-				return "Trace";
-			}
-			set
-			{
-				_windowTitle = value;
-				RaisePropertyChanged("WindowTitle");
-			}
-		}
-
 		private Bitmap _bitmap;
 		public Bitmap Bitmap
 		{
@@ -783,11 +766,6 @@ namespace Darwin.Wpf.ViewModel
 		private void RedoItemsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
 		{
 			RaisePropertyChanged("RedoEnabled");
-		}
-
-		private void RaisePropertyChanged(string propertyName)
-        {
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
     }
 }

@@ -1,5 +1,5 @@
-﻿// Code is based on example from 29AjayKumar:
-// https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/
+﻿// Code is based on example from Rod Stephens:
+// http://csharphelper.com/blog/2014/07/determine-whether-a-polygon-is-convex-in-c/
 
 // This file is part of DARWIN.
 // Copyright (C) 1994 - 2020
@@ -17,6 +17,7 @@
 // You should have received a copy of the GNU General Public License
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
+using Darwin.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -25,118 +26,70 @@ namespace Darwin.Helpers
 {
     public static class PolygonHelper
     {
-        private const int LargeNumber = 10000000;
-
-        // Given three colinear points p, q, r,  
-        // the function checks if point q lies 
-        // on line segment 'pr' 
-        private static bool onSegment(Point p, Point q, Point r)
+        // Return true if the point is in the polygon.
+        public static bool PointInPolygon(List<Point> points, float X, float Y)
         {
-            if (q.X <= Math.Max(p.X, r.X) &&
-                q.X >= Math.Min(p.X, r.X) &&
-                q.X <= Math.Max(p.Y, r.Y) &&
-                q.X >= Math.Min(p.Y, r.Y))
+            // Get the angle between the point and the
+            // first and last vertices.
+            int max_point = points.Count - 1;
+            float total_angle = GetAngle(
+                points[max_point].X, points[max_point].Y,
+                X, Y,
+                points[0].X, points[0].Y);
+
+            // Add the angles from the point
+            // to each other pair of vertices.
+            for (int i = 0; i < max_point; i++)
             {
-                return true;
+                total_angle += GetAngle(
+                    points[i].X, points[i].Y,
+                    X, Y,
+                    points[i + 1].X, points[i + 1].Y);
             }
 
-            return false;
+            // The total angle should be 2 * PI or -2 * PI if
+            // the point is in the polygon and close to zero
+            // if the point is outside the polygon.
+            // The following statement was changed. See the comments.
+            //return (Math.Abs(total_angle) > 0.000001);
+            return (Math.Abs(total_angle) > 1);
         }
 
-        // To find orientation of ordered triplet (p, q, r). 
-        // The function returns following values 
-        // 0 --> p, q and r are colinear 
-        // 1 --> Clockwise 
-        // 2 --> Counterclockwise 
-        private static int Orientation(Point p, Point q, Point r)
+        // Return the angle ABC.
+        // Return a value between PI and -PI.
+        // Note that the value is the opposite of what you might
+        // expect because Y coordinates increase downward.
+        private static float GetAngle(float Ax, float Ay,
+            float Bx, float By, float Cx, float Cy)
         {
-            int val = (q.Y - p.Y) * (r.X - q.X) -
-                      (q.X - p.X) * (r.Y- q.Y);
+            // Get the dot product.
+            float dot_product = (float)LinearAlgebra.DotProduct(Ax - Bx, Ay - By, Cx - Bx, Cy - By);
 
-            if (val == 0)
-                return 0; // colinear 
+            // Get the cross product.
+            float cross_product = CrossProductLength(Ax, Ay, Bx, By, Cx, Cy);
 
-            return (val > 0) ? 1 : 2; // clock or counterclock wise 
+            // Calculate the angle.
+            return (float)Math.Atan2(cross_product, dot_product);
         }
 
-        // The function that returns true if  
-        // line segment 'p1q1' and 'p2q2' intersect. 
-        public static bool DoLinesIntersect(Point p1, Point q1,
-                                Point p2, Point q2)
+        // Return the cross product AB x BC.
+        // The cross product is a vector perpendicular to AB
+        // and BC having length |AB| * |BC| * Sin(theta) and
+        // with direction given by the right-hand rule.
+        // For two vectors in the X-Y plane, the result is a
+        // vector with X and Y components 0 so the Z component
+        // gives the vector's length and direction.
+        public static float CrossProductLength(float Ax, float Ay,
+            float Bx, float By, float Cx, float Cy)
         {
-            // Find the four orientations needed for  
-            // general and special cases 
-            int o1 = Orientation(p1, q1, p2);
-            int o2 = Orientation(p1, q1, q2);
-            int o3 = Orientation(p2, q2, p1);
-            int o4 = Orientation(p2, q2, q1);
+            // Get the vectors' coordinates.
+            float BAx = Ax - Bx;
+            float BAy = Ay - By;
+            float BCx = Cx - Bx;
+            float BCy = Cy - By;
 
-            // General case 
-            if (o1 != o2 && o3 != o4)
-                return true;
-
-            // Special Cases 
-            // p1, q1 and p2 are colinear and 
-            // p2 lies on segment p1q1 
-            if (o1 == 0 && onSegment(p1, p2, q1))
-                return true;
-
-            // p1, q1 and p2 are colinear and 
-            // q2 lies on segment p1q1 
-            if (o2 == 0 && onSegment(p1, q2, q1))
-                return true;
-
-            // p2, q2 and p1 are colinear and 
-            // p1 lies on segment p2q2 
-            if (o3 == 0 && onSegment(p2, p1, q2))
-                return true;
-
-            // p2, q2 and q1 are colinear and 
-            // q1 lies on segment p2q2 
-            if (o4 == 0 && onSegment(p2, q1, q2))
-                return true;
-
-            // Doesn't fall in any of the above cases 
-            return false;
-        }
-
-        // Returns true if the point p lies inside the polygon[] with n vertices 
-        public static bool IsInsidePolygon(List<Point> polygon, Point p)
-        {
-            // There must be at least 3 vertices in polygon
-            if (polygon.Count < 3)
-                return false;
-
-            // Create a point for line segment from p to "infinite"
-            Point extreme = new Point(LargeNumber, p.Y);
-
-            // Count intersections of the above line with sides of polygon 
-            int count = 0, i = 0;
-            do
-            {
-                int next = (i + 1) % polygon.Count;
-
-                // Check if the line segment from 'p' to  
-                // 'extreme' intersects with the line  
-                // segment from 'polygon[i]' to 'polygon[next]' 
-                if (DoLinesIntersect(polygon[i],
-                                polygon[next], p, extreme))
-                {
-                    // If the point 'p' is colinear with line  
-                    // segment 'i-next', then check if it lies  
-                    // on segment. If it lies, return true, otherwise false 
-                    if (Orientation(polygon[i], p, polygon[next]) == 0)
-                    {
-                        return onSegment(polygon[i], p,
-                                         polygon[next]);
-                    }
-                    count++;
-                }
-                i = next;
-            } while (i != 0);
-
-            // Return true if count is odd, false otherwise
-            return count % 2 == 1;
+            // Calculate the Z coordinate of the cross product.
+            return (BAx * BCy - BAy * BCx);
         }
     }
 }

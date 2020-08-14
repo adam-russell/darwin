@@ -17,13 +17,35 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace Darwin
 {
-    public class BaseEntity
+    public class BaseEntity : INotifyPropertyChanged
     {
         [JsonIgnore]
         public long ID { get; set; }
+
+        protected bool _fieldsChanged;
+        public bool FieldsChanged
+        {
+            get => _fieldsChanged;
+            set
+            {
+                _fieldsChanged = value;
+                RaisePropertyChanged("FieldsChanged");
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void RaisePropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler == null) return;
+
+            handler(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

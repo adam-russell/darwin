@@ -10,7 +10,6 @@
 //            ASSUMPTION: if image filename contains any slashes it is
 //            presumed to be an UNKNOWN
 //
-//                                            *
 
 // This file is part of DARWIN.
 // Copyright (C) 1994 - 2020
@@ -70,7 +69,7 @@ using System.IO;
 
 namespace Darwin.Database
 {
-    public class DatabaseFin : BaseEntity, INotifyPropertyChanged
+    public class DatabaseFin : BaseEntity
     {
         public Bitmap OriginalFinImage;
         public Bitmap FinImage;      // modified fin image from TraceWin, ...
@@ -91,7 +90,6 @@ namespace Darwin.Database
         public int ThumbnailRows;
 
         //  1.4 - new members for tracking image modifications during tracing
-        public bool mLeft, mFlipped;              // left side or flipped internally to swim left
         public double XMin, YMin, XMax, YMax; // internal cropping bounds
         public double Scale;                     // image to Outline scale change
 
@@ -121,19 +119,6 @@ namespace Darwin.Database
                     return null;
 
                 return Path.GetFileName(_finFilename);
-            }
-        }
-
-        public bool IsAlternate; //  1.95 - allow designation of primary and alternate fins/images
-
-        private bool _fieldsChanged;
-        public bool FieldsChanged
-        {
-            get => _fieldsChanged;
-            set
-            {
-                _fieldsChanged = value;
-                RaisePropertyChanged("FieldsChanged");
             }
         }
 
@@ -291,8 +276,6 @@ namespace Darwin.Database
             ShortDescription = shortDescription;
             ThumbnailPixmap = null;
             ThumbnailRows = 0;
-            mLeft = true; //  1.4
-            mFlipped = false; //  1.4
             XMin = 0.0; //  1.4
             XMax = 0.0; //  1.4
             YMin = 0.0; //  1.4
@@ -300,7 +283,6 @@ namespace Darwin.Database
             Scale = 1.0; //  1.4
             FinImage = null; //  1.5
             FinFilename = string.Empty; //  1.6
-            IsAlternate = false; //  1.95
 
             //  1.5 - need some way to CATCH error thrown when image file
             //         does not exist or is unsupported type  --
@@ -309,14 +291,6 @@ namespace Darwin.Database
             OriginalFinImage = new Bitmap(ImageFilename); //  001DB
 
             FieldsChanged = false;
-            // TODO
-            //FIN_IMAGE_TYPE* thumb = resizeWithBorderNN(
-            //		mFinImage,
-            //		DATABASEFIN_THUMB_HEIGHT,
-            //		DATABASEFIN_THUMB_WIDTH);
-
-            // TODO
-            //convToPixmapString(thumb, mThumbnailPixmap, mThumbnailRows);
         }
 
         //  1.99 - new constructor used by SQLlite database code
@@ -349,8 +323,6 @@ namespace Darwin.Database
             DamageCategory = damageCategory;
             ShortDescription = shortDescription;
             ID = datapos;
-            mLeft = true; //  1.4
-            mFlipped = false; //  1.4
             XMin = 0.0; //  1.4
             XMax = 0.0; //  1.4
             YMin= 0.0; //  1.4
@@ -359,33 +331,16 @@ namespace Darwin.Database
             FinImage = null; //  1.5
             FinFilename = string.Empty; //  1.6
             OriginalFinImage = null;
-            IsAlternate = false; //  1.99
 
             FieldsChanged = false;
-            // let's see what happens... -- rjn
-            /*
-            mFinImage=new FIN_IMAGE_TYPE(mImageFilename); //  001DB
-            FIN_IMAGE_TYPE *thumb = resizeWithBorderNN(
-                    mFinImage,
-                    DATABASEFIN_THUMB_HEIGHT,
-                    DATABASEFIN_THUMB_WIDTH);
-            convToPixmapString(thumb, m
-            
-            Pixmap, mThumbnailRows);
-            delete thumb;
-            */
         }
 
-        //                                                **
-        //
-        // called ONLY from Match.cxx and MatchResultsWindow.cxx
-        //
         public DatabaseFin(DatabaseFin fin)
         {
             ImageFilename = fin.ImageFilename;        //  001DB
-			OriginalFinImage = null;                          //   major change JHS
+			OriginalFinImage = null;  //   major change JHS
             FinImage = null; //  1.5
-            ID = fin.ID;                    //  001DB
+            ID = fin.ID; //  001DB
             FinOutline = new Outline(fin.FinOutline); //  006DF,008OL
             IDCode = fin.IDCode;
             Name = fin.Name;
@@ -397,8 +352,7 @@ namespace Darwin.Database
             // TODO
             ThumbnailPixmap = null; //new char*[fin.mThumbnailRows];
             ThumbnailRows = fin.ThumbnailRows;
-            mLeft = fin.mLeft; //  1.4
-            mFlipped = fin.mFlipped; //  1.4
+
             XMin = fin.XMin; //  1.4
             XMax = fin.XMax; //  1.4
             YMin = fin.YMin; //  1.4
@@ -408,8 +362,6 @@ namespace Darwin.Database
             OriginalImageFilename = fin.OriginalImageFilename; //  1.8
 
             ImageMods = fin.ImageMods; //  1.8
-
-            IsAlternate = fin.IsAlternate; //  1.95
 
             //  1.5 - just set pointer to original copy from TraceWindow
             //  1.8 - we actually create a COPY of the modified image here

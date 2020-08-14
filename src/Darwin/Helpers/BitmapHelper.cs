@@ -187,5 +187,40 @@ namespace Darwin.Helpers
                     throw new NotImplementedException();
             }
         }
+
+        /// <summary>
+        /// Creates a mask image of the same size as the source, with the pixels
+        /// white if they're inside the Contour, and black if they're outside.
+        /// 
+        /// TODO: This is a brute-force approach, might want to make this more efficient
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="contour"></param>
+        /// <returns></returns>
+        public static Bitmap CreateMaskImageFromContour(Bitmap source, Contour contour)
+        {
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            if (contour == null)
+                throw new ArgumentNullException(nameof(contour));
+
+            DirectBitmap directResult = new DirectBitmap(source.Width, source.Height);
+
+            var pointList = contour.Points.ToList();
+
+            for (int x = contour.XMin; x <= contour.XMax; x++)
+            {
+                for (int y = contour.YMin; y <= contour.YMax; y++)
+                {
+                    if (PolygonHelper.PointInPolygon(pointList, x, y))
+                        directResult.SetPixel(x, y, Color.White);
+                    else
+                        directResult.SetPixel(x, y, Color.Black);
+                }
+            }
+
+            return directResult.Bitmap;
+        }
     }
 }

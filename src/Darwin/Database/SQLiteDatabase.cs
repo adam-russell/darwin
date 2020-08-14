@@ -34,6 +34,7 @@ namespace Darwin.Database
 {
     // TODO: There's some copy/pasted code in here that could be refactored a little to
     // eliminate some duplication.
+    // TODO: Maybe move some of this to an ORM like Sqlite PCL or something.
     public class SQLiteDatabase : DarwinDatabase
     {
         private const string SettingsCatalogSchemeName = "CatalogSchemeName";
@@ -474,11 +475,12 @@ namespace Darwin.Database
                     InsertImage(conn, ref image);
 
                     // Fake thumbnail to keep the old version working
-                    DBThumbnail thumbnail = new DBThumbnail();
-                    thumbnail.rows = 433;
-                    thumbnail.pixmap = FakeThumbnail;
-                    thumbnail.fkimageid = image.id;
-                    InsertThumbnail(conn, ref thumbnail);
+                    // Commenting the below lines breaks the old version
+                    //DBThumbnail thumbnail = new DBThumbnail();
+                    //thumbnail.rows = 433;
+                    //thumbnail.pixmap = FakeThumbnail;
+                    //thumbnail.fkimageid = image.id;
+                    //InsertThumbnail(conn, ref thumbnail);
 
                     InsertImageModifications(conn, image.id, fin.ImageMods);
 
@@ -487,10 +489,9 @@ namespace Darwin.Database
                 conn.Close();
             }
 
-            return individual.id; // mDataPos field will be used to map to id in db for individuals
+            return individual.id;
         }
 
-        // *****************************************************************************
         //
         // Updates DatabaseFin<ColorImage>
         //

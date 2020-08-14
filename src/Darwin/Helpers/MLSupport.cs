@@ -218,7 +218,6 @@ namespace Darwin.Helpers
 
             Trace.WriteLine(" ");
 
-            // Rescale the coordinates back to the original
             return coordinates;
         }
     }

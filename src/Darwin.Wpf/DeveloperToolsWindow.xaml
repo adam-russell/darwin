@@ -22,7 +22,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Darwin.Wpf"
         mc:Ignorable="d" Background="{StaticResource LightBackground}"
-        Title="{Binding WindowTitle}" Height="250" Width="800" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+        Title="{Binding WindowTitle}" Height="350" Width="800" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
