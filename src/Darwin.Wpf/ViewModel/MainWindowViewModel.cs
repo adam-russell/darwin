@@ -239,11 +239,11 @@ namespace Darwin.Wpf.ViewModel
                 // TODO: Cache images?
                 if (!string.IsNullOrEmpty(SelectedFin.PrimaryImage.ImageFilename))
                 {
-                    CatalogSupport.UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentSurveyAreaPath, SelectedFin);
+                    CatalogSupport.UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentCatalogPath, SelectedFin);
 
                     SelectedContour = new Contour(SelectedFin.PrimaryImage.FinOutline.ChainPoints, SelectedFin.PrimaryImage.FinOutline.Scale);
 
-                    string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath,
+                    string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
                         (string.IsNullOrEmpty(SelectedFin.PrimaryImage.OriginalImageFilename)) ? SelectedFin.PrimaryImage.ImageFilename : SelectedFin.PrimaryImage.OriginalImageFilename);
 
                     if (File.Exists(fullImageFilename))

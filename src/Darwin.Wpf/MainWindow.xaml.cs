@@ -604,7 +604,7 @@ namespace Darwin.Wpf
 
         private void DeleteFin_Click(object sender, RoutedEventArgs e)
         {
-            if (MessageBox.Show("Are you sure you want to delete this " + _vm.DarwinDatabase.CatalogScheme.IndividualTerminology + " from the database?",
+            if (MessageBox.Show("Are you sure you want to delete this " + _vm.DarwinDatabase.CatalogScheme.IndividualTerminology + " from the database?" + Environment.NewLine + Environment.NewLine + "This will also remove all the images for this " + _vm.DarwinDatabase.CatalogScheme.IndividualTerminology,
                 "Delete Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
             {
                 _vm.DarwinDatabase.Delete(_vm.SelectedFin);

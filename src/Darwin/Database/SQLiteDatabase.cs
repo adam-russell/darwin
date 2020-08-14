@@ -140,7 +140,7 @@ namespace Darwin.Database
             {
                 foreach (var image in images)
                 {
-                    var outline = SelectOutlineByFkImageID(id);
+                    var outline = SelectOutlineByFkImageID(image.ID);
                     //thumbnail = SelectThumbnailByFkImageID(image.id);
                     List<DBPoint> points = SelectPointsByFkOutlineID(outline.id);
 
@@ -1129,7 +1129,7 @@ namespace Darwin.Database
                                 endle = rdr.SafeGetInt("EndLE"),
                                 notchposition = rdr.SafeGetInt("NotchPosition"),
                                 endte = rdr.SafeGetInt("EndTE"),
-                                fkimageid = rdr.SafeGetInt("fkIndividualID")
+                                fkimageid = rdr.SafeGetInt("fkImageID")
                             };
                         }
                     }
@@ -2452,18 +2452,7 @@ namespace Darwin.Database
                         cmdThumbnails.ExecuteNonQuery();
                     }
 
-                    transaction.Commit();
-                }
 
-                //const string CleanupOutlinesTable1 = @"DROP INDEX outln_indiv;";
-                //using (var cmdOutlines1 = new SQLiteCommand(conn))
-                //{
-                //    cmdOutlines1.CommandText = CleanupOutlinesTable1;
-                //    cmdOutlines1.ExecuteNonQuery();
-                //}
-
-                using (var transaction2 = conn.BeginTransaction())
-                {
                     const string createCopy = @"CREATE TABLE IF NOT EXISTS OutlinesCopy (
                         ID INTEGER PRIMARY KEY AUTOINCREMENT,
                         Scale REAL DEFAULT NULL,
@@ -2492,11 +2481,6 @@ namespace Darwin.Database
                         cmdOutlines2.ExecuteNonQuery();
                     }
 
-                    transaction2.Commit();
-                }
-
-                using (var transaction3 = conn.BeginTransaction())
-                {
                     const string dropAndRename = @"
                         DROP TABLE Outlines;
 
@@ -2508,7 +2492,7 @@ namespace Darwin.Database
                         cmdOutlines3.ExecuteNonQuery();
                     }
 
-                    transaction3.Commit();
+                    transaction.Commit();
                 }
 
                 SetVersion(conn, 7);

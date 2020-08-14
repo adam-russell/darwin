@@ -102,7 +102,7 @@ namespace Darwin.Database
 
 				if (!string.IsNullOrEmpty(originalFilename))
 				{
-					originalFilename = Path.Combine(bottomDirectoryName, originalFilename);
+					//originalFilename = Path.Combine(bottomDirectoryName, originalFilename);
 
 					// TODO Original isn't right -- need to replay imagemods, maybe?
 					fin.PrimaryImage.OriginalImageFilename = originalFilename;
@@ -496,7 +496,7 @@ namespace Darwin.Database
 						DatabaseFin finToSave = new DatabaseFin(fin);
 						//UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentSurveyAreaPath, finToSave);
 
-						var imageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath, finToSave.PrimaryImage.ImageFilename);
+						var imageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, finToSave.PrimaryImage.ImageFilename);
 						if (File.Exists(imageFilename))
 							archive.CreateEntryFromFile(imageFilename, Path.GetFileName(imageFilename));
 
@@ -504,7 +504,7 @@ namespace Darwin.Database
 
 						if (!string.IsNullOrEmpty(originalImageFilename))
 						{
-							var fullOriginalImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath, originalImageFilename);
+							var fullOriginalImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, originalImageFilename);
 							if (File.Exists(fullOriginalImageFilename))
 								archive.CreateEntryFromFile(fullOriginalImageFilename, Path.GetFileName(fullOriginalImageFilename));
 						}
@@ -521,9 +521,9 @@ namespace Darwin.Database
 			// TODO: Cache images?
 			if (!string.IsNullOrEmpty(finCopy.PrimaryImage.ImageFilename))
 			{
-				CatalogSupport.UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentSurveyAreaPath, finCopy);
+				CatalogSupport.UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentCatalogPath, finCopy);
 
-				string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath,
+				string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
 					(string.IsNullOrEmpty(finCopy.PrimaryImage.OriginalImageFilename)) ? finCopy.PrimaryImage.ImageFilename : finCopy.PrimaryImage.OriginalImageFilename);
 
 				if (File.Exists(fullImageFilename))
@@ -550,7 +550,7 @@ namespace Darwin.Database
 
 			if (!string.IsNullOrEmpty(finCopy.PrimaryImage.OriginalImageFilename) && !File.Exists(finCopy.PrimaryImage.OriginalImageFilename))
 			{
-				finCopy.PrimaryImage.OriginalImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath, finCopy.PrimaryImage.OriginalImageFilename);
+				finCopy.PrimaryImage.OriginalImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, finCopy.PrimaryImage.OriginalImageFilename);
 			}
 
 			return finCopy;

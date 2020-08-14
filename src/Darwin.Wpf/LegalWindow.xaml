@@ -69,7 +69,7 @@ Contains code derived from https://github.com/damieng/DamienGKit/blob/master/CSh
     Originally licensed under the Apache License, Version 2.0
     You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
                 
-Contains code derived from https://www.geeksforgeeks.org/how-to-check-if-a-given-point-lies-inside-a-polygon/ by 29AjayKumar
+Contains code derived from http://csharphelper.com/blog/2014/07/determine-whether-a-polygon-is-convex-in-c/ by Rod Stephens
             </TextBox>
         </ScrollViewer>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">

@@ -187,7 +187,7 @@ namespace Darwin.Database
                 if (string.IsNullOrEmpty(ThumbnailFilename))
                     return null;
 
-                return Path.Combine(Options.CurrentUserOptions.CurrentSurveyAreaPath, ThumbnailFilename);
+                return Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, ThumbnailFilename);
             }
         }
 
