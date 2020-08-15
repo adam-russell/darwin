@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
@@ -223,38 +224,49 @@ namespace Darwin.Database
         public override long Add(DatabaseFin fin)
         {
             InvalidateAllFins();
-
-            Category dmgCat;
-            FloatContour fc;
-            int numPoints;
-
-            //***054 - assume that the image filename contains path
-            // information which must be stripped BEFORE saving fin
-            fin.PrimaryImage.ImageFilename = Path.GetFileName(fin.PrimaryImage.ImageFilename);
-
-            DBIndividual individual = new DBIndividual();
+            long individualId = 0;
 
             using (var conn = new SQLiteConnection(_connectionString))
             {
                 conn.Open();
                 using (var transaction = conn.BeginTransaction())
                 {
-                    dmgCat = SelectDamageCategoryByName(fin.DamageCategory);
+                    DBIndividual existingIndividual = null;
+
+                    if (!string.IsNullOrEmpty(fin.IDCode))
+                        existingIndividual = SelectIndividualByIDCode(fin.IDCode);
+
+                    var dmgCat = SelectDamageCategoryByName(fin.DamageCategory);
 
                     if (dmgCat == null || dmgCat.ID == -1)
                         dmgCat = SelectDamageCategoryByName("NONE");
 
-                    individual.idcode = fin.IDCode;
-                    individual.name = fin.Name;
-                    individual.fkdamagecategoryid = dmgCat.ID;
-                    InsertIndividual(conn, ref individual);
+                    if (existingIndividual == null)
+                    {
+                        var individual = new DBIndividual();
+                        individual.idcode = fin.IDCode;
+                        individual.name = fin.Name;
+                        individual.fkdamagecategoryid = dmgCat.ID;
+                        InsertIndividual(conn, ref individual);
+                        individualId = individual.id;
+                    }
+                    else
+                    {
+                        individualId = existingIndividual.id;
+
+                        if (dmgCat.ID != existingIndividual.fkdamagecategoryid)
+                        {
+                            existingIndividual.fkdamagecategoryid = dmgCat.ID;
+                            UpdateDBIndividual(conn, existingIndividual);
+                        }
+                    }
 
                     if (fin.Images != null)
                     {
                         foreach (var image in fin.Images)
                         {
                             var imageCopy = image;
-                            image.ID = InsertImage(conn, individual.id, ref imageCopy);
+                            image.ID = InsertImage(conn, individualId, ref imageCopy);
 
                             InsertImageModifications(conn, imageCopy.ID, image.ImageMods);
 
@@ -270,8 +282,8 @@ namespace Darwin.Database
 
                             List<DBPoint> points = new List<DBPoint>();
 
-                            numPoints = image.FinOutline.Length;
-                            fc = image.FinOutline.ChainPoints;
+                            var numPoints = image.FinOutline.Length;
+                            var fc = image.FinOutline.ChainPoints;
                             for (int i = 0; i < numPoints; i++)
                             {
                                 points.Add(new DBPoint
@@ -290,20 +302,68 @@ namespace Darwin.Database
                         }
                     }
 
-                    // Fake thumbnail to keep the old version working
-                    // Commenting the below lines breaks the old version
-                    //DBThumbnail thumbnail = new DBThumbnail();
-                    //thumbnail.rows = 433;
-                    //thumbnail.pixmap = FakeThumbnail;
-                    //thumbnail.fkimageid = image.id;
-                    //InsertThumbnail(conn, ref thumbnail);   
+                    transaction.Commit();
+                }
+                conn.Close();
+            }
+
+            return individualId;
+        }
+
+        public override long Add(long individualId, DatabaseImage data)
+        {
+            if (individualId < 1)
+                throw new ArgumentOutOfRangeException(nameof(individualId));
+
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
+            using (var conn = new SQLiteConnection(_connectionString))
+            {
+                conn.Open();
+
+                using (var transaction = conn.BeginTransaction())
+                {
+                    data.ID = InsertImage(conn, individualId, ref data);
+
+                    InsertImageModifications(conn, data.ID, data.ImageMods);
+
+                    var outline = new DBOutline();
+                    outline.scale = data.FinOutline.Scale;
+                    outline.beginle = data.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeBegin);
+                    outline.endle = data.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeEnd);
+                    outline.notchposition = data.FinOutline.GetFeaturePoint(FeaturePointType.Notch);
+                    outline.tipposition = data.FinOutline.GetFeaturePoint(FeaturePointType.Tip);
+                    outline.endte = data.FinOutline.GetFeaturePoint(FeaturePointType.PointOfInflection);
+                    outline.fkimageid = data.ID;
+                    InsertOutline(conn, ref outline);
+
+                    List<DBPoint> points = new List<DBPoint>();
+
+                    var numPoints = data.FinOutline.Length;
+                    var fc = data.FinOutline.ChainPoints;
+                    for (int i = 0; i < numPoints; i++)
+                    {
+                        points.Add(new DBPoint
+                        {
+                            xcoordinate = fc[i].X,
+                            ycoordinate = fc[i].Y,
+                            orderid = i,
+                            fkoutlineid = outline.id
+                        });
+                    }
+                    InsertPoints(conn, points);
+
+                    InsertFeatures(conn, outline.id, data.FinOutline.FeatureSet.FeatureList);
+                    InsertFeaturePoints(conn, outline.id, data.FinOutline.FeatureSet.FeaturePointList);
+                    InsertCoordinateFeaturePoints(conn, outline.id, data.FinOutline.FeatureSet.CoordinateFeaturePointList);
 
                     transaction.Commit();
                 }
                 conn.Close();
             }
 
-            return individual.id;
+            return data.ID;
         }
 
         //
@@ -313,18 +373,13 @@ namespace Darwin.Database
         {
             InvalidateAllFins();
 
-            DBOutline outline;
-            Category dmgCat;
-            FloatContour fc;
-            int i, numPoints;
-
             using (var conn = new SQLiteConnection(_connectionString))
             {
                 conn.Open();
 
                 using (var transaction = conn.BeginTransaction())
                 {
-                    dmgCat = SelectDamageCategoryByName(fin.DamageCategory);
+                    var dmgCat = SelectDamageCategoryByName(fin.DamageCategory);
 
                     DBIndividual individual = new DBIndividual();
                     individual.id = fin.ID; // mapping Individuals id to mDataPos
@@ -332,16 +387,6 @@ namespace Darwin.Database
                     individual.name = fin.Name;
                     individual.fkdamagecategoryid = dmgCat.ID;
                     UpdateDBIndividual(conn, individual);
-
-                    // query db as we don't know the image id
-                    //image = SelectImageByFkIndividualID(individual.id);
-                    //image.dateofsighting = fin.DateOfSighting;
-                    //image.imagefilename = fin.ImageFilename;
-                    //image.original_imagefilename = fin.OriginalImageFilename;
-                    //image.locationcode = fin.LocationCode;
-                    //image.rollandframe = fin.RollAndFrame;
-                    //image.shortdescription = fin.ShortDescription;
-                    //image.fkindividualid = individual.id;
 
                     // TODO: Any removals?
                     if (fin.Images != null)
@@ -361,7 +406,7 @@ namespace Darwin.Database
 
 
                             // we do this as we don't know what the outline id is
-                            outline = SelectOutlineByFkImageID(image.ID);
+                            var outline = SelectOutlineByFkImageID(image.ID);
                             outline.scale = image.FinOutline.Scale;
                             outline.beginle = image.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeBegin);
                             outline.endle = image.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeEnd);
@@ -372,10 +417,10 @@ namespace Darwin.Database
                             UpdateOutline(conn, outline);
 
                             List<DBPoint> points = new List<DBPoint>();
-                            numPoints = image.FinOutline.Length;
-                            fc = image.FinOutline.ChainPoints;
+                            var numPoints = image.FinOutline.Length;
+                            var fc = image.FinOutline.ChainPoints;
 
-                            for (i = 0; i < numPoints; i++)
+                            for (var i = 0; i < numPoints; i++)
                             {
                                 points.Add(new DBPoint
                                 {
@@ -399,13 +444,66 @@ namespace Darwin.Database
                             InsertCoordinateFeaturePoints(conn, outline.id, image.FinOutline.FeatureSet.CoordinateFeaturePointList);
                         }
                     }
-                    
-                    // query db as we don't know the thumbnail id
-                    //thumbnail = SelectThumbnailByFkImageID(image.id);
-                    //thumbnail.rows = fin.ThumbnailRows;
-                    //thumbnail.pixmap = new string(fin.ThumbnailPixmap.Cast<char>().ToArray());
 
-                    //UpdateThumbnail(conn, thumbnail);
+                    transaction.Commit();
+                }
+                conn.Close();
+            }
+        }
+
+        public override void Update(DatabaseImage data)
+        {
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+
+            if (data.ID < 1)
+                throw new ArgumentOutOfRangeException(nameof(data));
+
+            using (var conn = new SQLiteConnection(_connectionString))
+            {
+                conn.Open();
+
+                using (var transaction = conn.BeginTransaction())
+                {
+                    UpdateImage(conn, data);
+
+                    // we do this as we don't know what the outline id is
+                    var outline = SelectOutlineByFkImageID(data.ID);
+                    outline.scale = data.FinOutline.Scale;
+                    outline.beginle = data.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeBegin);
+                    outline.endle = data.FinOutline.GetFeaturePoint(FeaturePointType.LeadingEdgeEnd);
+                    outline.notchposition = data.FinOutline.GetFeaturePoint(FeaturePointType.Notch);
+                    outline.tipposition = data.FinOutline.GetFeaturePoint(FeaturePointType.Tip);
+                    outline.endte = data.FinOutline.GetFeaturePoint(FeaturePointType.PointOfInflection);
+                    outline.fkimageid = data.ID;
+                    UpdateOutline(conn, outline);
+
+                    List<DBPoint> points = new List<DBPoint>();
+                    var numPoints = data.FinOutline.Length;
+                    var fc = data.FinOutline.ChainPoints;
+
+                    for (var i = 0; i < numPoints; i++)
+                    {
+                        points.Add(new DBPoint
+                        {
+                            xcoordinate = fc[i].X,
+                            ycoordinate = fc[i].Y,
+                            orderid = i,
+                            fkoutlineid = outline.id
+                        });
+                    }
+                    DeletePoints(conn, outline.id);
+
+                    InsertPoints(conn, points);
+
+                    DeleteFeaturesIndividualID(conn, outline.id);
+                    InsertFeatures(conn, outline.id, data.FinOutline.FeatureSet.FeatureList);
+
+                    DeleteOutlineFeaturePointsByOutlineID(conn, outline.id);
+                    InsertFeaturePoints(conn, outline.id, data.FinOutline.FeatureSet.FeaturePointList);
+
+                    DeleteCoordinateFeaturePointsByIndividualID(conn, outline.id);
+                    InsertCoordinateFeaturePoints(conn, outline.id, data.FinOutline.FeatureSet.CoordinateFeaturePointList);
 
                     transaction.Commit();
                 }
@@ -559,22 +657,17 @@ namespace Darwin.Database
         {
             InvalidateAllFins();
 
-            long id;
-
-            // mDataPos field will be used to map to id in db for individuals
-            id = fin.ID;
-
             using (var conn = new SQLiteConnection(_connectionString))
             {
                 conn.Open();
 
                 using (var transaction = conn.BeginTransaction())
                 {
-                    
-                    var images = SelectImagesByFkIndividualID(id);
+                    var images = SelectImagesByFkIndividualID(fin.ID);
                     
                     foreach (var image in images)
                     {
+                        DeleteImageModifications(conn, image.ID);
                         DeleteImage(conn, image.ID);
                         DeleteThumbnailByFkImageID(conn, image.ID);
                         var outline = SelectOutlineByFkImageID(image.ID);
@@ -583,7 +676,33 @@ namespace Darwin.Database
                         DeleteOutlineByFkImageID(conn, image.ID);
                     }
 
-                    DeleteIndividual(conn, id);
+                    DeleteIndividual(conn, fin.ID);
+
+                    transaction.Commit();
+                }
+
+                conn.Close();
+            }
+        }
+
+        public override void Delete(DatabaseImage data)
+        {
+            InvalidateAllFins();
+
+            using (var conn = new SQLiteConnection(_connectionString))
+            {
+                conn.Open();
+
+                using (var transaction = conn.BeginTransaction())
+                {
+                    DeleteImageModifications(conn, data.ID);
+                    DeleteImage(conn, data.ID);
+
+                    DeleteThumbnailByFkImageID(conn, data.ID);
+                    var outline = SelectOutlineByFkImageID(data.ID);
+
+                    DeletePoints(conn, outline.id);
+                    DeleteOutlineByFkImageID(conn, data.ID);
 
                     transaction.Commit();
                 }
@@ -622,6 +741,44 @@ namespace Darwin.Database
                     conn.Close();
 
                     return individuals;
+                }
+            }
+        }
+
+        private DBIndividual SelectIndividualByIDCode(string idCode)
+        {
+            if (string.IsNullOrEmpty(idCode))
+                throw new ArgumentNullException(nameof(idCode));
+
+            using (var conn = new SQLiteConnection(_connectionString))
+            {
+                using (var cmd = new SQLiteCommand(conn))
+                {
+                    conn.Open();
+
+                    cmd.CommandText = "SELECT * FROM Individuals WHERE UPPER(IDCode) = @IDCode;";
+                    cmd.Parameters.AddWithValue("@IDCode", idCode.Trim().ToUpperInvariant());
+
+                    DBIndividual individual = null;
+                    using (var rdr = cmd.ExecuteReader())
+                    {
+
+                        if (rdr.Read())
+                        {
+                            individual = new DBIndividual
+                            {
+                                id = rdr.SafeGetInt("ID"),
+                                idcode = rdr.SafeGetString("IDCode"),
+                                name = rdr.SafeGetStringStripNone("Name"),
+                                fkdamagecategoryid = rdr.SafeGetInt("fkDamageCategoryID"),
+                                ThumbnailFilename = rdr.SafeGetString("ThumbnailFilename")
+                            };
+                        }
+                    }
+
+                    conn.Close();
+
+                    return individual;
                 }
             }
         }
