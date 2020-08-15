@@ -196,7 +196,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 <controls:HamburgerMenu Grid.Column="0" Background="{StaticResource LightBackground}" MenuIconColor="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" SelectionIndicatorColor="{StaticResource Button.MouseOver.Border}" MenuItemForeground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" HorizontalAlignment="Left">
                     <controls:HamburgerMenu.Content>
                         <controls:HamburgerMenuItem Icon="&#xE80F;" Text="Individuals" SelectionCommand="{Binding ElementName=this_}"/>
-                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Last Import"/>
+                        <controls:HamburgerMenuItem Icon="&#xEB9F;" Text="Imports"/>
                         <controls:HamburgerMenuItem Icon="&#xE707;" Text="Map"/>
                     </controls:HamburgerMenu.Content>
                 </controls:HamburgerMenu>
