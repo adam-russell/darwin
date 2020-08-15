@@ -28,7 +28,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
     <Color x:Key="HoverRowColor">#E5F3FF</Color>
 
     <SolidColorBrush x:Key="LightBackground" Color="{StaticResource BackgroundColor}"/>
-
+    <SolidColorBrush x:Key="ControlBackground" Color="{StaticResource ControlBackgroundColor}"/>
     <!-- Stock color #FFDDDDDD -->
     <SolidColorBrush x:Key="Button.Static.Background" Color="{StaticResource ControlBackgroundColor}"/>
     <!-- Stock color #FF707070 -->

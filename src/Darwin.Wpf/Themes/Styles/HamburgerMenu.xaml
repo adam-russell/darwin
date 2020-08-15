@@ -39,7 +39,7 @@
                         <Storyboard>
                             <DoubleAnimation 
                                          Storyboard.TargetProperty="Width"
-                                         To="300"
+                                         To="200"
                                          Duration="0:0:0.2"/>
                         </Storyboard>
                     </BeginStoryboard>

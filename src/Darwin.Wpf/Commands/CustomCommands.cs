@@ -23,6 +23,36 @@ namespace Darwin.Wpf.Commands
 {
     public static class CustomCommands
     {
+        public static readonly RoutedUICommand ViewHome = new RoutedUICommand(
+            "Home",
+            "Home",
+            typeof(CustomCommands),
+            new InputGestureCollection()
+            {
+                new KeyGesture(Key.F1, ModifierKeys.Control)
+            }
+        );
+
+        public static readonly RoutedUICommand ViewImports = new RoutedUICommand(
+            "Imports",
+            "Imports",
+            typeof(CustomCommands),
+            new InputGestureCollection()
+            {
+                new KeyGesture(Key.F2, ModifierKeys.Control)
+            }
+        );
+
+        public static readonly RoutedUICommand ViewMap = new RoutedUICommand(
+            "Map",
+            "Map",
+            typeof(CustomCommands),
+            new InputGestureCollection()
+            {
+                new KeyGesture(Key.F3, ModifierKeys.Control)
+            }
+        );
+
         public static readonly RoutedUICommand NewDatabase = new RoutedUICommand(
             "New Database...",
             "New Database",
@@ -43,6 +73,16 @@ namespace Darwin.Wpf.Commands
             }
         );
         public static string OpenImageFilter = "Image files|*.jpg;*.bmp;*.png;*.tif|All files|*.*";
+
+        public static readonly RoutedUICommand ImportImages = new RoutedUICommand(
+            "Import Images...",
+            "Import Images",
+            typeof(CustomCommands),
+            new InputGestureCollection()
+            {
+                new KeyGesture(Key.I, ModifierKeys.Control)
+            }
+            );
 
         public static readonly RoutedUICommand OpenTracedFin = new RoutedUICommand(
             "Open Trace...",
@@ -131,7 +171,7 @@ namespace Darwin.Wpf.Commands
             typeof(CustomCommands),
             new InputGestureCollection()
             {
-                        new KeyGesture(Key.B, ModifierKeys.Control)
+                new KeyGesture(Key.B, ModifierKeys.Control)
             }
         );
 

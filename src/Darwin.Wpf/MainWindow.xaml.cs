@@ -162,6 +162,36 @@ namespace Darwin.Wpf
             SystemCommands.CloseWindow(this);
         }
 
+        private void ViewHomeCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+        public void ViewHomeCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            MessageBox.Show("Home");
+        }
+
+        private void ViewImportsCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+        public void ViewImportsCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            MessageBox.Show("Imports");
+        }
+
+        private void ViewMapCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+        public void ViewMapCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            MessageBox.Show("Map");
+        }
+
         private void NewDatabaseCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = true;

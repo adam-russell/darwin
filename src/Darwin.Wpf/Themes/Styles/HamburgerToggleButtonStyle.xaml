@@ -9,14 +9,15 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <SolidColorBrush x:Key="Button.Static.Background" Color="#FFDDDDDD"/>
-    <SolidColorBrush x:Key="Button.Static.Border" Color="#FF707070"/>
-    <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#FFBEE6FD"/>
-    <SolidColorBrush x:Key="Button.MouseOver.Border" Color="#FF3C7FB1"/>
-    <SolidColorBrush x:Key="Button.Pressed.Background" Color="#FFC4E5F6"/>
-    <SolidColorBrush x:Key="Button.Pressed.Border" Color="#FF2C628B"/>
+
+    <SolidColorBrush x:Key="Button.Static.Background" Color="Transparent"/>
+    <SolidColorBrush x:Key="Button.Static.Border" Color="Transparent"/>
+    <SolidColorBrush x:Key="Button.MouseOver.Background" Color="#40000000"/>
+    <SolidColorBrush x:Key="Button.MouseOver.Border" Color="Transparent"/>
+    <SolidColorBrush x:Key="Button.Pressed.Background" Color="#80FFFFFF"/>
+    <SolidColorBrush x:Key="Button.Pressed.Border" Color="Transparent"/>
     <SolidColorBrush x:Key="Button.Disabled.Background" Color="#FFF4F4F4"/>
-    <SolidColorBrush x:Key="Button.Disabled.Border" Color="#FFADB2B5"/>
+    <SolidColorBrush x:Key="Button.Disabled.Border" Color="Transparent"/>
     <SolidColorBrush x:Key="Button.Disabled.Foreground" Color="#FF838383"/>
     <Style TargetType="{x:Type ToggleButton}">
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
