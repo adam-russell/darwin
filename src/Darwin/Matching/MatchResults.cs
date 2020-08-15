@@ -386,7 +386,7 @@ namespace Darwin.Matching
                         thisDBFin.ID,
                         // TODO - This image filename stuff is a little ugly.
                         (string.IsNullOrEmpty(thisDBFin.PrimaryImage.OriginalImageFilename)) ? thisDBFin.PrimaryImage.ImageFilename : thisDBFin.PrimaryImage.OriginalImageFilename,
-                        thisDBFin.ThumbnailFilenameUri,
+                        thisDBFin.ThumbnailFilenameUri ?? AppSettings.MissingImageUri,
                         dbFinPosition - 1, // position of fin in database
                         double.Parse(error),
                         thisDBFin.IDCode,

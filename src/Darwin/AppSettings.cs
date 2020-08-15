@@ -28,6 +28,8 @@ namespace Darwin
     // Put this in a settings file or something
     public static class AppSettings
     {
+        public static string MissingImageUri = "/Resources/Images/fnf.png";
+
         //public static string MLModelFilename = "bear_coordinates_regular_noscale_flip.tflite";
         public static string MLModelFilename = "resnetv2_noscale_flip_3.tflite";
 

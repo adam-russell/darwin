@@ -194,6 +194,7 @@ namespace Darwin.Database
             DatabaseFin fin = new DatabaseFin(id,
                 individual.idcode,
                 individual.name,
+                individual.ThumbnailFilename,
                 damagecategory.Name,
                 images);
 
@@ -247,6 +248,7 @@ namespace Darwin.Database
                         individual.idcode = fin.IDCode;
                         individual.name = fin.Name;
                         individual.fkdamagecategoryid = dmgCat.ID;
+                        individual.ThumbnailFilename = fin.ThumbnailFilename;
                         InsertIndividual(conn, ref individual);
                         individualId = individual.id;
                     }
@@ -254,9 +256,11 @@ namespace Darwin.Database
                     {
                         individualId = existingIndividual.id;
 
-                        if (dmgCat.ID != existingIndividual.fkdamagecategoryid)
+                        if (dmgCat.ID != existingIndividual.fkdamagecategoryid || existingIndividual.ThumbnailFilename != fin.ThumbnailFilename)
                         {
                             existingIndividual.fkdamagecategoryid = dmgCat.ID;
+                            existingIndividual.ThumbnailFilename = fin.ThumbnailFilename;
+
                             UpdateDBIndividual(conn, existingIndividual);
                         }
                     }
@@ -386,6 +390,8 @@ namespace Darwin.Database
                     individual.idcode = fin.IDCode;
                     individual.name = fin.Name;
                     individual.fkdamagecategoryid = dmgCat.ID;
+                    individual.ThumbnailFilename = fin.ThumbnailFilename;
+
                     UpdateDBIndividual(conn, individual);
 
                     // TODO: Any removals?
@@ -589,6 +595,7 @@ namespace Darwin.Database
             individual.idcode = data.IDCode;
             individual.name = data.Name;
             individual.fkdamagecategoryid = dmgCat.ID;
+            individual.ThumbnailFilename = data.ThumbnailFilename;
 
             using (var conn = new SQLiteConnection(_connectionString))
             {

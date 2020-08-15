@@ -117,7 +117,7 @@ namespace Darwin.Database
                 OriginalFinImage = new Bitmap(imageToCopy.OriginalFinImage);
 
             if (imageToCopy.FinImage != null)
-                FinImage = new Bitmap(FinImage);
+                FinImage = new Bitmap(imageToCopy.FinImage);
 
             OriginalImageFilename = imageToCopy.OriginalImageFilename;
             CropImageFilename = imageToCopy.CropImageFilename;

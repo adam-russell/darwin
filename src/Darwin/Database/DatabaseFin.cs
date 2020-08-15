@@ -250,6 +250,7 @@ namespace Darwin.Database
             long id,
 			string idcode,
 			string name,
+            string thumbnailFilename,
 			string damageCategory,
 			List<DatabaseImage> images
 		)
@@ -257,6 +258,7 @@ namespace Darwin.Database
             ID = id;
             IDCode = idcode;
             Name = name;
+            ThumbnailFilename = thumbnailFilename;
             DamageCategory = damageCategory;
 
             //Scale = 1.0; //  1.4

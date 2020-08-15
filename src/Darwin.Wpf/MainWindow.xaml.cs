@@ -317,13 +317,10 @@ namespace Darwin.Wpf
             }
 
             _vm.DarwinDatabase = db;
-            // TODO: The thumbnail part is temporary
-            // Need to store the thumbnail images more nicely
+
             _vm.Fins = new ObservableNotifiableCollection<DatabaseFin>(
                 _vm.DarwinDatabase
-                .GetAllFins()
-                .Select(x => { x.ThumbnailFilename = x.PrimaryImage.ImageFilename; return x; })
-                .ToList());
+                .GetAllFins());
 
             if (!initialLoad)
                 SelectFirstFin();
@@ -335,9 +332,7 @@ namespace Darwin.Wpf
 
             _vm.Fins = new ObservableNotifiableCollection<DatabaseFin>(
                 _vm.DarwinDatabase
-                .GetAllFins()
-                .Select(x => { x.ThumbnailFilename = x.PrimaryImage.ImageFilename; return x; })
-                .ToList());
+                .GetAllFins());
 
             SelectFirstFin();
         }
@@ -347,9 +342,7 @@ namespace Darwin.Wpf
             Trace.WriteLine("Start database refresh after add...");
             _vm.Fins = new ObservableNotifiableCollection<DatabaseFin>(
                 _vm.DarwinDatabase
-                .GetAllFins()
-                .Select(x => { x.ThumbnailFilename = x.PrimaryImage.ImageFilename; return x; })
-                .ToList());
+                .GetAllFins());
 
             // Select the last fin, and scroll to it so the user can see it
             if (_vm.Fins != null)
