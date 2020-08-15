@@ -83,6 +83,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
             <x:Static Member="Brushes.Magenta" />
         </x:Array>
         <converters:NullConverter x:Key="NullConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
     <Border x:Name="MainWindowBorder" BorderBrush="LightSlateGray" BorderThickness="1">
 
@@ -205,7 +206,10 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                     </controls:HamburgerMenu.Content>
                 </controls:HamburgerMenu>
 
-                <Grid Grid.Column="1">
+                <controls:ImportsControl Grid.Column="1" Visibility="{Binding Path=ShowImports,Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <controls:MapsControl Grid.Column="1" Visibility="{Binding Path=ShowMaps,Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                <Grid Grid.Column="1" Visibility="{Binding Path=ShowHome,Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="500" />
                         <ColumnDefinition Width="5" />
@@ -241,12 +245,12 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                                     <GridViewColumn DisplayMemberBinding="{Binding DamageCategory}">
                                         <GridViewColumnHeader Content="Damage" Padding="5,0,0,0" HorizontalContentAlignment="Left" MinWidth="50" />
                                     </GridViewColumn>
-                                    <GridViewColumn DisplayMemberBinding="{Binding DateOfSighting}">
+                                    <!--<GridViewColumn DisplayMemberBinding="{Binding DateOfSighting}">
                                         <GridViewColumnHeader Content="Date" Padding="5,0,0,0" HorizontalContentAlignment="Left" MinWidth="50" />
                                     </GridViewColumn>
                                     <GridViewColumn DisplayMemberBinding="{Binding LocationCode}">
                                         <GridViewColumnHeader Content="Location" Padding="5,0,0,0" HorizontalContentAlignment="Left" MinWidth="60" />
-                                    </GridViewColumn>
+                                    </GridViewColumn>-->
                                 </GridView>
                             </ListView.View>
                         </controls:SortableListView>

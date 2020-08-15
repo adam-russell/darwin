@@ -169,7 +169,7 @@ namespace Darwin.Wpf
 
         public void ViewHomeCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            MessageBox.Show("Home");
+            _vm.ShowHome = true;
         }
 
         private void ViewImportsCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -179,7 +179,7 @@ namespace Darwin.Wpf
 
         public void ViewImportsCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            MessageBox.Show("Imports");
+            _vm.ShowImports = true;
         }
 
         private void ViewMapCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -189,7 +189,7 @@ namespace Darwin.Wpf
 
         public void ViewMapCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            MessageBox.Show("Map");
+            _vm.ShowMaps = true;
         }
 
         private void NewDatabaseCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)

@@ -42,6 +42,57 @@ namespace Darwin.Wpf.ViewModel
             }
         }
 
+        private bool _showHome;
+        public bool ShowHome
+        {
+            get => _showHome;
+            set
+            {
+                _showHome = value;
+                RaisePropertyChanged("ShowHome");
+
+                if (_showHome)
+                {
+                    ShowImports = false;
+                    ShowMaps = false;
+                }
+            }
+        }
+
+        private bool _showImports;
+        public bool ShowImports
+        {
+            get => _showImports;
+            set
+            {
+                _showImports = value;
+                RaisePropertyChanged("ShowImports");
+
+                if (_showImports)
+                {
+                    ShowHome = false;
+                    ShowMaps = false;
+                }
+            }
+        }
+
+        private bool _showMaps;
+        public bool ShowMaps
+        {
+            get => _showMaps;
+            set
+            {
+                _showMaps = value;
+                RaisePropertyChanged("ShowMaps");
+
+                if (_showMaps)
+                {
+                    ShowImports = false;
+                    ShowHome = false;
+                }
+            }
+        }
+
         private DarwinDatabase _darwinDatabase;
         public DarwinDatabase DarwinDatabase
         {
@@ -168,6 +219,7 @@ namespace Darwin.Wpf.ViewModel
 
         public MainWindowViewModel()
         {
+            ShowHome = true;
             _darwinDatabase = null;
             _fins = new ObservableNotifiableCollection<DatabaseFin>();
         }

@@ -30,7 +30,7 @@
                                         <!--<Image Source="{TemplateBinding Icon}" Margin="10,5,5,5"/>-->
                                     </Grid>
                                     <Grid Grid.Column="1">
-                                        <TextBlock Text="{TemplateBinding Text}" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" Foreground="{TemplateBinding Foreground}" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{TemplateBinding Text}" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="15" Foreground="{TemplateBinding Foreground}" TextWrapping="Wrap"/>
                                     </Grid>
                                 </Grid>
                             </Grid>

@@ -324,6 +324,13 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Name:</Label>
                             <TextBox Text="{Binding Path=DatabaseFin.Name}" Margin="0,0,10,5" />
 
+                            <Label Padding="0 5" Style="{StaticResource FormLabel}">Damage Category:</Label>
+                            <ComboBox ItemsSource="{Binding Categories, Mode=OneWay}"
+                              DisplayMemberPath="Name"
+                              SelectedValuePath="Name"
+                              SelectedValue="{Binding Path=DatabaseFin.DamageCategory}" Margin="0,0,10,5">
+                            </ComboBox>
+
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Date of Sighting:</Label>
                             <TextBox Text="{Binding Path=DatabaseFin.DateOfSighting}" Margin="0,0,10,5"  />
 
@@ -332,13 +339,6 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
 
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Location Code:</Label>
                             <TextBox Text="{Binding Path=DatabaseFin.LocationCode}" Margin="0,0,10,5"  />
-
-                            <Label Padding="0 5" Style="{StaticResource FormLabel}">Damage Category:</Label>
-                            <ComboBox ItemsSource="{Binding Categories, Mode=OneWay}"
-                              DisplayMemberPath="Name"
-                              SelectedValuePath="Name"
-                              SelectedValue="{Binding Path=DatabaseFin.DamageCategory}" Margin="0,0,10,5">
-                            </ComboBox>
 
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Short Description:</Label>
                             <TextBox Text="{Binding Path=DatabaseFin.ShortDescription}"
