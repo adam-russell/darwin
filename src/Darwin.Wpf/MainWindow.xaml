@@ -193,13 +193,11 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <controls:HamburgerMenu Grid.Column="0" Background="Blue" MenuIconColor="White" SelectionIndicatorColor="White" MenuItemForeground="White" HorizontalAlignment="Left">
+                <controls:HamburgerMenu Grid.Column="0" Background="{StaticResource LightBackground}" MenuIconColor="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" SelectionIndicatorColor="{StaticResource Button.MouseOver.Border}" MenuItemForeground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" HorizontalAlignment="Left">
                     <controls:HamburgerMenu.Content>
-                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Home" SelectionCommand="{Binding ElementName=this_}"/>
-                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Search"/>
-                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Likes"/>
-                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Lists"/>
-                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Profile"/>
+                        <controls:HamburgerMenuItem Icon="&#xE80F;" Text="Individuals" SelectionCommand="{Binding ElementName=this_}"/>
+                        <controls:HamburgerMenuItem Icon="&#xE700;" Text="Last Import"/>
+                        <controls:HamburgerMenuItem Icon="&#xE707;" Text="Map"/>
                     </controls:HamburgerMenu.Content>
                 </controls:HamburgerMenu>
 

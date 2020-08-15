@@ -13,8 +13,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:HamburgerMenuItem">
-                    <Button x:Name="ListBoxItemButton" Command="{TemplateBinding SelectionCommand}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-                        <Grid>
+                    <Button x:Name="ListBoxItemButton" Command="{TemplateBinding SelectionCommand}" ToolTip="{TemplateBinding Text}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                        <Grid Margin="0,8,8,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="5"/>
                                 <ColumnDefinition/>
@@ -25,12 +25,12 @@
                                         <ColumnDefinition Width="45"/>
                                         <ColumnDefinition/>
                                     </Grid.ColumnDefinitions>
-                                    <Grid Grid.Column="1">
-                                        <TextBlock Text="{TemplateBinding Text}" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontFamily="Segoe UI Light" FontSize="18" Foreground="{TemplateBinding Foreground}" TextWrapping="Wrap"/>
-                                    </Grid>
                                     <Grid Grid.Column="0">
-                                        <TextBlock Text="{TemplateBinding Icon}" Foreground="{TemplateBinding Foreground}" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="10,5,5,5"/>
+                                        <TextBlock Text="{TemplateBinding Icon}" HorizontalAlignment="Center" Foreground="{TemplateBinding Foreground}" FontFamily="Segoe MDL2 Assets" FontSize="16" Margin="10,5,5,5"/>
                                         <!--<Image Source="{TemplateBinding Icon}" Margin="10,5,5,5"/>-->
+                                    </Grid>
+                                    <Grid Grid.Column="1">
+                                        <TextBlock Text="{TemplateBinding Text}" Margin="10,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16" Foreground="{TemplateBinding Foreground}" TextWrapping="Wrap"/>
                                     </Grid>
                                 </Grid>
                             </Grid>
