@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Text;
 
@@ -149,12 +150,12 @@ namespace Darwin.Database
             FinImage = null; //  1.5
         }
 
-        public static List<DatabaseImage> CopyDatabaseImageList(List<DatabaseImage> listToCopy)
+        public static ObservableCollection<DatabaseImage> CopyDatabaseImageList(ObservableCollection<DatabaseImage> listToCopy)
         {
             if (listToCopy == null)
                 return null;
 
-            var result = new List<DatabaseImage>();
+            var result = new ObservableCollection<DatabaseImage>();
 
             foreach (var image in listToCopy)
                 result.Add(new DatabaseImage(image));

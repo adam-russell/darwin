@@ -196,7 +196,7 @@ namespace Darwin.Database
                 individual.name,
                 individual.ThumbnailFilename,
                 damagecategory.Name,
-                images);
+                new ObservableCollection<DatabaseImage>(images));
 
             return fin;
         }

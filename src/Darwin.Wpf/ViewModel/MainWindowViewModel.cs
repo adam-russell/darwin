@@ -20,6 +20,7 @@ using Darwin.Helpers;
 using Darwin.Wpf.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
@@ -139,8 +140,20 @@ namespace Darwin.Wpf.ViewModel
             {
                 _selectedFin = value;
                 RaisePropertyChanged("SelectedFin");
-
                 LoadSelectedFin();
+
+                RaisePropertyChanged("SelectedImages");
+            }
+        }
+
+        public ObservableCollection<DatabaseImage> SelectedImages
+        {
+            get
+            {
+                if (_selectedFin == null)
+                    return null;
+
+                return _selectedFin.Images;
             }
         }
 

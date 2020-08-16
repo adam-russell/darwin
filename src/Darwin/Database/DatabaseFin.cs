@@ -63,6 +63,7 @@
 
 using Darwin.Extensions;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
@@ -142,8 +143,8 @@ namespace Darwin.Database
             }
         }
 
-        private List<DatabaseImage> _images;
-        public List<DatabaseImage> Images
+        private ObservableCollection<DatabaseImage> _images;
+        public ObservableCollection<DatabaseImage> Images
         {
             get => _images;
             set
@@ -156,7 +157,7 @@ namespace Darwin.Database
         private void CheckImagesCollection()
         {
             if (_images == null)
-                _images = new List<DatabaseImage>();
+                _images = new ObservableCollection<DatabaseImage>();
 
             if (_images.Count < 1)
                 _images.Add(new DatabaseImage());
@@ -219,7 +220,7 @@ namespace Darwin.Database
             Name = name;
             DamageCategory = damageCategory;
 
-            _images = new List<DatabaseImage>();
+            _images = new ObservableCollection<DatabaseImage>();
             _images.Add(new DatabaseImage(
                 filename,
                 outline,
@@ -252,7 +253,7 @@ namespace Darwin.Database
 			string name,
             string thumbnailFilename,
 			string damageCategory,
-			List<DatabaseImage> images
+            ObservableCollection<DatabaseImage> images
 		)
         {
             ID = id;

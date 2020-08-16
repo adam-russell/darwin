@@ -325,7 +325,6 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                                 <Label Grid.Row="1" Grid.Column="2" Padding="1" Style="{StaticResource FormLabel}">Damage Category:</Label>
                                 <ComboBox Grid.Row="2" Grid.Column="2" ItemsSource="{Binding Path=DarwinDatabase.Categories}" DisplayMemberPath="Name" SelectedValuePath="Name"
                               SelectedValue="{Binding Path=SelectedFin.DamageCategory}" Margin="0,5,10,5" />
-
                                 <!--<Label Grid.Row="3" Grid.Column="1" Padding="1" Style="{StaticResource FormLabel}">Location Code:</Label>
                             <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=SelectedFin.LocationCode, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,10,5"  />
 
@@ -343,7 +342,8 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
 
                         <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" />
 
-                        <TabControl Grid.Row="2">
+                        <controls:ImagesList x:Name="SelectedImages" Grid.Row="2" Images="{Binding Path=SelectedFin.Images}"/>
+                        <!--<TabControl Grid.Row="2">
                             <TabItem Header="Image">
                                 <Button x:Name="ViewImageButton" Click="ViewImageButton_Click" IsEnabled="{Binding Path=SelectedContour, Converter={StaticResource NullConverter}}" Cursor="Hand" Background="Transparent" BorderThickness="0">
                                     <Image x:Name="DbImage" Source="{Binding Path=SelectedImageSource}" />
@@ -366,7 +366,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                                     <Image x:Name="DbOriginalImage" Source="{Binding Path=SelectedOriginalImageSource}" />
                                 </Button>
                             </TabItem>
-                        </TabControl>
+                        </TabControl>-->
 
                     </Grid>
                 </Grid>
