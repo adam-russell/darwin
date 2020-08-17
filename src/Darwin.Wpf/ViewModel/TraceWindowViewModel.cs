@@ -260,6 +260,17 @@ namespace Darwin.Wpf.ViewModel
 			}
 		}
 
+		private Visibility _editVisibility;
+		public Visibility EditVisibility
+		{
+			get => _editVisibility;
+			set
+			{
+				_editVisibility = value;
+				RaisePropertyChanged("EditVisibility");
+			}
+		}
+
 		private Visibility _matchVisibility;
 		public Visibility MatchVisibility
 		{
@@ -293,7 +304,56 @@ namespace Darwin.Wpf.ViewModel
 			}
 		}
 
-		public bool ViewerMode { get; set; }
+		private Visibility _updateVisibility;
+		public Visibility UpdateVisibility
+		{
+			get => _updateVisibility;
+			set
+			{
+				_updateVisibility = value;
+				RaisePropertyChanged("UpdateVisibility");
+			}
+		}
+
+		private bool _viewerMode;
+		public bool ViewerMode
+		{
+			get => _viewerMode;
+			set
+            {
+				_viewerMode = value;
+				RaisePropertyChanged("ViewerMode");
+
+				if (_viewerMode)
+                {
+					TraceTool = TraceToolType.Hand;
+					MatchVisibility = Visibility.Collapsed;
+					SaveVisibility = Visibility.Collapsed;
+					UpdateVisibility = Visibility.Collapsed;
+					AddToDatabaseVisibility = Visibility.Collapsed;
+
+					TopToolbarVisibility = Visibility.Collapsed;
+					TraceLocked = true;
+					TraceFinalized = true;
+					FeatureToolsVisibility = Visibility.Collapsed;
+
+					if (UndoItems != null && UndoItems.Count > 0)
+						TraceFinalize();
+
+					TraceStep = TraceStepType.IdentifyFeatures;
+				}
+				else
+                {
+					TraceTool = TraceToolType.MovePoint;
+					TopToolbarVisibility = Visibility.Visible;
+					TraceToolsVisibility = Visibility.Visible;
+					UpdateVisibility = Visibility.Visible;
+					//MatchVisibility = Visibility.Visible;
+					//AddToDatabaseVisibility = Visibility.Visible;
+					TraceStep = TraceStepType.TraceOutline;
+				}
+            }
+		}
 
 		private Visibility _addToDatabaseVisibility;
 		public Visibility AddToDatabaseVisibility
@@ -333,7 +393,6 @@ namespace Darwin.Wpf.ViewModel
 				RaisePropertyChanged("TraceSnapped");
 			}
 		}
-
 
 		private bool _preventPropagation;
 
@@ -515,6 +574,8 @@ namespace Darwin.Wpf.ViewModel
 			SaveVisibility = Visibility.Visible;
 			MatchVisibility = Visibility.Visible;
 			AddToDatabaseVisibility = Visibility.Visible;
+			EditVisibility = Visibility.Collapsed;
+			UpdateVisibility = Visibility.Collapsed;
 
 			//DatabaseFin = new DatabaseFin();
 			TraceStep = TraceStepType.TraceOutline;
@@ -522,23 +583,14 @@ namespace Darwin.Wpf.ViewModel
 			AttachEvents();
 		}
 
-		public TraceWindowViewModel(DatabaseFin fin, bool viewOnly = false)
+		public TraceWindowViewModel(DatabaseFin fin, bool readOnly = false)
 			: this()
         {
 			LoadFin(fin);
 
-			if (viewOnly)
+			if (readOnly)
 			{
-				TraceTool = TraceToolType.Hand;
-				MatchVisibility = Visibility.Collapsed;
-				SaveVisibility = Visibility.Collapsed;
-				AddToDatabaseVisibility = Visibility.Collapsed;
 				ViewerMode = true;
-
-				TopToolbarVisibility = Visibility.Collapsed;
-				TraceLocked = true;
-				TraceFinalized = true;
-				FeatureToolsVisibility = Visibility.Collapsed;
 			}
 		}
 
@@ -570,23 +622,15 @@ namespace Darwin.Wpf.ViewModel
 			}
         }
 
-		public TraceWindowViewModel(DatabaseFin fin, DarwinDatabase db, string windowTitle, MainWindow mainWindow, bool viewOnly = false)
+		public TraceWindowViewModel(DatabaseFin fin, DarwinDatabase db, string windowTitle, MainWindow mainWindow, bool readOnly = false)
 			: this(fin, db)
 		{
 			WindowTitle = windowTitle;
 
-			if (mainWindow != null || viewOnly)
+			if (mainWindow != null || readOnly)
 			{
-				TraceTool = TraceToolType.Hand;
-				MatchVisibility = Visibility.Collapsed;
-				SaveVisibility = Visibility.Collapsed;
-				AddToDatabaseVisibility = Visibility.Collapsed;
 				ViewerMode = true;
-
-				TopToolbarVisibility = Visibility.Collapsed;
-				TraceLocked = true;
-				TraceFinalized = true;
-				FeatureToolsVisibility = Visibility.Collapsed;
+				EditVisibility = Visibility.Visible;
 			}
 		}
 
@@ -705,6 +749,32 @@ namespace Darwin.Wpf.ViewModel
 			DatabaseFin.PrimaryImage.ImageMods = DatabaseFin.PrimaryImage.ImageMods.Concat(addedMods).ToList();
 		}
 
+		/////////////////////////////////////////////////////////////////////
+		// traceFinalize:  Locks in trace after user cleanup, but before
+		//    user is allowed to move feature points (tip, notch, etc)
+		//
+		public void TraceFinalize()
+		{
+			if (Contour == null || !TraceLocked) //***006FC
+				return;
+
+			BackupContour = new Contour(Contour);
+
+			// After even spacing and normalization fin height will be approx 600 units
+			NormScale = Contour.NormalizeContour(); //***006CN
+			Contour.RemoveKnots(3.0);       //***006CN
+
+			Contour = Contour.EvenlySpaceContourPoints(3.0); //***006CN
+
+			Outline = new Outline(Contour, Database.CatalogScheme.FeatureSetType, Bitmap, NormScale); //***008OL
+
+			LoadCoordinateFeaturePoints();
+
+			TraceFinalized = true; //***006PD moved from beginning of function
+
+			TraceTool = TraceToolType.MoveFeature;
+		}
+
 		private void LoadFin(DatabaseFin fin)
 		{
 			WindowTitle = fin.IDCode;
@@ -767,5 +837,5 @@ namespace Darwin.Wpf.ViewModel
 		{
 			RaisePropertyChanged("RedoEnabled");
 		}
-    }
+	}
 }

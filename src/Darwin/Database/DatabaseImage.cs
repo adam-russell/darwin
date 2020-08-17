@@ -28,8 +28,8 @@ namespace Darwin.Database
 
         public List<ImageMod> ImageMods;    //  1.8 - for list of image modifications
 
-        private string _dateOfSighting;
-        public string DateOfSighting
+        private DateTime? _dateOfSighting;
+        public DateTime? DateOfSighting
         {
             get => _dateOfSighting;
             set
@@ -136,7 +136,7 @@ namespace Darwin.Database
         public DatabaseImage(
             string imageFilename,
             Outline outline,
-            string dateOfSighting,
+            DateTime? dateOfSighting,
             string rollAndFrame,
             string locationCode,
             string shortDescription)

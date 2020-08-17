@@ -109,5 +109,24 @@ namespace Darwin.Utilities
 
             return s;
         }
+
+        public static DateTime? SafeGetDateTimeStripNone(this SQLiteDataReader rdr, string columnName)
+        {
+            var colIndex = rdr.GetOrdinal(columnName);
+
+            if (rdr.IsDBNull(colIndex))
+                return null;
+
+            var s = rdr.GetString(colIndex);
+
+            if (s == "NONE")
+                return null;
+
+            DateTime parseValue;
+            if (DateTime.TryParse(s, out parseValue))
+                return parseValue;
+
+            return null;
+        }
     }
 }

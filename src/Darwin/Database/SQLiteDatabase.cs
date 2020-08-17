@@ -1176,7 +1176,7 @@ namespace Darwin.Database
                                 ID = rdr.SafeGetInt("ID"),
                                 ImageFilename = rdr.SafeGetString("ImageFilename"),
                                 OriginalImageFilename = rdr.SafeGetString("OriginalImageFilename"),
-                                DateOfSighting = rdr.SafeGetStringStripNone("DateOfSighting"),
+                                DateOfSighting = rdr.SafeGetDateTimeStripNone("DateOfSighting"),
                                 RollAndFrame = rdr.SafeGetStringStripNone("RollAndFrame"),
                                 LocationCode = rdr.SafeGetStringStripNone("LocationCode"),
                                 ShortDescription = rdr.SafeGetStringStripNone("ShortDescription"),

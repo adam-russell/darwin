@@ -40,7 +40,7 @@ namespace Darwin.Matching
         public string IDCode { get; set; }
         public string Name { get; set; }
         public string DamageCategory { get; set; }
-        public string DateOfSighting { get; set; }
+        public DateTime? DateOfSighting { get; set; }
         public string LocationCode { get; set; }
         public int Rank { get; set; } //  1.5
 
@@ -69,7 +69,7 @@ namespace Darwin.Matching
             string idcode,
             string name,
             string damage,
-            string date,
+            DateTime? date,
             string location
         )
         {
@@ -113,7 +113,7 @@ namespace Darwin.Matching
             string idcode,
             string name,
             string damage,
-            string date,
+            DateTime? date,
             string location
         )
             : this(unknown,

@@ -62,6 +62,7 @@
 //
 
 using Darwin.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -207,7 +208,7 @@ namespace Darwin.Database
             Outline outline, //  008OL
             string idcode,
             string name,
-            string dateOfSighting,
+            DateTime? dateOfSighting,
             string rollAndFrame,
             string locationCode,
             string damageCategory,
@@ -292,7 +293,7 @@ namespace Darwin.Database
                 writer.WriteLine(
                     IDCode?.StripCRLFTab() + "\t" +
                     Name?.StripCRLFTab() + "\t" +
-                    PrimaryImage.DateOfSighting?.StripCRLFTab() + "\t" +
+                    PrimaryImage.DateOfSighting?.ToString("s").StripCRLFTab() + "\t" +
                     PrimaryImage.RollAndFrame?.StripCRLFTab() + "\t" +
                     PrimaryImage.LocationCode?.StripCRLFTab() + "\t" +
                     DamageCategory?.StripCRLFTab() + "\t" +

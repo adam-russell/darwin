@@ -172,6 +172,9 @@ namespace Darwin.Wpf.FrameworkElements
 
         protected void RebuildPens()
         {
+            if (Pens != null)
+                return;
+
             if (Brushes == null)
             {
                 Pens = null;
@@ -200,7 +203,6 @@ namespace Darwin.Wpf.FrameworkElements
             if (args.NewItems != null)
             {
                 // TODO: Make this more efficient.
-                RebuildPens();
                 CreateVisualChildren(args.NewItems);
             }
         }
@@ -255,6 +257,8 @@ namespace Darwin.Wpf.FrameworkElements
 
         protected void CreateVisualChild(Darwin.Point point)
         {
+            RebuildPens();
+
             DrawingVisualPlus drawingVisual = new DrawingVisualPlus();
             drawingVisual.DataPoint = point;
             DrawingContext dc = drawingVisual.RenderOpen();

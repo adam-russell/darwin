@@ -1152,7 +1152,6 @@ namespace Darwin.Wpf
 			//zoomUpdate(false);
 		}
 
-
 		private void TraceTool_Checked(object sender, RoutedEventArgs e)
 		{
 			if (TraceCanvas != null)
@@ -1720,32 +1719,6 @@ namespace Darwin.Wpf
 			}
 		}
 
-		/////////////////////////////////////////////////////////////////////
-		// traceFinalize:  Locks in trace after user cleanup, but before
-		//    user is allowed to move feature points (tip, notch, etc)
-		//
-		private void TraceFinalize()
-		{
-			if (_vm.Contour == null || !_vm.TraceLocked) //***006FC
-				return;
-
-			_vm.BackupContour = new Contour(_vm.Contour);
-
-			// After even spacing and normalization fin height will be approx 600 units
-			_vm.NormScale = _vm.Contour.NormalizeContour(); //***006CN
-			_vm.Contour.RemoveKnots(3.0);       //***006CN
-
-			_vm.Contour = _vm.Contour.EvenlySpaceContourPoints(3.0); //***006CN
-
-			_vm.Outline = new Outline(_vm.Contour, _vm.Database.CatalogScheme.FeatureSetType, _vm.Bitmap, _vm.NormScale); //***008OL
-
-			_vm.LoadCoordinateFeaturePoints();
-
-			_vm.TraceFinalized = true; //***006PD moved from beginning of function
-
-			_vm.TraceTool = TraceToolType.MoveFeature;
-		}
-
 		private void TraceStep_Checked(object sender, RoutedEventArgs e)
 		{
 			switch (_vm.TraceStep)
@@ -1785,7 +1758,7 @@ namespace Darwin.Wpf
 							Mouse.OverrideCursor = Cursors.Wait;
 
 							_vm.TraceLocked = true;
-							TraceFinalize();
+							_vm.TraceFinalize();
 							_vm.TraceTool = TraceToolType.MoveFeature;
 						}
 						finally
@@ -2018,7 +1991,7 @@ namespace Darwin.Wpf
 					if (_vm.Outline == null)
 					{
 						_vm.TraceLocked = true;
-						TraceFinalize();
+						_vm.TraceFinalize();
 					}
 
 					_vm.UpdateDatabaseFin();
@@ -2058,7 +2031,7 @@ namespace Darwin.Wpf
 				if (_vm.Outline == null)
 				{
 					_vm.TraceLocked = true;
-					TraceFinalize();
+					_vm.TraceFinalize();
 				}
 
 				SaveFileDialog dlg = new SaveFileDialog();
@@ -2119,19 +2092,7 @@ namespace Darwin.Wpf
         {
 			try
 			{
-				if (_vm.Contour == null && _vm.Outline == null)
-				{
-					MessageBox.Show(NoTraceErrorMessageDatabase, "Not Traced", MessageBoxButton.OK, MessageBoxImage.Warning);
-				}
-				else if (_vm.DatabaseFin == null || string.IsNullOrEmpty(_vm.DatabaseFin.IDCode))
-				{
-					MessageBox.Show(string.Format(NoIDErrorMessage, _vm.Database.CatalogScheme.IndividualTerminology), "No ID", MessageBoxButton.OK, MessageBoxImage.Warning);
-				}
-				else if (string.IsNullOrEmpty(_vm.DatabaseFin.DamageCategory) || _vm.Categories.Count < 1 || _vm.DatabaseFin.DamageCategory.ToUpper() == _vm.Categories[0]?.Name?.ToUpper())
-				{
-					MessageBox.Show(NoCategoryErrorMessage, "No Category", MessageBoxButton.OK, MessageBoxImage.Error);
-				}
-				else
+				if (ValidateImage())
 				{
 					try
 					{
@@ -2141,11 +2102,11 @@ namespace Darwin.Wpf
 						if (_vm.Outline == null)
 						{
 							_vm.TraceLocked = true;
-							TraceFinalize();
+							_vm.TraceFinalize();
 						}
 
 						await Task.Run(() => _vm.SaveToDatabase());
-						_vm.StatusBarMessage = "Finz file saved.";
+						_vm.StatusBarMessage = "Saved to the database.";
 
 						if (_vm.TraceStep == TraceStepType.TraceOutline)
 							TraceStep_Checked(null, null);
@@ -2181,6 +2142,82 @@ namespace Darwin.Wpf
             }
         }
 
-        #endregion
-    }
+		private void EditButton_Click(object sender, RoutedEventArgs e)
+		{
+
+		}
+
+		private bool ValidateImage()
+		{
+			if (_vm.Contour == null && _vm.Outline == null)
+			{
+				MessageBox.Show(NoTraceErrorMessageDatabase, "Not Traced", MessageBoxButton.OK, MessageBoxImage.Warning);
+				return false;
+			}
+			else if (_vm.DatabaseFin == null || string.IsNullOrEmpty(_vm.DatabaseFin.IDCode))
+			{
+				MessageBox.Show(string.Format(NoIDErrorMessage, _vm.Database.CatalogScheme.IndividualTerminology), "No ID", MessageBoxButton.OK, MessageBoxImage.Warning);
+				return false;
+			}
+			else if (string.IsNullOrEmpty(_vm.DatabaseFin.DamageCategory) || _vm.Categories.Count < 1 || _vm.DatabaseFin.DamageCategory.ToUpper() == _vm.Categories[0]?.Name?.ToUpper())
+			{
+				MessageBox.Show(NoCategoryErrorMessage, "No Category", MessageBoxButton.OK, MessageBoxImage.Error);
+				return false;
+			}
+
+			return true;
+		}
+
+		/// <summary>
+		/// We expect this is only called when we're editing an image that's already in the database.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private async void UpdateButton_Click(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				if (ValidateImage())
+				{
+					try
+					{
+						this.IsHitTestVisible = false;
+						Mouse.OverrideCursor = Cursors.Wait;
+
+						if (_vm.Outline == null)
+						{
+							_vm.TraceLocked = true;
+							_vm.TraceFinalize();
+						}
+
+						await Task.Run(() => _vm.SaveToDatabase());
+						_vm.StatusBarMessage = "Finz file saved.";
+
+						if (_vm.TraceStep == TraceStepType.TraceOutline)
+							TraceStep_Checked(null, null);
+
+						// Refresh main window
+						var mainWindow = Application.Current.MainWindow as MainWindow;
+
+						if (mainWindow != null)
+							mainWindow.RefreshDatabaseAfterAdd();
+					}
+					finally
+					{
+						Mouse.OverrideCursor = null;
+						this.IsHitTestVisible = true;
+					}
+
+					Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				Trace.WriteLine(ex);
+				MessageBox.Show("Sorry, something went wrong adding to the database.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+		}
+
+		#endregion
+	}
 }

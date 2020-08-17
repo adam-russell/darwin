@@ -105,7 +105,8 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="230"/>
                         <ColumnDefinition/>
-                        <ColumnDefinition Width="230"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="235"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Width="160">
                         <Button x:Name="UndoButton" Width="60" Style="{StaticResource ToolbarButton}" Command="commands:CustomCommands.Undo" Visibility="{Binding TraceToolsVisibility}">
@@ -140,11 +141,24 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             </RadioButton>
                         </StackPanel>
                     </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal" Grid.Column="2" Margin="0,0,25,0">
+                        <StackPanel VerticalAlignment="Center">
+                            <ToggleButton x:Name="EditButton" Visibility="{Binding EditVisibility}" Click="EditButton_Click" IsChecked="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Label FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center">&#xE70F;</Label>
+                                    <Label VerticalAlignment="Center" Padding="1">Edit</Label>
+                                </StackPanel>
+                            </ToggleButton>
+                        </StackPanel>
+                    </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Grid.Column="2">
-                        <TextBlock FontFamily="{StaticResource FontAwesome}" HorizontalAlignment="Center" VerticalAlignment="Center">&#xf03e;</TextBlock>
+                    <StackPanel Orientation="Horizontal" Grid.Column="3">
+                        <!--<TextBlock FontFamily="{StaticResource FontAwesome}" HorizontalAlignment="Center" VerticalAlignment="Center">&#xf03e;</TextBlock>-->
+                        <Label FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" Padding="2" VerticalAlignment="Center">&#xEB9F;</Label>
                         <Slider Width="180" Orientation="Horizontal" VerticalAlignment="Center" Minimum="-4" Maximum="4" Value="{Binding Path=ZoomSlider, Mode=TwoWay}" x:Name="ZoomSlider" ValueChanged="ZoomSlider_ValueChanged"/>
-                        <TextBlock FontFamily="{StaticResource FontAwesome}" FontSize="22" VerticalAlignment="Center">&#xf03e;</TextBlock>
+                        <Label FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" FontSize="22" Padding="2" VerticalAlignment="Center">&#xEB9F;</Label>
+                        <!--<TextBlock FontFamily="{StaticResource FontAwesome}" FontSize="22" VerticalAlignment="Center">&#xf03e;</TextBlock>-->
                     </StackPanel>
                 </Grid>
             </Border>
@@ -162,12 +176,14 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 <Button x:Name="RotateCWButton" Style="{StaticResource ToolbarButton}" Click="RotateCWButton_Click" ToolTip="Rotate 90° clockwise" Visibility="{Binding TraceToolsVisibility}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <Label Padding="2" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalAlignment="Center">&#xf021;</Label>
+                        <!--<Label FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" Padding="2" FontSize="16">&#xE7AD;</Label>-->
                         <!--<Label Padding="2" HorizontalAlignment="Center">Rotate CW</Label>-->
                     </StackPanel>
                 </Button>
                 <Button x:Name="RotateCCWButton" Style="{StaticResource ToolbarButton}" Click="RotateCCWButton_Click" ToolTip="Rotate 90° counter-clockwise" Visibility="{Binding TraceToolsVisibility}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                         <Label Padding="2" FontFamily="{StaticResource FontAwesomeSolid}" Content="&#xf021;" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                        <!--<Label FontFamily="Segoe MDL2 Assets" Content="&#xE7AD;" HorizontalAlignment="Center" Padding="2" FontSize="16" RenderTransformOrigin="0.5,0.5">-->
                             <Label.RenderTransform>
                                 <ScaleTransform ScaleX="-1" />
                             </Label.RenderTransform>
@@ -218,7 +234,8 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                         <RadioButton x:Name="CropButton" Style="{StaticResource ToolbarToggle}" GroupName="TraceTool" Checked="TraceTool_Checked" IsChecked="{Binding Path=TraceTool, Mode=TwoWay, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static model:TraceToolType.Crop}}"  Visibility="{Binding TraceToolsVisibility}">
                             <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
                                 <!--<Image Source="/Darwin.Wpf;component/Resources/Images/crop_button.png" />-->
-                                <Label FontFamily="{StaticResource FontAwesomeSolid}" FontSize="15" HorizontalAlignment="Center">&#xf565;</Label>
+                                <!--<Label FontFamily="{StaticResource FontAwesomeSolid}" FontSize="15" HorizontalAlignment="Center">&#xf565;</Label>-->
+                                <Label FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" Padding="2" FontSize="18">&#xE7A8;</Label>
                                 <Label HorizontalAlignment="Center" Padding="1">Crop</Label>
                             </StackPanel>
                         </RadioButton>
@@ -319,42 +336,45 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
                         <StackPanel Orientation="Vertical" Margin="8">
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">ID Code:</Label>
-                            <TextBox  Text="{Binding Path=DatabaseFin.IDCode}" Margin="0,0,10,5"  />
+                            <TextBox  Text="{Binding Path=DatabaseFin.IDCode}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}"  />
 
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Name:</Label>
-                            <TextBox Text="{Binding Path=DatabaseFin.Name}" Margin="0,0,10,5" />
+                            <TextBox Text="{Binding Path=DatabaseFin.Name}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}" />
 
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Damage Category:</Label>
                             <ComboBox ItemsSource="{Binding Categories, Mode=OneWay}"
                               DisplayMemberPath="Name"
                               SelectedValuePath="Name"
-                              SelectedValue="{Binding Path=DatabaseFin.DamageCategory}" Margin="0,0,10,5">
+                              SelectedValue="{Binding Path=DatabaseFin.DamageCategory}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}">
                             </ComboBox>
 
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Date of Sighting:</Label>
-                            <TextBox Text="{Binding Path=DatabaseFin.DateOfSighting}" Margin="0,0,10,5"  />
+                            <DatePicker SelectedDate="{Binding Path=DatabaseFin.PrimaryImage.DateOfSighting}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}" />
 
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Roll/Frame or Lat/Long:</Label>
-                            <TextBox Text="{Binding Path=DatabaseFin.RollAndFrame}" Margin="0,0,10,5"  />
+                            <TextBox Text="{Binding Path=DatabaseFin.PrimaryImage.RollAndFrame}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}" />
 
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Location Code:</Label>
-                            <TextBox Text="{Binding Path=DatabaseFin.LocationCode}" Margin="0,0,10,5"  />
+                            <TextBox Text="{Binding Path=DatabaseFin.PrimaryImage.LocationCode}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}" />
 
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Short Description:</Label>
-                            <TextBox Text="{Binding Path=DatabaseFin.ShortDescription}"
+                            <TextBox Text="{Binding Path=DatabaseFin.PrimaryImage.ShortDescription}"
                                 TextWrapping="Wrap"
                                 AcceptsReturn="True"
                                 VerticalScrollBarVisibility="Visible"
-                                MinLines="3" Margin="0,0,10,5"  />
+                                MinLines="3" Margin="0,0,10,5"  IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}" />
 
-                            <Button x:Name="ExportDataButton" Click="ExportDataButton_Click">
+                            <Button Style="{StaticResource ToolbarButton}" x:Name="ExportDataButton" Click="ExportDataButton_Click">
                                 <Button.ToolTip>
                                     <TextBlock>
                                 Export the sighting data and append it to the<LineBreak/>
                                 survey area's master data file
                                     </TextBlock>
                                 </Button.ToolTip>
-                                Export Data
+                                <StackPanel Orientation="Horizontal">
+                                    <Label FontFamily="Segoe MDL2 Assets" Padding="2" VerticalAlignment="Center">&#xEDE1;</Label>
+                                    <Label VerticalAlignment="Center">Export Data</Label>
+                                </StackPanel>
                             </Button>
                         </StackPanel>
                     </ScrollViewer>
@@ -378,6 +398,16 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             </Button.ToolTip>
                             Save
                         </Button>
+
+                        <Button x:Name="UpdateButton" Click="UpdateButton_Click" Visibility="{Binding UpdateVisibility}">
+                            <Button.ToolTip>
+                                <TextBlock>
+                                    Save changes to the database.
+                                </TextBlock>
+                            </Button.ToolTip>
+                            Save
+                        </Button>
+                        
                         <Button x:Name="AddToDatabaseButton" Click="AddToDatabaseButton_Click" Visibility="{Binding AddToDatabaseVisibility}">
                             <Button.ToolTip>
                                 <TextBlock>

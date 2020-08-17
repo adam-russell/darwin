@@ -301,7 +301,8 @@ namespace Darwin.Wpf.FrameworkElements
                             FlowDirection.LeftToRight,
                             new Typeface("Arial"),
                             TextSize,
-                            Brushes[0]);
+                            Brushes[0],
+                            VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
                         dc.DrawText(formattedText,
                             new System.Windows.Point(point.Coordinate.X / ContourScale + XOffset - formattedText.Width / 2, point.Coordinate.Y / ContourScale + YOffset + formattedText.Height + HighlightPointSize / 2  + 1));

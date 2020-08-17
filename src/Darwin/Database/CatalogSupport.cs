@@ -470,8 +470,24 @@ namespace Darwin.Database
 			databaseFin.PrimaryImage.OriginalImageFilename = Path.GetFileName(originalImageSaveAs);
 			databaseFin.PrimaryImage.ImageFilename = Path.GetFileName(modifiedImageSaveAs);
 
-			// Finally, add it to the database
-			database.Add(databaseFin);
+			// Finally, check if this an existing fin.  If it is, update the image, otherwise add the whole
+			// thing to the database.
+			if (databaseFin.ID > 0)
+            {
+				// We're assuming that the image we're modifying is the one that's set to PrimaryImage
+				if (databaseFin.PrimaryImage.ID > 0)
+                {
+					database.Update(databaseFin.PrimaryImage);
+                }
+				else
+                {
+					database.Add(databaseFin.ID, databaseFin.PrimaryImage);
+                }
+            }
+			else
+			{
+				database.Add(databaseFin);
+			}
         }
 
 		public static void RebuildFolders(string databasePath)
