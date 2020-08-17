@@ -23,11 +23,21 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:Darwin.Wpf.ValueConverters"
              xmlns:local="clr-namespace:Darwin.Wpf.Controls"
+             xmlns:fe="clr-namespace:Darwin.Wpf.FrameworkElements"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        <x:Array Type="Brush" x:Key="brushes">
+            <x:Static Member="Brushes.Lime" />
+            <x:Static Member="Brushes.Crimson" />
+            <x:Static Member="Brushes.Yellow" />
+            <x:Static Member="Brushes.Cyan" />
+            <x:Static Member="Brushes.Blue" />
+            <x:Static Member="Brushes.Magenta" />
+        </x:Array>
         <converters:ImageSourceConverter x:Key="ImageSourceConverter" />
         <converters:ImagePathConverter x:Key="ImagePathConverter" />
+        <converters:NullConverter x:Key="NullConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </UserControl.Resources>
     
@@ -35,22 +45,75 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition />
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <TextBox Text="{Binding Blah}" Foreground="Black" Grid.Row="0" />
-        <ListBox Grid.Row="1" x:Name="ImagesListBox" ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Images}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <!--<ListBox.ItemsPanel>
+        <ScrollViewer Grid.Row="1">
+            <ItemsControl x:Name="ImagesListBox" ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Images}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <!--<Image Source="{Binding ImageFilename, Converter={StaticResource ImagePathConverter}}" />-->
+                            <!--<Image Source="{Binding FinImage, Converter={StaticResource ImageSourceConverter}}" />-->
+                            <TabControl>
+                                <TabItem Header="Image">
+                                    <Button x:Name="ViewImageButton" Click="ViewImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0">
+                                        <Image x:Name="SelectedImageSource" Source="{Binding FinImage, Converter={StaticResource ImageSourceConverter}}" />
+                                    </Button>
+                                </TabItem>
+                                <TabItem Header="Outline">
+                                    <Button x:Name="OutlineButton" Cursor="Hand" Click="OutlineButton_Click" Background="Transparent" BorderThickness="0">
+                                        <Viewbox>
+                                            <fe:PointVisuals IsHitTestVisible="False" Width="{Binding FinImage.Width}"  Height="{Binding FinImage.Height}"
+                                             Background="Transparent"
+                                             PointSize="3"
+                                             ContourScale="{Binding Contour.Scale}"
+                                             ItemsSource="{Binding Contour.Points}"
+                                             Brushes="{StaticResource brushes}" />
+                                        </Viewbox>
+                                    </Button>
+                                </TabItem>
+                                <TabItem Header="Original Image">
+                                    <Button x:Name="ViewOriginalImageButton" Click="ViewOriginalImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0">
+                                        <Image Source="{Binding OriginalFinImage, Converter={StaticResource ImageSourceConverter}}" />
+                                    </Button>
+                                </TabItem>
+                            </TabControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!--<StatusBar Grid.Row="2" Background="{StaticResource LightBackground}" Height="36">
+            <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <WrapPanel IsItemsHost="True" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                    </Grid>
                 </ItemsPanelTemplate>
-            </ListBox.ItemsPanel>-->
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel>
-                        
-                        <Image Source="{Binding ImageFilename, Converter={StaticResource ImagePathConverter}}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+            </StatusBar.ItemsPanel>
+            <StatusBarItem Grid.Column="0">
+                <TextBlock Name="StatusBarMessage" />
+            </StatusBarItem>
+            <StatusBarItem Grid.Column="1">
+                <StackPanel Orientation="Horizontal" Margin="0,0,5,0">
+                    --><!--<TextBlock FontFamily="{StaticResource FontAwesome}" HorizontalAlignment="Center" VerticalAlignment="Center">&#xf03e;</TextBlock>--><!--
+                    <Slider Width="180" Orientation="Horizontal" VerticalAlignment="Center" Minimum="-4" Maximum="4" x:Name="ZoomSlider"/>
+                    --><!--<TextBlock FontFamily="{StaticResource FontAwesome}" FontSize="22" VerticalAlignment="Center">&#xf03e;</TextBlock>--><!--
+                </StackPanel>
+            </StatusBarItem>
+            --><!--<StatusBarItem Grid.Column="2">
+                <TextBlock Foreground="DarkGray" FontFamily="Segoe MDL2 Assets" Text="&#xE788;" FontSize="24" VerticalAlignment="Bottom" Margin="0,0,3,0"/>
+            </StatusBarItem>--><!--
+        </StatusBar>-->
     </Grid>
 </UserControl>

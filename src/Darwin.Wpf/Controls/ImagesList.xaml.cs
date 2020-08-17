@@ -15,6 +15,7 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Database;
+using Darwin.Wpf.ViewModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -38,23 +39,22 @@ namespace Darwin.Wpf.Controls
     /// </summary>
     public partial class ImagesList : UserControl
     {
-        public static DependencyProperty ImagesProperty =
-    DependencyProperty.Register("Images", typeof(ObservableCollection<DatabaseImage>), typeof(ImagesList),
+        public static DependencyProperty DatabaseInvidualProperty = DependencyProperty.Register("DatabaseInvidual", typeof(DatabaseFin), typeof(ImagesList),
+                        new FrameworkPropertyMetadata(null) { BindsTwoWayByDefault = true });
+
+        public DatabaseFin DatabaseInvidual
+        {
+            get { return (DatabaseFin)GetValue(DatabaseInvidualProperty); }
+            set { SetValue(DatabaseInvidualProperty, value); }
+        }
+
+        public static DependencyProperty ImagesProperty = DependencyProperty.Register("Images", typeof(ObservableCollection<DatabaseImage>), typeof(ImagesList),
                                 new FrameworkPropertyMetadata(null, OnChanged) { BindsTwoWayByDefault = true });
 
         public ObservableCollection<DatabaseImage> Images
         {
             get { return (ObservableCollection<DatabaseImage>)GetValue(ImagesProperty); }
             set { SetValue(ImagesProperty, value); }
-        }
-
-        public static readonly DependencyProperty BlahProperty = DependencyProperty.Register("Blah",
-            typeof(string), typeof(ImagesList), new FrameworkPropertyMetadata(null) { BindsTwoWayByDefault = true });
-
-        public string Blah
-        {
-            get { return (string)GetValue(BlahProperty); }
-            set { SetValue(BlahProperty, value); RaisePropertyChanged("Blah"); }
         }
 
         static void OnChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -78,14 +78,37 @@ namespace Darwin.Wpf.Controls
             InitializeComponent();
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void RaisePropertyChanged(string propertyName)
+        private void OutlineButton_Click(object sender, RoutedEventArgs e)
         {
-            var handler = PropertyChanged;
-            if (handler == null) return;
+            var outlineWindowVM = new OutlineWindowViewModel(MainWindow.CurrentDatabase, DatabaseInvidual);
 
-            handler(this, new PropertyChangedEventArgs(propertyName));
+            var outlineWindow = new OutlineWindow(outlineWindowVM);
+            outlineWindow.Show();
+        }
+
+        private void ViewImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (DatabaseInvidual != null)
+            {
+                //var fin = _vm.FullyLoadFin();
+                var vm = new TraceWindowViewModel(DatabaseInvidual, MainWindow.CurrentDatabase, "Viewing " + DatabaseInvidual.IDCode, MainWindow.CurrentInstance);
+                TraceWindow traceWindow = new TraceWindow(vm);
+                traceWindow.Show();
+            }
+        }
+
+        private void ViewOriginalImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Little hacky
+            if (DatabaseInvidual != null)
+            {
+                var fin = new DatabaseFin(DatabaseInvidual);
+                fin.PrimaryImage.FinOutline.ChainPoints = null;
+                fin.PrimaryImage.FinImage = fin.PrimaryImage.OriginalFinImage;
+                var vm = new TraceWindowViewModel(fin, MainWindow.CurrentDatabase, "Viewing " + fin.IDCode + " Original Image", MainWindow.CurrentInstance);
+                TraceWindow traceWindow = new TraceWindow(vm);
+                traceWindow.Show();
+            }
         }
     }
 }

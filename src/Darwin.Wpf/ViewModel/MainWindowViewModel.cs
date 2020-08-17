@@ -138,22 +138,14 @@ namespace Darwin.Wpf.ViewModel
             get => _selectedFin;
             set
             {
+                var saveOldFin = _selectedFin;
+
                 _selectedFin = value;
-                RaisePropertyChanged("SelectedFin");
                 LoadSelectedFin();
+                RaisePropertyChanged("SelectedFin");
 
-                RaisePropertyChanged("SelectedImages");
-            }
-        }
-
-        public ObservableCollection<DatabaseImage> SelectedImages
-        {
-            get
-            {
-                if (_selectedFin == null)
-                    return null;
-
-                return _selectedFin.Images;
+                if (saveOldFin != null)
+                    UnloadFin(saveOldFin);
             }
         }
 
@@ -301,47 +293,16 @@ namespace Darwin.Wpf.ViewModel
             }
             else
             {
-                // TODO: Cache images?
-                if (!string.IsNullOrEmpty(SelectedFin.PrimaryImage.ImageFilename))
-                {
-                    CatalogSupport.UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentCatalogPath, SelectedFin);
-
-                    SelectedContour = new Contour(SelectedFin.PrimaryImage.FinOutline.ChainPoints, SelectedFin.PrimaryImage.FinOutline.Scale);
-
-                    string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
-                        (string.IsNullOrEmpty(SelectedFin.PrimaryImage.OriginalImageFilename)) ? SelectedFin.PrimaryImage.ImageFilename : SelectedFin.PrimaryImage.OriginalImageFilename);
-
-                    if (File.Exists(fullImageFilename))
-                    {
-                        try
-                        {
-                            var img = System.Drawing.Image.FromFile(fullImageFilename);
-
-                            var bitmap = new Bitmap(img);
-                            // TODO: Hack for HiDPI -- this should be more intelligent.
-                            bitmap.SetResolution(96, 96);
-
-                            SelectedOriginalImageSource = bitmap.ToImageSource();
-
-                            // TODO: Refactor this so we're not doing it every time, which is a little crazy
-                            if (SelectedFin.PrimaryImage.ImageMods != null && SelectedFin.PrimaryImage.ImageMods.Count > 0)
-                            {
-                                bitmap = ModificationHelper.ApplyImageModificationsToOriginal(bitmap, SelectedFin.PrimaryImage.ImageMods);
-                               // TODO: HiDPI hack
-                                bitmap.SetResolution(96, 96);
-                            }
-
-                            // We're directly changing the source, not the bitmap property on DatabaseFin
-                            SelectedImageSource = bitmap.ToImageSource();
-                        }
-                        catch (Exception ex)
-                        {
-                            // TODO
-                            MessageBox.Show(ex.ToString());
-                        }
-                    }
-                }
+                DatabaseImage.FullyLoadDatabaseImages(SelectedFin.Images);
             }
+        }
+
+        private void UnloadFin(DatabaseFin fin)
+        {
+            if (fin == null)
+                return;
+
+            DatabaseImage.UnloadDatabaseImages(fin.Images);
         }
     }
 }

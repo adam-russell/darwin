@@ -342,7 +342,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
 
                         <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" />
 
-                        <controls:ImagesList x:Name="SelectedImages" Grid.Row="2" Images="{Binding Path=SelectedFin.Images}"/>
+                        <controls:ImagesList x:Name="SelectedImages" Grid.Row="2" DatabaseInvidual="{Binding Path=SelectedFin}" Images="{Binding Path=SelectedFin.Images}"/>
                         <!--<TabControl Grid.Row="2">
                             <TabItem Header="Image">
                                 <Button x:Name="ViewImageButton" Click="ViewImageButton_Click" IsEnabled="{Binding Path=SelectedContour, Converter={StaticResource NullConverter}}" Cursor="Hand" Background="Transparent" BorderThickness="0">

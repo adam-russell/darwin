@@ -8,8 +8,9 @@ namespace Darwin.Database
 {
     public class DatabaseImage : BaseEntity
     {
-        public Bitmap FinImage; // Modified image
-        public Bitmap OriginalFinImage;
+        public Bitmap FinImage { get; set; } // Modified image
+        public Bitmap OriginalFinImage { get; set; }
+        public Contour Contour { get; set; }
 
         public string CropImageFilename { get; set; }
         public string OriginalImageFilename { get; set; } //  1.8 - filename of original unmodified image
@@ -150,17 +151,35 @@ namespace Darwin.Database
             FinImage = null; //  1.5
         }
 
-        public static ObservableCollection<DatabaseImage> CopyDatabaseImageList(ObservableCollection<DatabaseImage> listToCopy)
+        public static ObservableCollection<DatabaseImage> CopyDatabaseImageList(ObservableCollection<DatabaseImage> imagesToCopy)
         {
-            if (listToCopy == null)
+            if (imagesToCopy == null)
                 return null;
 
             var result = new ObservableCollection<DatabaseImage>();
 
-            foreach (var image in listToCopy)
+            foreach (var image in imagesToCopy)
                 result.Add(new DatabaseImage(image));
 
             return result;
+        }
+
+        public static void FullyLoadDatabaseImages(ObservableCollection<DatabaseImage> images)
+        {
+            if (images == null)
+                return;
+
+            foreach (var image in images)
+                CatalogSupport.FullyLoadDatabaseImage(image);
+        }
+
+        public static void UnloadDatabaseImages(ObservableCollection<DatabaseImage> images)
+        {
+            if (images == null)
+                return;
+
+            foreach (var image in images)
+                CatalogSupport.UnloadDatabaseImage(image);
         }
     }
 }

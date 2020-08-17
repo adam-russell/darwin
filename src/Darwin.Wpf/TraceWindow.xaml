@@ -143,7 +143,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
 
                     <StackPanel Orientation="Horizontal" Grid.Column="2">
                         <TextBlock FontFamily="{StaticResource FontAwesome}" HorizontalAlignment="Center" VerticalAlignment="Center">&#xf03e;</TextBlock>
-                        <Slider Grid.Column="2" Width="180" Orientation="Horizontal" VerticalAlignment="Center" Minimum="-4" Maximum="4" Value="{Binding Path=ZoomSlider, Mode=TwoWay}" x:Name="ZoomSlider" ValueChanged="ZoomSlider_ValueChanged"/>
+                        <Slider Width="180" Orientation="Horizontal" VerticalAlignment="Center" Minimum="-4" Maximum="4" Value="{Binding Path=ZoomSlider, Mode=TwoWay}" x:Name="ZoomSlider" ValueChanged="ZoomSlider_ValueChanged"/>
                         <TextBlock FontFamily="{StaticResource FontAwesome}" FontSize="22" VerticalAlignment="Center">&#xf03e;</TextBlock>
                     </StackPanel>
                 </Grid>

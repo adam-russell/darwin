@@ -48,12 +48,27 @@ namespace Darwin.Wpf
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static MainWindow CurrentInstance;
+
+        public static DarwinDatabase CurrentDatabase
+        {
+            get
+            {
+                if (CurrentInstance == null || CurrentInstance._vm == null)
+                    return null;
+
+                return CurrentInstance._vm.DarwinDatabase;
+            }
+        }
+
         private MainWindowViewModel _vm;
         private const int NumRestoreRetries = 4;
         private const int RestoreSleepMilliseconds = 2000;
 
         public MainWindow()
         {
+            CurrentInstance = this;
+
             InitializeComponent();
 
             _vm = new MainWindowViewModel();
@@ -665,39 +680,6 @@ namespace Darwin.Wpf
         private void MatchingQueueToolbarButton_Click(object sender, RoutedEventArgs e)
         {
             MatchingQueueCommand_Executed(null, null);
-        }
-
-        private void OutlineButton_Click(object sender, RoutedEventArgs e)
-        {
-            var outlineWindowVM = new OutlineWindowViewModel(_vm.DarwinDatabase, _vm.SelectedFin);
-
-            var outlineWindow = new OutlineWindow(outlineWindowVM);
-            outlineWindow.Show();
-        }
-
-        private void ViewImageButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (_vm.SelectedFin != null)
-            {
-                var fin = _vm.FullyLoadFin();
-                var vm = new TraceWindowViewModel(fin, _vm.DarwinDatabase, "Viewing " + fin.IDCode, this);
-                TraceWindow traceWindow = new TraceWindow(vm);
-                traceWindow.Show();
-            }
-        }
-
-        private void ViewOriginalImageButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Little hacky
-            if (_vm.SelectedFin != null)
-            {
-                var fin = _vm.FullyLoadFin();
-                fin.PrimaryImage.FinOutline.ChainPoints = null;
-                fin.PrimaryImage.FinImage = fin.PrimaryImage.OriginalFinImage;
-                var vm = new TraceWindowViewModel(fin, _vm.DarwinDatabase, "Viewing " + fin.IDCode + " Original Image", this);
-                TraceWindow traceWindow = new TraceWindow(vm);
-                traceWindow.Show();
-            }
         }
 
         private void CheckNextPreviousEnabled()

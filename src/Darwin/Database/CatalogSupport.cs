@@ -98,7 +98,7 @@ namespace Darwin.Database
 
 				// This is a little hacky, but we're going to get the bottom directory name, and append that to
 				// the filename below.
-				var bottomDirectoryName = Path.GetFileName(Path.GetDirectoryName(fullFilename));
+				//var bottomDirectoryName = Path.GetFileName(Path.GetDirectoryName(fullFilename));
 
 				if (!string.IsNullOrEmpty(originalFilename))
 				{
@@ -107,6 +107,33 @@ namespace Darwin.Database
 					// TODO Original isn't right -- need to replay imagemods, maybe?
 					fin.PrimaryImage.OriginalImageFilename = originalFilename;
 					fin.PrimaryImage.ImageFilename = originalFilename;
+				}
+				// TODO: Save these changes back to the database?
+			}
+		}
+
+		public static void UpdateDatabaseImageFromImageFile(string basePath, DatabaseImage image)
+		{
+			// TODO:
+			// Probably not the best "flag" to look at to figure out if this an old image.
+			// We're saving OriginalImageFilename in the database for newer fins
+			if (string.IsNullOrEmpty(image.OriginalImageFilename))
+			{
+				List<ImageMod> imageMods;
+				bool thumbOnly;
+				string originalFilename;
+				float normScale;
+
+				string fullFilename = Path.Combine(basePath, image.ImageFilename);
+
+				PngHelper.ParsePngText(fullFilename, out normScale, out imageMods, out thumbOnly, out originalFilename);
+
+				image.ImageMods = imageMods;
+				image.FinOutline.Scale = normScale;
+
+				if (!string.IsNullOrEmpty(originalFilename))
+				{
+					image.OriginalImageFilename = image.ImageFilename = originalFilename;
 				}
 				// TODO: Save these changes back to the database?
 			}
@@ -518,43 +545,100 @@ namespace Darwin.Database
 		public static DatabaseFin FullyLoadFin(DatabaseFin fin)
 		{
 			DatabaseFin finCopy = new DatabaseFin(fin);
+
+			DatabaseImage.FullyLoadDatabaseImages(fin.Images);
+
 			// TODO: Cache images?
-			if (!string.IsNullOrEmpty(finCopy.PrimaryImage.ImageFilename))
+			//if (!string.IsNullOrEmpty(finCopy.PrimaryImage.ImageFilename))
+			//{
+			//	CatalogSupport.UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentCatalogPath, finCopy);
+
+			//	string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
+			//		(string.IsNullOrEmpty(finCopy.PrimaryImage.OriginalImageFilename)) ? finCopy.PrimaryImage.ImageFilename : finCopy.PrimaryImage.OriginalImageFilename);
+
+			//	if (File.Exists(fullImageFilename))
+			//	{
+			//		var img = System.Drawing.Image.FromFile(fullImageFilename);
+
+			//		var bitmap = new Bitmap(img);
+			//		// TODO: Hack for HiDPI -- this should be more intelligent.
+			//		bitmap.SetResolution(96, 96);
+
+			//		finCopy.PrimaryImage.OriginalFinImage = new Bitmap(bitmap);
+
+			//		// TODO: Refactor this so we're not doing it every time, which is a little crazy
+			//		if (finCopy.PrimaryImage.ImageMods != null && finCopy.PrimaryImage.ImageMods.Count > 0)
+			//		{
+			//			bitmap = ModificationHelper.ApplyImageModificationsToOriginal(bitmap, finCopy.PrimaryImage.ImageMods);
+			//			// TODO: HiDPI hack
+			//			bitmap.SetResolution(96, 96);
+			//		}
+
+			//		finCopy.PrimaryImage.FinImage = bitmap;
+			//	}
+			//}
+
+			//if (!string.IsNullOrEmpty(finCopy.PrimaryImage.OriginalImageFilename) && !File.Exists(finCopy.PrimaryImage.OriginalImageFilename))
+			//{
+			//	finCopy.PrimaryImage.OriginalImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, finCopy.PrimaryImage.OriginalImageFilename);
+			//}
+
+			return finCopy;
+		}
+
+		/// <summary>
+		/// We're modifying the image itself here to fully load the images into bitmaps.
+		/// </summary>
+		/// <param name="image"></param>
+		public static void FullyLoadDatabaseImage(DatabaseImage image)
+        {
+			if (image == null)
+				return;
+			
+			if (image.FinOutline != null && image.FinOutline.ChainPoints != null)
+				image.Contour = new Contour(image.FinOutline.ChainPoints, image.FinOutline.Scale);
+
+			if (!string.IsNullOrEmpty(image.ImageFilename))
 			{
-				CatalogSupport.UpdateFinFieldsFromImage(Options.CurrentUserOptions.CurrentCatalogPath, finCopy);
+				CatalogSupport.UpdateDatabaseImageFromImageFile(Options.CurrentUserOptions.CurrentCatalogPath, image);
 
 				string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
-					(string.IsNullOrEmpty(finCopy.PrimaryImage.OriginalImageFilename)) ? finCopy.PrimaryImage.ImageFilename : finCopy.PrimaryImage.OriginalImageFilename);
+					(string.IsNullOrEmpty(image.OriginalImageFilename)) ? image.ImageFilename : image.OriginalImageFilename);
 
 				if (File.Exists(fullImageFilename))
 				{
-					var img = System.Drawing.Image.FromFile(fullImageFilename);
+					var img = Image.FromFile(fullImageFilename);
 
 					var bitmap = new Bitmap(img);
-					// TODO: Hack for HiDPI -- this should be more intelligent.
+
+					// TODO: Hack for HiDPI -- this should probably be more intelligent.
 					bitmap.SetResolution(96, 96);
 
-					finCopy.PrimaryImage.OriginalFinImage = new Bitmap(bitmap);
+					image.OriginalFinImage = new Bitmap(bitmap);
 
-					// TODO: Refactor this so we're not doing it every time, which is a little crazy
-					if (finCopy.PrimaryImage.ImageMods != null && finCopy.PrimaryImage.ImageMods.Count > 0)
+					// TODO: Maybe refactor this so we're not doing it every time?
+					if (image.ImageMods != null && image.ImageMods.Count > 0)
 					{
-						bitmap = ModificationHelper.ApplyImageModificationsToOriginal(bitmap, finCopy.PrimaryImage.ImageMods);
+						bitmap = ModificationHelper.ApplyImageModificationsToOriginal(bitmap, image.ImageMods);
+
 						// TODO: HiDPI hack
 						bitmap.SetResolution(96, 96);
 					}
 
-					finCopy.PrimaryImage.FinImage = bitmap;
+					image.FinImage = bitmap;
 				}
 			}
-
-			if (!string.IsNullOrEmpty(finCopy.PrimaryImage.OriginalImageFilename) && !File.Exists(finCopy.PrimaryImage.OriginalImageFilename))
-			{
-				finCopy.PrimaryImage.OriginalImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, finCopy.PrimaryImage.OriginalImageFilename);
-			}
-
-			return finCopy;
 		}
+
+		public static void UnloadDatabaseImage(DatabaseImage image)
+        {
+			if (image != null)
+            {
+				image.FinImage = null;
+				image.OriginalFinImage = null;
+				image.Contour = null;
+            }
+        }
 
 		public static string RestoreDatabase(string backupFile, string surveyArea, string databaseName)
 		{
