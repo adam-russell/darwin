@@ -14,28 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
-using CsvHelper.Configuration.Attributes;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using System.Drawing;
+using System.Globalization;
+using System.IO;
 using System.Text;
 
 namespace Darwin.ML
 {
-    public class MLCsvRecord
+    public class MLFeatureImage
     {
-        [Index(0)]
-        public string image { get; set; }
-
-        [Index(1)]
-        public float eye_x { get; set; }
-
-        [Index(2)]
-        public float eye_y { get; set; }
-
-        [Index(3)]
-        public float nasalfold_x { get; set; }
-
-        [Index(4)]
-        public float nasalfold_y { get; set; }
+        public Bitmap Image { get; set; }
+        public float XRatio { get; set; }
+        public float YRatio { get; set; }
+        public int XMin { get; set; }
+        public int YMin { get; set; }
+        public int XMax { get; set; }
+        public int YMax { get; set; }
     }
 }

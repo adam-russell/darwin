@@ -211,9 +211,11 @@ namespace Darwin.Helpers
 
             var pointList = contour.Points.ToList();
 
-            for (int x = contour.XMin; x <= contour.XMax; x++)
+            int xMax = contour.XMax;
+            int yMax = contour.YMax;
+            for (int x = contour.XMin; x <= xMax; x++)
             {
-                for (int y = contour.YMin; y <= contour.YMax; y++)
+                for (int y = contour.YMin; y <= yMax; y++)
                 {
                     if (PolygonHelper.PointInPolygon(pointList, x, y))
                         directResult.SetPixel(x, y, Color.White);

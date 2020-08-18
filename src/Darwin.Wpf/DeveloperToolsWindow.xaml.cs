@@ -63,7 +63,7 @@ namespace Darwin.Wpf
                         this.IsHitTestVisible = false;
                         Mouse.OverrideCursor = Cursors.Wait;
 
-                        MLSupport.SaveDatasetImages(dialog.SelectedPath, _vm.Database);
+                        MLSupport.SaveFeatureDatasetImages(dialog.SelectedPath, _vm.Database);
 
                         MessageBox.Show("Dataset generation complete.", "Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                     }

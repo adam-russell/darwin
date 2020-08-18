@@ -38,12 +38,12 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
             </Grid.RowDefinitions>
             <Label Grid.Row="0" FontWeight="Bold">Machine Learning</Label>
             
-            <TextBlock TextWrapping="Wrap" Grid.Row="1" Margin="5">(Currently only for Bears) Export a coordinate and image dataset to train against.  Eye and nasal lateral commissure need to be labeled on database individuals for a usable dataset.</TextBlock>
+            <TextBlock TextWrapping="Wrap" Grid.Row="1" Margin="5">(Currently only for Bears) Export a coordinate and image dataset to train against.  Eye and nasal lateral commissure need to already be labeled on database individuals for a usable dataset.</TextBlock>
             <StackPanel Grid.Row="2" Orientation="Horizontal">
                 <Button x:Name="ExportDatasetButton" Click="ExportDatasetButton_Click">Export Feature Dataset</Button>
             </StackPanel>
 
-            <TextBlock TextWrapping="Wrap" Grid.Row="3" Margin="5">Export segmentation mask dataset.</TextBlock>
+            <TextBlock TextWrapping="Wrap" Grid.Row="3" Margin="5">Export segmentation mask dataset (slow -- takes a long time).</TextBlock>
             <StackPanel Grid.Row="4" Orientation="Horizontal">
                 <Button x:Name="ExportSegmentationMasks" Click="ExportSegmentationMasks_Click">Export Segmentation Mask Dataset</Button>
             </StackPanel>

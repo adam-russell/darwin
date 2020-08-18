@@ -169,6 +169,7 @@ namespace Darwin.Model
             _remappedChainPoints = null;
             _chain = new Chain(outline.Chain);
             _chainPoints = new FloatContour(outline.ChainPoints); //***008OL
+            Scale = outline.Scale;
         }
 
         public void MapOutlineTo(Outline target)

@@ -16,6 +16,7 @@
 
 using CsvHelper;
 using Darwin.Database;
+using Darwin.Extensions;
 using Darwin.Helpers;
 using Darwin.ImageProcessing;
 using Darwin.ML;
@@ -37,11 +38,15 @@ namespace Darwin.Helpers
     public static class MLSupport
     {
         public const string ImagesDirectoryName = "images";
-        public const int ImageWidth = 224;
-        public const int ImageHeight = 224;
-        public const string CsvFilename = "darwin_coordinates.csv";
+        public const int FeatureImageWidth = 224;
+        public const int FeatureImageHeight = 224;
+        public const string FeatureCsvFilename = "darwin_coordinates.csv";
 
-        public static MLImage ConvertDatabaseFinToMLImage(Bitmap image, FloatContour contour, double scale)
+        public const int MaskImageWidth = 224;
+        public const int MaskImageHeight = 224;
+        public const string MaskCsvFilename = "darwin_coordinates.csv";
+
+        public static MLFeatureImage ConvertDatabaseFinToMLFeatureImage(Bitmap image, FloatContour contour, double scale)
         {
             int xMin = (int)Math.Floor(contour.MinX() / scale);
             int yMin = (int)Math.Floor(contour.MinY() / scale);
@@ -49,13 +54,13 @@ namespace Darwin.Helpers
             int yMax = (int)Math.Ceiling(contour.MaxY() / scale);
 
             // Figure out the ratio
-            var resizeRatioX = (float)ImageWidth / (xMax - xMin);
-            var resizeRatioY = (float)ImageHeight / (yMax - yMin);
+            var resizeRatioX = (float)FeatureImageWidth / (xMax - xMin);
+            var resizeRatioY = (float)FeatureImageHeight / (yMax - yMin);
 
             if (resizeRatioX > resizeRatioY)
             {
                 // We're X constrained, so expand the X
-                var extra = ((yMax - yMin) - (xMax - xMin)) * ((float)ImageWidth / ImageHeight);
+                var extra = ((yMax - yMin) - (xMax - xMin)) * ((float)FeatureImageWidth / FeatureImageHeight);
                 xMin -= (int)Math.Round(extra / 2);
                 xMax += (int)Math.Round(extra / 2);
 
@@ -79,7 +84,7 @@ namespace Darwin.Helpers
             else
             {
                 // We're Y constrained, so expand the Y
-                var extra = ((xMax - xMin) - (yMax - yMin)) * ((float)ImageHeight / ImageWidth);
+                var extra = ((xMax - xMin) - (yMax - yMin)) * ((float)FeatureImageHeight / FeatureImageWidth);
                 yMin -= (int)Math.Round(extra / 2);
                 yMax += (int)Math.Round(extra / 2);
 
@@ -106,12 +111,12 @@ namespace Darwin.Helpers
                 xMax, yMax);
 
             // We've hopefully already corrected for the aspect ratio above
-            workingImage = BitmapHelper.ResizeBitmap(workingImage, ImageWidth, ImageHeight);
+            workingImage = BitmapHelper.ResizeBitmap(workingImage, FeatureImageWidth, FeatureImageHeight);
 
-            float xRatio = (float)ImageWidth / (xMax - xMin);
-            float yRatio = (float)ImageHeight / (yMax - yMin);
+            float xRatio = (float)FeatureImageWidth / (xMax - xMin);
+            float yRatio = (float)FeatureImageHeight / (yMax - yMin);
 
-            return new MLImage
+            return new MLFeatureImage
             {
                 Image = workingImage,
                 XMin = xMin,
@@ -123,7 +128,7 @@ namespace Darwin.Helpers
             };
         }
 
-        public static void SaveDatasetImages(string datasetDirectory, DarwinDatabase database)
+        public static void SaveFeatureDatasetImages(string datasetDirectory, DarwinDatabase database)
         {
             if (datasetDirectory == null)
                 throw new ArgumentNullException(nameof(datasetDirectory));
@@ -140,7 +145,7 @@ namespace Darwin.Helpers
 
             Directory.CreateDirectory(fullImagesDirectory);
 
-            var csvRecords = new List<MLCsvRecord>();
+            var csvRecords = new List<MLFeatureCsvRecord>();
 
             int individualNum = 1;
             foreach (var dbFin in database.AllFins)
@@ -158,13 +163,13 @@ namespace Darwin.Helpers
                     continue;
                 }
 
-                var mlImage = ConvertDatabaseFinToMLImage(fin.PrimaryImage.FinImage, fin.PrimaryImage.FinOutline.ChainPoints, fin.PrimaryImage.FinOutline.Scale);
+                var mlImage = ConvertDatabaseFinToMLFeatureImage(fin.PrimaryImage.FinImage, fin.PrimaryImage.FinOutline.ChainPoints, fin.PrimaryImage.FinOutline.Scale);
 
                 string imageFilename = individualNum.ToString().PadLeft(6, '0') + ".jpg";
 
                 mlImage.Image.Save(Path.Combine(fullImagesDirectory, imageFilename), ImageFormat.Jpeg);
 
-                csvRecords.Add(new MLCsvRecord
+                csvRecords.Add(new MLFeatureCsvRecord
                 {
                     image = imageFilename,
                     eye_x = mlImage.XRatio * (float)(fin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePoints[Features.FeaturePointType.Eye].Coordinate.X / fin.PrimaryImage.FinOutline.Scale - mlImage.XMin),
@@ -176,7 +181,7 @@ namespace Darwin.Helpers
                 individualNum += 1;
             }
 
-            using (var writer = new StreamWriter(Path.Combine(datasetDirectory, CsvFilename), false))
+            using (var writer = new StreamWriter(Path.Combine(datasetDirectory, FeatureCsvFilename), false))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
                 csv.WriteRecords(csvRecords);
@@ -187,7 +192,63 @@ namespace Darwin.Helpers
 
         public static void SaveSegmentationMaskDatasetImages(string datasetDirectory, DarwinDatabase database)
         {
-            throw new NotImplementedException();
+            if (datasetDirectory == null)
+                throw new ArgumentNullException(nameof(datasetDirectory));
+
+            if (database == null)
+                throw new ArgumentNullException(nameof(database));
+
+            if (!Directory.Exists(datasetDirectory))
+                throw new ArgumentOutOfRangeException(nameof(datasetDirectory));
+
+            Trace.WriteLine("Starting dataset export...");
+
+            string fullImagesDirectory = Path.Combine(datasetDirectory, ImagesDirectoryName);
+
+            Directory.CreateDirectory(fullImagesDirectory);
+
+            var csvRecords = new List<MLMaskCsvRecord>();
+
+            int imageNum = 1;
+
+            foreach (var dbFin in database.AllFins)
+            {
+                var fin = CatalogSupport.FullyLoadFin(dbFin);
+
+                if (!string.IsNullOrEmpty(fin?.IDCode))
+                    Trace.WriteLine("Exporting " + fin.IDCode);
+
+                foreach (var image in fin.Images)
+                {
+                    image.Contour.ApplyScale();
+                    var mask = BitmapHelper.CreateMaskImageFromContour(image.FinImage, image.Contour);
+                    mask = BitmapHelper.ResizeBitmap(mask, MaskImageWidth, MaskImageHeight);
+                    var mlImage = BitmapHelper.ResizeBitmap(image.FinImage, MaskImageWidth, MaskImageHeight);
+
+                    string imageFilename = imageNum.ToString().PadLeft(6, '0') + ".jpg";
+                    string maskFilename = imageNum.ToString().PadLeft(6, '0') + "_mask.jpg";
+
+                    mlImage.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, imageFilename));
+                    mask.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, maskFilename));
+
+                    csvRecords.Add(new MLMaskCsvRecord
+                    {
+                        image = imageFilename,
+                        mask_image = maskFilename,
+                        id_code = fin.IDCode
+                    });
+
+                    imageNum += 1;
+                }
+            }
+
+            using (var writer = new StreamWriter(Path.Combine(datasetDirectory, MaskCsvFilename), false))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.WriteRecords(csvRecords);
+            }
+
+            Trace.WriteLine("done.");
         }
 
         public static float[] PredictCoordinates(Bitmap image, FloatContour chainPoints, double scale)
@@ -196,7 +257,7 @@ namespace Darwin.Helpers
 
             var model = new MLModel(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), AppSettings.MLModelFilename));
 
-            var mlImage = ConvertDatabaseFinToMLImage(image, chainPoints, scale);
+            var mlImage = ConvertDatabaseFinToMLFeatureImage(image, chainPoints, scale);
             var directBmp = new DirectBitmap(mlImage.Image);
 
             //var floatArray = directBmp.ToScaledRGBFloatArray();

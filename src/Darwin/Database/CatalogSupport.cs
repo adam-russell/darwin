@@ -590,7 +590,7 @@ namespace Darwin.Database
 		{
 			DatabaseFin finCopy = new DatabaseFin(fin);
 
-			DatabaseImage.FullyLoadDatabaseImages(fin.Images);
+			DatabaseImage.FullyLoadDatabaseImages(finCopy.Images);
 
 			// TODO: Cache images?
 			//if (!string.IsNullOrEmpty(finCopy.PrimaryImage.ImageFilename))
