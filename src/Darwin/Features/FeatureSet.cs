@@ -276,6 +276,8 @@ namespace Darwin.Features
 
                     if (initialIndex < 0)
                         initialIndex = 0;
+                    else if (initialIndex > modMax.Length)
+                        initialIndex = modMax.Length - 1;
                     
                     double max = modMax[initialIndex]; //***1.6 - removed temporarily for tests
 

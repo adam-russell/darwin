@@ -12,6 +12,7 @@ namespace Darwin.Model
     {
         public Bitmap FinImage { get; set; } // Modified image
         public Bitmap OriginalFinImage { get; set; }
+        public Bitmap CropImage { get; set; }
         public Contour Contour { get; set; }
 
         public string CropImageFilename { get; set; }
@@ -208,6 +209,77 @@ namespace Darwin.Model
 
             foreach (var image in images)
                 CatalogSupport.UnloadDatabaseImage(image);
+        }
+
+        public void GenerateCropImage()
+        {
+            if (FinImage == null)
+                throw new Exception("Main image is null, can't create a crop image.");
+
+            if (FinOutline == null || FinOutline.ChainPoints == null)
+                throw new Exception("Missing outline/contour, can't create a crop image.");
+
+            int xMin = (int)Math.Floor(FinOutline.ChainPoints.MinX() / FinOutline.Scale);
+            int yMin = (int)Math.Floor(FinOutline.ChainPoints.MinY() / FinOutline.Scale);
+            int xMax = (int)Math.Ceiling(FinOutline.ChainPoints.MaxX() / FinOutline.Scale);
+            int yMax = (int)Math.Ceiling(FinOutline.ChainPoints.MaxY() / FinOutline.Scale);
+
+            // Figure out the ratio
+            var resizeRatioX = (float)AppSettings.FinzThumbnailMaxDim / (xMax - xMin);
+            var resizeRatioY = (float)AppSettings.FinzThumbnailMaxDim / (yMax - yMin);
+
+            if (resizeRatioX > resizeRatioY)
+            {
+                // We're X constrained, so expand the X
+                var extra = ((yMax - yMin) - (xMax - xMin)) * ((float)AppSettings.FinzThumbnailMaxDim / AppSettings.FinzThumbnailMaxDim);
+                xMin -= (int)Math.Round(extra / 2);
+                xMax += (int)Math.Round(extra / 2);
+
+                if (xMin < 0)
+                {
+                    xMax += (0 - xMin);
+                    xMin = 0;
+                }
+
+                if (xMax > FinImage.Width)
+                {
+                    xMin -= xMax - FinImage.Width;
+                    xMax = FinImage.Width;
+                }
+
+                if (xMin < 0)
+                    xMin = 0;
+                if (xMax > FinImage.Width)
+                    xMax = FinImage.Width;
+            }
+            else
+            {
+                // We're Y constrained, so expand the Y
+                var extra = ((xMax - xMin) - (yMax - yMin)) * ((float)AppSettings.FinzThumbnailMaxDim / AppSettings.FinzThumbnailMaxDim);
+                yMin -= (int)Math.Round(extra / 2);
+                yMax += (int)Math.Round(extra / 2);
+
+                if (yMin < 0)
+                {
+                    yMax += (0 - yMin);
+                    yMin = 0;
+                }
+
+                if (yMax > FinImage.Height)
+                {
+                    yMin -= yMax - FinImage.Height;
+                    yMax = FinImage.Height;
+                }
+
+                if (yMin < 0)
+                    yMin = 0;
+                if (yMax > FinImage.Height)
+                    yMax = FinImage.Height;
+            }
+
+            CropImage = BitmapHelper.CropBitmap(FinImage,
+                xMin, yMin,
+                xMax, yMax);
         }
     }
 }

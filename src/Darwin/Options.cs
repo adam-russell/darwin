@@ -52,6 +52,7 @@ namespace Darwin
         public string CurrentSurveyArea { get; set; } = string.Empty;
 
         public IndividualIDSettingsType IndividualIDSettings { get; set; } = IndividualIDSettingsType.ShowIDs;
+        public MatchingSchemeType MatchingScheme { get; set; } = MatchingSchemeType.Classic;
 
         [JsonIgnore]
         public string CurrentMatchQueueResultsPath
@@ -170,8 +171,24 @@ namespace Darwin
 
         [DefaultValue(3.0f)]
         public float ContourSpacing { get; set; } = 3.0f;
-        [DefaultValue(true)]
-        public bool ContoursAreClosedLoop { get; set; } = false;
+
+        [JsonIgnore]
+        public bool ContoursAreClosedLoop
+        {
+            get
+            {
+                return MatchingScheme == MatchingSchemeType.MachineLearning;
+            }
+        }
+
+        [JsonIgnore]
+        public bool FindFeatures
+        {
+            get
+            {
+                return MatchingScheme == MatchingSchemeType.Classic;
+            }
+        }
 
         [DefaultValue(false)]
         public bool FindCoordinateFeatures { get; set; } = false;
@@ -277,7 +294,6 @@ namespace Darwin
             SnakeMaximumIterations = options.SnakeMaximumIterations;
 
             ContourSpacing = options.ContourSpacing;
-            ContoursAreClosedLoop = options.ContoursAreClosedLoop;
             FindCoordinateFeatures = options.FindCoordinateFeatures;
 
             //DefaultCatalogScheme = options.DefaultCatalogScheme;
@@ -286,6 +302,7 @@ namespace Darwin
                 CatalogSchemes = new List<CatalogScheme>(options.CatalogSchemes);
 
             IndividualIDSettings = options.IndividualIDSettings;
+            MatchingScheme = options.MatchingScheme;
         }
 
         public void Save(bool reloadOptions = false)

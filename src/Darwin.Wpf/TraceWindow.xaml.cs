@@ -56,9 +56,11 @@ namespace Darwin.Wpf
     public partial class TraceWindow : Window
     {
 		private const int ImagePadding = 20;
+		private const int ContourExtentsPadding = 30;
 		private const string NoTraceErrorMessageDatabase = "You must trace your image before it can be added to the database.";
 		private const string NoIDErrorMessage = "You must enter an ID Code before\nyou can add a {0} to the database.";
 		private const string NoCategoryErrorMessage = "You must select a category before proceeding.";
+		private const string EmptyCategoryName = "NONE";
 
 		private CroppingAdorner _cropSelector;
 		System.Windows.Point? lastCenterPositionOnTarget;
@@ -403,6 +405,26 @@ namespace Darwin.Wpf
 				_vm.StatusBarMessage = "Make any Needed Corrections to Outline Trace using Tools Above";
 
 			} //102AT
+		}
+
+		private void GetContourExtentsPlusPadding(Contour contour, out int left, out int top, out int right, out int bottom)
+        {
+			left = contour.XMin - ContourExtentsPadding;
+			right = contour.XMax + ContourExtentsPadding;
+			bottom = contour.YMax + ContourExtentsPadding;
+			top = contour.YMin + ContourExtentsPadding;
+
+			if (left < 0)
+				left = 0;
+
+			if (right >= _vm.Bitmap.Width)
+				right = _vm.Bitmap.Width - 1;
+
+			if (top < 0)
+				top = 0;
+
+			if (bottom >= _vm.Bitmap.Height)
+				bottom = _vm.Bitmap.Height - 1;
 		}
 
 		// TODO: Do we really need this, or is this not ported correctly?
@@ -1568,8 +1590,8 @@ namespace Darwin.Wpf
 						else
 						{
 							int left, top, right, bottom; //***1.96
-							GetViewedImageBoundsNonZoomed(out left, out top, out right, out bottom); //***1.96
-
+							//GetViewedImageBoundsNonZoomed(out left, out top, out right, out bottom); //***1.96
+							GetContourExtentsPlusPadding(_vm.Contour, out left, out top, out right, out bottom);
 							TraceSnapToFinAsync(false, left, top, right, bottom);
 						}
 					}
@@ -2134,7 +2156,8 @@ namespace Darwin.Wpf
 				MessageBox.Show(string.Format(NoIDErrorMessage, _vm.Database.CatalogScheme.IndividualTerminology), "No ID", MessageBoxButton.OK, MessageBoxImage.Warning);
 				return false;
 			}
-			else if (string.IsNullOrEmpty(_vm.DatabaseFin.DamageCategory) || _vm.Categories.Count < 1 || _vm.DatabaseFin.DamageCategory.ToUpper() == _vm.Categories[0]?.Name?.ToUpper())
+			//else if (string.IsNullOrEmpty(_vm.DatabaseFin.DamageCategory) || _vm.Categories.Count < 1 || _vm.DatabaseFin.DamageCategory.ToUpper() == _vm.Categories[0]?.Name?.ToUpper())
+			else if (string.IsNullOrEmpty(_vm.DatabaseFin.DamageCategory) || _vm.Categories.Count < 1 || _vm.DatabaseFin.DamageCategory.ToUpper() == EmptyCategoryName)
 			{
 				MessageBox.Show(NoCategoryErrorMessage, "No Category", MessageBoxButton.OK, MessageBoxImage.Error);
 				return false;

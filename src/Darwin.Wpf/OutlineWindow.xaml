@@ -82,7 +82,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                         <fe:CoordinatePointVisuals Width="{Binding XMax}" Height="{Binding YMax}"
                                             PointSize="3" FeaturePointSize="10"
                                             TextSize="40"
-                                            ContourScale="{Binding Contour.Scale}"
+                                            ContourScale="{Binding DisplayContour.Scale}"
                                             ItemsSource="{Binding CoordinateFeaturePoints}"
                                             Brushes="{StaticResource brushes}" />
                     </Grid>
@@ -135,8 +135,8 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
 Database:
 
 <Run Text="{Binding Path=DatabaseFin.IDCode, Mode=OneWay}"/>
-Outline - Number of Points : <Run Text="{Binding Path=DatabaseFin.FinOutline.Length, Mode=OneWay}" />
-Chain Code - Number of Points : <Run Text="{Binding Path=DatabaseFin.FinOutline.Length, Mode=OneWay}" />
+Outline - Number of Points : <Run Text="{Binding Path=DatabaseFin.PrimaryImage.FinOutline.Length, Mode=OneWay}" />
+Chain Code - Number of Points : <Run Text="{Binding Path=DatabaseFin.PrimaryImage.FinOutline.Length, Mode=OneWay}" />
 
 <Run Text="{Binding Path=DisplayText, Mode=OneWay}" />
             </TextBlock>
@@ -144,8 +144,8 @@ Chain Code - Number of Points : <Run Text="{Binding Path=DatabaseFin.FinOutline.
 Unknown:
                         
 <Run Text="{Binding Path=ComparisonFin.IDCode, Mode=OneWay}"/>
-Outline - Number of Points : <Run Text="{Binding Path=ComparisonFin.FinOutline.Length, Mode=OneWay}" />
-Chain Code - Number of Points : <Run Text="{Binding Path=ComparisonFin.FinOutline.Length, Mode=OneWay}" />
+Outline - Number of Points : <Run Text="{Binding Path=ComparisonFin.PrimaryImage.FinOutline.Length, Mode=OneWay}" />
+Chain Code - Number of Points : <Run Text="{Binding Path=ComparisonFin.PrimaryImage.FinOutline.Length, Mode=OneWay}" />
 
 <Run Text="{Binding Path=ComparisonDisplayText, Mode=OneWay}" />
                 </TextBlock>

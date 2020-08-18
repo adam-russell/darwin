@@ -118,7 +118,10 @@ namespace Darwin.Wavelet
 
 				/* make periodic extension of dest vector */
 				j = 0;
-				for (i = length - left; i < length; i++)
+				int iStart = length - left;
+				if (iStart < 0)
+					iStart = 0;
+				for (i = iStart; i < length; i++)
 					temp[j++] = dest[0, i];
 
 				for (i = 0; i < length; i++)

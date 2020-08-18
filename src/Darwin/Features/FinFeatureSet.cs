@@ -106,20 +106,23 @@ namespace Darwin.Features
         public FinFeatureSet(Chain chain, FloatContour chainPoints)
             : this()
         {
-            int tipPos = FindTip(chain, chainPoints);
-            int notchPos = FindNotch(chain, tipPos);
-            int beginLE = FindBeginLE(chain, tipPos);
-            int endLE = FindEndLE(chain, beginLE, tipPos);
-            int endTE = FindPointOfInflection(chain, tipPos);
+            if (Options.CurrentUserOptions.FindFeatures)
+            {
+                int tipPos = FindTip(chain, chainPoints);
+                int notchPos = FindNotch(chain, tipPos);
+                int beginLE = FindBeginLE(chain, tipPos);
+                int endLE = FindEndLE(chain, beginLE, tipPos);
+                int endTE = FindPointOfInflection(chain, tipPos);
 
-            FeaturePoints[FeaturePointType.Tip].Position = tipPos;
-            FeaturePoints[FeaturePointType.Notch].Position = notchPos;
-            FeaturePoints[FeaturePointType.LeadingEdgeBegin].Position = beginLE;
-            FeaturePoints[FeaturePointType.LeadingEdgeEnd].Position = endLE;
-            FeaturePoints[FeaturePointType.PointOfInflection].Position = endTE;
+                FeaturePoints[FeaturePointType.Tip].Position = tipPos;
+                FeaturePoints[FeaturePointType.Notch].Position = notchPos;
+                FeaturePoints[FeaturePointType.LeadingEdgeBegin].Position = beginLE;
+                FeaturePoints[FeaturePointType.LeadingEdgeEnd].Position = endLE;
+                FeaturePoints[FeaturePointType.PointOfInflection].Position = endTE;
 
-            double leAngle = FindLEAngle(chain, tipPos, endLE);
-            Features[FeatureType.LeadingEdgeAngle].Value = leAngle;
+                double leAngle = FindLEAngle(chain, tipPos, endLE);
+                Features[FeatureType.LeadingEdgeAngle].Value = leAngle;
+            }
         }
 
         public override void SetFeaturePointPosition(FeaturePointType featurePointType, int position)

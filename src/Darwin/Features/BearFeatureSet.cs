@@ -170,74 +170,77 @@ namespace Darwin.Features
             if (chainPoints == null)
                 throw new ArgumentNullException(nameof(chainPoints));
 
-            if (chainPoints.Length < 5)
-                throw new Exception("FloatContour isn't long enough to find feature points");
-
-            int tipPosition = FindTipOfNose(chain, chainPoints);
-            int underNoseDentPosition = FindUnderNoseDent(chain, tipPosition);
-
-            if (underNoseDentPosition - tipPosition < TipNotchMinDistance)
+            if (Options.CurrentUserOptions.FindFeatures)
             {
-                // If the tip and under nose dent are too close together, it's likely we have a really curved nose indent.
-                // Let's try to find the tip again with a bit of padding
-                tipPosition = FindTipOfNose(chain, chainPoints, DefaultTipHighPointPadding, TipNotchMinDistance);
-            }
+                if (chainPoints.Length < 5)
+                    throw new Exception("FloatContour isn't long enough to find feature points");
 
-            try
-            {
-                int nasionPos = FindNasion(chain, tipPosition);
-                int beginLE = FindBeginLE(chain, tipPosition);
-                int endLE = FindEndLE(chain, beginLE, tipPosition);
-                int endTE = FindPointOfInflection(chain, tipPosition);
+                int tipPosition = FindTipOfNose(chain, chainPoints);
+                int underNoseDentPosition = FindUnderNoseDent(chain, tipPosition);
 
-                bool hasMouthDent;
-                int bottomLipProtrusion;
-                int upperLipPosition = FindUpperLip(chain, chainPoints, underNoseDentPosition, out hasMouthDent, out bottomLipProtrusion);
-
-                int browPosition = FindBrow(chain, beginLE, nasionPos);
-                //int chinPosition = FindChin(chain, tipPosition);
-
-                FeaturePoints[FeaturePointType.LeadingEdgeBegin].Position = beginLE;
-                FeaturePoints[FeaturePointType.Brow].Position = browPosition;
-                FeaturePoints[FeaturePointType.LeadingEdgeEnd].Position = endLE;
-                FeaturePoints[FeaturePointType.Nasion].Position = nasionPos;
-                FeaturePoints[FeaturePointType.Tip].Position = tipPosition;
-                FeaturePoints[FeaturePointType.Notch].Position = underNoseDentPosition;
-                FeaturePoints[FeaturePointType.UpperLip].Position = upperLipPosition;
-                FeaturePoints[FeaturePointType.BottomLipProtrusion].Position = bottomLipProtrusion;
-                //FeaturePoints[FeaturePointType.Chin].Position = chinPosition;
-                FeaturePoints[FeaturePointType.PointOfInflection].Position = endTE;
-
-                Features[FeatureType.HasMouthDent].Value = (hasMouthDent) ? 1.0 : 0.0;
-
-                // Find the curvature between the brow and a spot near the nose. The reason for the padding is to try
-                // to avoid taking the upturned noses some bears have into account.
-                int curvatureTipPosition = tipPosition - CurvatureTipPadding;
-
-                // Fallback to prevent an error.  We're going to get an error of 0 or close to it if we fall to this.
-                if (curvatureTipPosition <= browPosition)
+                if (underNoseDentPosition - tipPosition < TipNotchMinDistance)
                 {
-                    curvatureTipPosition = browPosition + 1;
-                    Trace.WriteLine("Fallback tip position to find curvature.");
-                }
-                Features[FeatureType.BrowCurvature].Value = FindCurvature(chainPoints, browPosition, curvatureTipPosition);
-                Features[FeatureType.NasionDepth].Value = FindDepthOfNasion(chainPoints, browPosition, nasionPos, curvatureTipPosition);
-
-                if (Options.CurrentUserOptions.FindCoordinateFeatures)
-                {
-                    var coordinates = MLSupport.PredictCoordinates(image, chainPoints, scale);
-
-                    CoordinateFeaturePoints[FeaturePointType.Eye].Coordinate = new Model.Point((int)Math.Round(coordinates[0]), (int)Math.Round(coordinates[1]));
-                    CoordinateFeaturePoints[FeaturePointType.NasalLateralCommissure].Coordinate = new Model.Point((int)Math.Round(coordinates[2]), (int)Math.Round(coordinates[3]));
+                    // If the tip and under nose dent are too close together, it's likely we have a really curved nose indent.
+                    // Let's try to find the tip again with a bit of padding
+                    tipPosition = FindTipOfNose(chain, chainPoints, DefaultTipHighPointPadding, TipNotchMinDistance);
                 }
 
-                // Fake the eye & nasal fold for right now (this at least gets the features on the display so we can move them)
-                //CoordinateFeaturePoints[FeaturePointType.Eye].Coordinate = new Point((int)chainPoints[nasionPos].X - 60, (int)chainPoints[nasionPos].Y + 20);
-                //CoordinateFeaturePoints[FeaturePointType.NasalLateralCommissure].Coordinate = new Point((int)chainPoints[tipPosition].X - 60, (int)chainPoints[tipPosition].Y + 60);
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine(ex);
+                try
+                {
+                    int nasionPos = FindNasion(chain, tipPosition);
+                    int beginLE = FindBeginLE(chain, tipPosition);
+                    int endLE = FindEndLE(chain, beginLE, tipPosition);
+                    int endTE = FindPointOfInflection(chain, tipPosition);
+
+                    bool hasMouthDent;
+                    int bottomLipProtrusion;
+                    int upperLipPosition = FindUpperLip(chain, chainPoints, underNoseDentPosition, out hasMouthDent, out bottomLipProtrusion);
+
+                    int browPosition = FindBrow(chain, beginLE, nasionPos);
+                    //int chinPosition = FindChin(chain, tipPosition);
+
+                    FeaturePoints[FeaturePointType.LeadingEdgeBegin].Position = beginLE;
+                    FeaturePoints[FeaturePointType.Brow].Position = browPosition;
+                    FeaturePoints[FeaturePointType.LeadingEdgeEnd].Position = endLE;
+                    FeaturePoints[FeaturePointType.Nasion].Position = nasionPos;
+                    FeaturePoints[FeaturePointType.Tip].Position = tipPosition;
+                    FeaturePoints[FeaturePointType.Notch].Position = underNoseDentPosition;
+                    FeaturePoints[FeaturePointType.UpperLip].Position = upperLipPosition;
+                    FeaturePoints[FeaturePointType.BottomLipProtrusion].Position = bottomLipProtrusion;
+                    //FeaturePoints[FeaturePointType.Chin].Position = chinPosition;
+                    FeaturePoints[FeaturePointType.PointOfInflection].Position = endTE;
+
+                    Features[FeatureType.HasMouthDent].Value = (hasMouthDent) ? 1.0 : 0.0;
+
+                    // Find the curvature between the brow and a spot near the nose. The reason for the padding is to try
+                    // to avoid taking the upturned noses some bears have into account.
+                    int curvatureTipPosition = tipPosition - CurvatureTipPadding;
+
+                    // Fallback to prevent an error.  We're going to get an error of 0 or close to it if we fall to this.
+                    if (curvatureTipPosition <= browPosition)
+                    {
+                        curvatureTipPosition = browPosition + 1;
+                        Trace.WriteLine("Fallback tip position to find curvature.");
+                    }
+                    Features[FeatureType.BrowCurvature].Value = FindCurvature(chainPoints, browPosition, curvatureTipPosition);
+                    Features[FeatureType.NasionDepth].Value = FindDepthOfNasion(chainPoints, browPosition, nasionPos, curvatureTipPosition);
+
+                    if (Options.CurrentUserOptions.FindCoordinateFeatures)
+                    {
+                        var coordinates = MLSupport.PredictCoordinates(image, chainPoints, scale);
+
+                        CoordinateFeaturePoints[FeaturePointType.Eye].Coordinate = new Model.Point((int)Math.Round(coordinates[0]), (int)Math.Round(coordinates[1]));
+                        CoordinateFeaturePoints[FeaturePointType.NasalLateralCommissure].Coordinate = new Model.Point((int)Math.Round(coordinates[2]), (int)Math.Round(coordinates[3]));
+                    }
+
+                    // Fake the eye & nasal fold for right now (this at least gets the features on the display so we can move them)
+                    //CoordinateFeaturePoints[FeaturePointType.Eye].Coordinate = new Point((int)chainPoints[nasionPos].X - 60, (int)chainPoints[nasionPos].Y + 20);
+                    //CoordinateFeaturePoints[FeaturePointType.NasalLateralCommissure].Coordinate = new Point((int)chainPoints[tipPosition].X - 60, (int)chainPoints[tipPosition].Y + 60);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine(ex);
+                }
             }
         }
 

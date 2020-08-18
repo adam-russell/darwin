@@ -34,7 +34,6 @@ namespace Darwin.Database
 {
     public static class CatalogSupport
     {
-		public const int FinzThumbnailMaxDim = 256;
 		public const string FinzDatabaseFilename = "database.db";
 
 		public static string CalculateDatabaseFilename(string darwinHome, string databaseName, string area = "default")
@@ -365,7 +364,7 @@ namespace Darwin.Database
 
 				// Saving a thumbnail to save disk space.  We'll reconstruct this based on image mods when we open
 				// it back up.
-				var finImageThumbnail = BitmapHelper.ResizeKeepAspectRatio(fin.PrimaryImage.FinImage, FinzThumbnailMaxDim, FinzThumbnailMaxDim);
+				var finImageThumbnail = BitmapHelper.ResizeKeepAspectRatio(fin.PrimaryImage.FinImage, AppSettings.FinzThumbnailMaxDim, AppSettings.FinzThumbnailMaxDim);
 				finImageThumbnail.SaveAsCompressedPng(fin.PrimaryImage.ImageFilename);
 
 				string dbFilename = Path.Combine(fullDirectoryName, "database.db");
@@ -429,6 +428,9 @@ namespace Darwin.Database
 			if (string.IsNullOrEmpty(databaseFin.PrimaryImage.OriginalImageFilename) || databaseFin.PrimaryImage.OriginalFinImage == null)
 				throw new ArgumentOutOfRangeException(nameof(databaseFin));
 
+			Trace.WriteLine("Saving to the database...");
+			Trace.WriteLine("Updating image files...");
+
 			// First, copy the images to the catalog folder
 
 			// Check the original image.  If we still have the actual original image file, just copy it.  If
@@ -463,12 +465,12 @@ namespace Darwin.Database
 			if (databaseFin.PrimaryImage.FinImage != null)
             {
 				databaseFin.PrimaryImage.FinImage.SaveAsCompressedPng(modifiedImageSaveAs);
-				thumbnail = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.FinImage, FinzThumbnailMaxDim, FinzThumbnailMaxDim);
+				thumbnail = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.FinImage, AppSettings.FinzThumbnailMaxDim, AppSettings.FinzThumbnailMaxDim);
             }
 			else
             {
 				databaseFin.PrimaryImage.OriginalFinImage.SaveAsCompressedPng(modifiedImageSaveAs);
-				thumbnail = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.OriginalFinImage, FinzThumbnailMaxDim, FinzThumbnailMaxDim);
+				thumbnail = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.OriginalFinImage, AppSettings.FinzThumbnailMaxDim, AppSettings.FinzThumbnailMaxDim);
 			}
 
 			string thumbnailImageSaveAs = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
@@ -482,6 +484,8 @@ namespace Darwin.Database
 
 			databaseFin.ThumbnailFilename = Path.GetFileName(thumbnailImageSaveAs);
 
+			Trace.WriteLine("Images written.");
+			Trace.WriteLine("Saving to the database file...");
 			// Finally, check if this an existing fin.  If it is, update the image, otherwise add the whole
 			// thing to the database.
 			if (databaseFin.ID > 0)
@@ -500,7 +504,8 @@ namespace Darwin.Database
 			{
 				database.Add(databaseFin);
 			}
-        }
+			Trace.WriteLine("Done.");
+		}
 
 		public static void RebuildFolders(string databasePath)
 		{
