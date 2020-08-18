@@ -20,6 +20,7 @@
 
 using Darwin.Collections;
 using Darwin.Features;
+using Darwin.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;

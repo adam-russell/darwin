@@ -19,6 +19,7 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Collections;
+using Darwin.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -38,7 +39,7 @@ namespace Darwin.Wpf.FrameworkElements
 
         public static readonly DependencyProperty ItemsSourceProperty =
             DependencyProperty.Register("ItemsSource",
-                typeof(ObservableNotifiableCollection<Darwin.Point>),
+                typeof(ObservableNotifiableCollection<Darwin.Model.Point>),
                 typeof(PointVisuals),
                 new PropertyMetadata(OnItemsSourceChanged));
 
@@ -93,10 +94,10 @@ namespace Darwin.Wpf.FrameworkElements
             //ToolTip = string.Empty;
         }
 
-        public ObservableNotifiableCollection<Darwin.Point> ItemsSource
+        public ObservableNotifiableCollection<Darwin.Model.Point> ItemsSource
         {
             set { SetValue(ItemsSourceProperty, value); }
-            get { return (ObservableNotifiableCollection<Darwin.Point>)GetValue(ItemsSourceProperty); }
+            get { return (ObservableNotifiableCollection<Darwin.Model.Point>)GetValue(ItemsSourceProperty); }
         }
 
         public Brush[] Brushes
@@ -153,7 +154,7 @@ namespace Darwin.Wpf.FrameworkElements
 
             if (args.OldValue != null)
             {
-                ObservableNotifiableCollection<Darwin.Point> coll = args.OldValue as ObservableNotifiableCollection<Darwin.Point>;
+                ObservableNotifiableCollection<Darwin.Model.Point> coll = args.OldValue as ObservableNotifiableCollection<Darwin.Model.Point>;
                 coll.CollectionCleared -= OnCollectionCleared;
                 coll.CollectionChanged -= OnCollectionChanged;
                 coll.ItemPropertyChanged -= OnItemPropertyChanged;
@@ -161,7 +162,7 @@ namespace Darwin.Wpf.FrameworkElements
 
             if (args.NewValue != null)
             {
-                ObservableNotifiableCollection<Darwin.Point> coll = args.NewValue as ObservableNotifiableCollection<Darwin.Point>;
+                ObservableNotifiableCollection<Darwin.Model.Point> coll = args.NewValue as ObservableNotifiableCollection<Darwin.Model.Point>;
                 coll.CollectionCleared += OnCollectionCleared;
                 coll.CollectionChanged += OnCollectionChanged;
                 coll.ItemPropertyChanged += OnItemPropertyChanged;
@@ -209,7 +210,7 @@ namespace Darwin.Wpf.FrameworkElements
 
         protected void OnItemPropertyChanged(object sender, ItemPropertyChangedEventArgs args)
         {
-            Darwin.Point point = args.Item as Darwin.Point;
+            Darwin.Model.Point point = args.Item as Darwin.Model.Point;
 
             RemoveVisualChild(point);
             CreateVisualChild(point);
@@ -248,14 +249,14 @@ namespace Darwin.Wpf.FrameworkElements
         {
             foreach (object obj in coll)
             {
-                Darwin.Point point  = obj as Darwin.Point;
+                Darwin.Model.Point point  = obj as Darwin.Model.Point;
 
                 if (point != null)
                     CreateVisualChild(point);
             }
         }
 
-        protected void CreateVisualChild(Darwin.Point point)
+        protected void CreateVisualChild(Darwin.Model.Point point)
         {
             RebuildPens();
 
@@ -301,7 +302,7 @@ namespace Darwin.Wpf.FrameworkElements
                 visualChildren.Insert(0, drawingVisual);
         }
 
-        private void DrawMovingLines(Darwin.Point dataPoint, DrawingContext dc)
+        private void DrawMovingLines(Darwin.Model.Point dataPoint, DrawingContext dc)
         {
             var pointIndex = ItemsSource.IndexOf(dataPoint);
 
@@ -343,14 +344,14 @@ namespace Darwin.Wpf.FrameworkElements
         {
             foreach (object obj in coll)
             {
-                Darwin.Point point = obj as Darwin.Point;
+                Darwin.Model.Point point = obj as Darwin.Model.Point;
 
                 if (point != null)
                     RemoveVisualChild(point);
             }
         }
         
-        protected void RemoveVisualChild(Darwin.Point point)
+        protected void RemoveVisualChild(Darwin.Model.Point point)
         {
             List<DrawingVisualPlus> removeList = new List<DrawingVisualPlus>();
 
@@ -420,7 +421,7 @@ namespace Darwin.Wpf.FrameworkElements
         //    if (result.VisualHit is DrawingVisualPlus)
         //    {
         //        DrawingVisualPlus drawingVisual = result.VisualHit as DrawingVisualPlus;
-        //        Darwin.Point dataPoint = drawingVisual.DataPoint;
+        //        Darwin.Model.Point dataPoint = drawingVisual.DataPoint;
         //        ToolTip = String.Format("X={0}, Y={1}", dataPoint.X / ContourScale, dataPoint.Y / ContourScale);
         //    }
         //    base.OnToolTipOpening(e);
@@ -434,7 +435,7 @@ namespace Darwin.Wpf.FrameworkElements
 
         class DrawingVisualPlus : DrawingVisual
         {
-            public Darwin.Point DataPoint { get; set; }
+            public Darwin.Model.Point DataPoint { get; set; }
         }
     }
 }

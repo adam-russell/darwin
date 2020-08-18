@@ -29,6 +29,7 @@ using System.Threading.Tasks;
 using Rectangle = System.Drawing.Rectangle;
 using Color = System.Drawing.Color;
 using ColorMatrix = System.Drawing.Imaging.ColorMatrix;
+using Darwin.Model;
 
 namespace Darwin.Extensions
 {

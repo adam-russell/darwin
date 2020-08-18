@@ -30,7 +30,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Darwin
+namespace Darwin.Model
 {
     public class Chain
     {

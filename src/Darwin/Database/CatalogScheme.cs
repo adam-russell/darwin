@@ -26,6 +26,7 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Features;
+using Darwin.Model;
 using Darwin.Utilities;
 using Newtonsoft.Json;
 using System;

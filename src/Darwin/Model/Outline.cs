@@ -34,7 +34,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 
-namespace Darwin
+namespace Darwin.Model
 {
     public class ZeroCrossing
     {

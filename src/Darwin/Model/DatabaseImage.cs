@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Darwin.Database;
+using Darwin.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Text;
 
-namespace Darwin.Database
+namespace Darwin.Model
 {
     public class DatabaseImage : BaseEntity
     {
@@ -98,11 +100,37 @@ namespace Darwin.Database
             }
         }
 
+        private GeoLocation _geoLocation;
+        public GeoLocation GeoLocation
+        {
+            get => _geoLocation;
+            set
+            {
+                _geoLocation = value;
+                RaisePropertyChanged("GeoLocation");
+            }
+        }
+
         public long IndividualId { get; set; }
 
         public DatabaseImage()
         {
 
+        }
+
+        public DatabaseImage(string imageFilename)
+        {
+            var img = System.Drawing.Image.FromFile(imageFilename);
+
+            FinImage = new Bitmap(img);
+            // TODO: Hack for HiDPI -- this should be more intelligent.
+            FinImage.SetResolution(96, 96);
+
+            OriginalFinImage = new Bitmap(FinImage);
+            ImageFilename = OriginalImageFilename = imageFilename;
+
+            DateOfSighting = ImageDataHelper.GetImageTakenDateTime(imageFilename);
+            GeoLocation = ImageDataHelper.GetImageLocation(imageFilename);
         }
 
         public DatabaseImage(DatabaseImage imageToCopy)

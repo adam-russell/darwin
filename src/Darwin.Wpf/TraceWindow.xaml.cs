@@ -46,6 +46,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Xml.Schema;
+using Darwin.Model;
 
 namespace Darwin.Wpf
 {
@@ -186,33 +187,33 @@ namespace Darwin.Wpf
 			SystemCommands.CloseWindow(this);
 		}
 
-		private Darwin.Point MapWindowsPointToDarwinPoint(System.Windows.Point point)
+		private Darwin.Model.Point MapWindowsPointToDarwinPoint(System.Windows.Point point)
 		{
 			// Clip to image bounds
 			if (point.X < 0 || point.Y < 0)
-				return Darwin.Point.Empty;
+				return Darwin.Model.Point.Empty;
 
 			if (_vm.Bitmap != null && (point.X > _vm.Bitmap.Width || point.Y > _vm.Bitmap.Height))
-				return Darwin.Point.Empty;
+				return Darwin.Model.Point.Empty;
 
-			return new Darwin.Point((int)Math.Round(point.X), (int)Math.Round(point.Y));
+			return new Darwin.Model.Point((int)Math.Round(point.X), (int)Math.Round(point.Y));
 		}
 
-		private System.Windows.Point MapDarwinPointToWindowsPoint(Darwin.Point point)
+		private System.Windows.Point MapDarwinPointToWindowsPoint(Darwin.Model.Point point)
 		{
 			return new System.Windows.Point(point.X, point.Y);
 		}
 
-		private PointF MapWindowsPointToPointF(System.Windows.Point point)
+		private Darwin.Model.PointF MapWindowsPointToPointF(System.Windows.Point point)
         {
 			// Note we are using the scaling here!
-			return new PointF(point.X * _vm.NormScale, point.Y * _vm.NormScale);
+			return new Darwin.Model.PointF(point.X * _vm.NormScale, point.Y * _vm.NormScale);
         }
 
-		private PointF MapDarwinPointToPointF(Darwin.Point point)
+		private Darwin.Model.PointF MapDarwinPointToPointF(Darwin.Model.Point point)
 		{
 			// Note we are using the scaling here!
-			return new PointF(point.X * _vm.NormScale, point.Y * _vm.NormScale);
+			return new Darwin.Model.PointF(point.X * _vm.NormScale, point.Y * _vm.NormScale);
 		}
 
 		private void Button_Click(object sender, RoutedEventArgs e)
@@ -271,7 +272,7 @@ namespace Darwin.Wpf
 
 		//*******************************************************************
 		// Point clicked for AutoTrace -- 103AT SAH
-		private async void TraceAddAutoTracePoint(Darwin.Point p, bool shiftKeyDown) // AT103 SAH
+		private async void TraceAddAutoTracePoint(Darwin.Model.Point p, bool shiftKeyDown) // AT103 SAH
 		{
 			if (p.IsEmpty)
 				return;
@@ -450,7 +451,7 @@ namespace Darwin.Wpf
 			//this->zoomMapPointsToOriginal(right, bottom);
 		}
 
-		private void TraceAddNormalPoint(Darwin.Point point)
+		private void TraceAddNormalPoint(Darwin.Model.Point point)
 		{
 			if (!_drawingWithPencil || point.IsEmpty)
 				return;
@@ -710,7 +711,7 @@ namespace Darwin.Wpf
 		}
 
 		// Point added to middle of contour after trace has been finalized
-		private void TraceAddExtraPoint(Darwin.Point point)
+		private void TraceAddExtraPoint(Darwin.Model.Point point)
 		{
 			if (_vm.Contour == null || point.IsEmpty)
 				return;
@@ -724,7 +725,7 @@ namespace Darwin.Wpf
 				_vm.Contour.AddPointInOrder((int)Math.Round(point.X * _vm.Contour.Scale), (int)Math.Round(point.Y * _vm.Contour.Scale));
 		}
 
-		private void TraceChopOutline(Darwin.Point point)
+		private void TraceChopOutline(Darwin.Model.Point point)
 		{
 			if (_vm.Contour == null)
 			{
@@ -758,7 +759,7 @@ namespace Darwin.Wpf
 			}
         }
 
-		private void TraceChopOutlineUpdate(Darwin.Point point)
+		private void TraceChopOutlineUpdate(Darwin.Model.Point point)
 		{
 			if (_vm.Contour == null)
 			{
@@ -825,7 +826,7 @@ namespace Darwin.Wpf
 			}
 		}
 
-		private void TraceErasePoint(Darwin.Point point)
+		private void TraceErasePoint(Darwin.Model.Point point)
 		{
 			if (_vm.Contour == null || point.IsEmpty || !_eraseInit)
 				return;
@@ -867,7 +868,7 @@ namespace Darwin.Wpf
 				_vm.Contour = null;
 		}
 
-		private void TraceMovePointInit(Darwin.Point point)
+		private void TraceMovePointInit(Darwin.Model.Point point)
 		{
 			if (_vm.Contour == null)
 			{
@@ -882,7 +883,7 @@ namespace Darwin.Wpf
 			_vm.Contour[_movePosition].Type = PointType.Moving;
 		}
 
-		private void TraceMovePointUpdate(Darwin.Point point)
+		private void TraceMovePointUpdate(Darwin.Model.Point point)
 		{
 			if (_vm.Contour == null || -1 == _movePosition || point.IsEmpty)
 				return;
@@ -893,7 +894,7 @@ namespace Darwin.Wpf
 				_vm.Contour[_movePosition].SetPosition((int)Math.Round(point.X * _vm.Contour.Scale), (int)Math.Round(point.Y * _vm.Contour.Scale));
 		}
 
-		private void TraceMovePointFinalize(Darwin.Point point)
+		private void TraceMovePointFinalize(Darwin.Model.Point point)
 		{
 			if (_vm.Contour == null || -1 == _movePosition)
 				return;
@@ -907,7 +908,7 @@ namespace Darwin.Wpf
 			{
 				if (_vm.Contour.Scale == 1.0)
 				{
-					_vm.Contour[_movePosition] = new Darwin.Point
+					_vm.Contour[_movePosition] = new Darwin.Model.Point
 					{
 						X = point.X,
 						Y = point.Y,
@@ -916,7 +917,7 @@ namespace Darwin.Wpf
 				}
 				else
                 {
-					_vm.Contour[_movePosition] = new Darwin.Point
+					_vm.Contour[_movePosition] = new Darwin.Model.Point
 					{
 						X = (int)Math.Round(point.X * _vm.Contour.Scale),
 						Y = (int)Math.Round(point.Y * _vm.Contour.Scale),
@@ -994,7 +995,7 @@ namespace Darwin.Wpf
 			}
 		}
 
-		private void TraceMoveFeaturePointUpdate(Darwin.Point point)
+		private void TraceMoveFeaturePointUpdate(Darwin.Model.Point point)
 		{
 			if (_vm.Contour == null || _movePosition == -1)
 				return;
@@ -1036,7 +1037,7 @@ namespace Darwin.Wpf
 			}
 		}
 
-		private void TraceMoveFeaturePointFinalize(Darwin.Point point)
+		private void TraceMoveFeaturePointFinalize(Darwin.Model.Point point)
 		{
 			if (_vm.Contour == null)
 				return;
@@ -1106,7 +1107,7 @@ namespace Darwin.Wpf
 			TraceTool_Checked(null, null);
 		}
 
-		private void RotateInit(Darwin.Point point)
+		private void RotateInit(Darwin.Model.Point point)
 		{
 			//mRotateXCenter = mImage->getNumCols() / 2;
 			//mRotateYCenter = mImage->getNumRows() / 2;
@@ -1121,7 +1122,7 @@ namespace Darwin.Wpf
 			//mRotateOriginalImage = new ColorImage(mImage);
 		}
 
-		private void RotateUpdate(Darwin.Point point)
+		private void RotateUpdate(Darwin.Model.Point point)
 		{
 			//float angle = atan2(
 			//		(double)(mImage->getNumRows() - y - mRotateYCenter),
@@ -1724,29 +1725,7 @@ namespace Darwin.Wpf
 			switch (_vm.TraceStep)
             {
 				case TraceStepType.TraceOutline:
-					if (_vm.TraceFinalized)
-					{
-						if (_vm.BackupContour != null)
-						{
-							_vm.Contour = _vm.BackupContour;
-						}
-						else
-                        {
-							var tempContour = new Contour(_vm.Contour, true);
-							
-							double spacing = tempContour.GetTotalDistanceAlongContour() / 200.0;
-							if (spacing < SpaceBetweenPoints)
-								spacing = SpaceBetweenPoints;
-
-							_vm.Contour = tempContour.EvenlySpaceContourPoints(spacing);
-						}
-
-						_vm.Outline = null;
-
-						_vm.TraceLocked = false;
-						_vm.TraceFinalized = false;
-						_vm.TraceTool = TraceToolType.MovePoint;
-					}
+					_vm.SetTraceStepOutline(SpaceBetweenPoints);
 					break;
 
 				case TraceStepType.IdentifyFeatures:
@@ -1756,10 +1735,7 @@ namespace Darwin.Wpf
 						{
 							this.IsHitTestVisible = false;
 							Mouse.OverrideCursor = Cursors.Wait;
-
-							_vm.TraceLocked = true;
-							_vm.TraceFinalize();
-							_vm.TraceTool = TraceToolType.MoveFeature;
+							_vm.SetTraceStepIdentifyFeatures();
 						}
 						finally
 						{
@@ -1882,7 +1858,6 @@ namespace Darwin.Wpf
 				TraceTool_Checked(null, null);
 			}
         }
-
 
 		private void AddContourAndImageUndo(Contour contour, ImageModType modType, int val1 = 0, int val2 = 0, int val3 = 0, int val4 = 0)
         {

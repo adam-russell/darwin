@@ -34,6 +34,7 @@ using System.IO;
 using Darwin.Features;
 using Darwin.Helpers;
 using System.Drawing.Imaging;
+using Darwin.Model;
 
 namespace Darwin.Wpf.ViewModel
 {
@@ -268,8 +269,20 @@ namespace Darwin.Wpf.ViewModel
 			{
 				_editVisibility = value;
 				RaisePropertyChanged("EditVisibility");
+				RaisePropertyChanged("InverseEditVisibility");
 			}
 		}
+
+		public Visibility InverseEditVisibility
+		{
+			get
+            {
+				if (_editVisibility == Visibility.Visible)
+					return Visibility.Collapsed;
+
+				return Visibility.Visible;
+            }
+        }
 
 		private Visibility _matchVisibility;
 		public Visibility MatchVisibility
@@ -326,6 +339,8 @@ namespace Darwin.Wpf.ViewModel
 
 				if (_viewerMode)
                 {
+					TraceStep = TraceStepType.IdentifyFeatures;
+
 					TraceTool = TraceToolType.Hand;
 					MatchVisibility = Visibility.Collapsed;
 					SaveVisibility = Visibility.Collapsed;
@@ -337,10 +352,7 @@ namespace Darwin.Wpf.ViewModel
 					TraceFinalized = true;
 					FeatureToolsVisibility = Visibility.Collapsed;
 
-					if (UndoItems != null && UndoItems.Count > 0)
-						TraceFinalize();
-
-					TraceStep = TraceStepType.IdentifyFeatures;
+					//SetTraceStepIdentifyFeatures();
 				}
 				else
                 {
@@ -590,6 +602,8 @@ namespace Darwin.Wpf.ViewModel
 
 			if (readOnly)
 			{
+				TraceLocked = true;
+				TraceFinalized = true;
 				ViewerMode = true;
 			}
 		}
@@ -629,6 +643,8 @@ namespace Darwin.Wpf.ViewModel
 
 			if (mainWindow != null || readOnly)
 			{
+				TraceLocked = true;
+				TraceFinalized = true;
 				ViewerMode = true;
 				EditVisibility = Visibility.Visible;
 			}
@@ -637,7 +653,9 @@ namespace Darwin.Wpf.ViewModel
 		public TraceWindowViewModel(string imageFilename, DarwinDatabase db)
 			: this()
 		{
-			DatabaseFin = new DatabaseFin();
+			var image = OpenImage(imageFilename);
+
+			DatabaseFin = new DatabaseFin(image);
 
 			if (db.Categories != null && db.Categories.Count > 0)
 				DatabaseFin.DamageCategory = db.Categories[0].Name;
@@ -656,25 +674,16 @@ namespace Darwin.Wpf.ViewModel
 			ZoomRatio = 1.0f;
 			ZoomValues = new List<double>();
 
-			OpenImage(imageFilename);
-
 			WindowTitle = Path.GetFileName(imageFilename);
 
 			StatusBarMessage = Database?.CatalogScheme?.TraceInstructionsTerminology;
 		}
 
-		public void OpenImage(string filename)
+		public DatabaseImage OpenImage(string filename)
         {
-			var img = System.Drawing.Image.FromFile(filename);
-
-			var bitmap = new Bitmap(img);
-			// TODO: Hack for HiDPI -- this should be more intelligent.
-			bitmap.SetResolution(96, 96);
-
-			Bitmap = bitmap;
-
-			DatabaseFin.PrimaryImage.OriginalFinImage = new Bitmap(bitmap);
-			DatabaseFin.PrimaryImage.ImageFilename = DatabaseFin.PrimaryImage.OriginalImageFilename = filename;
+			var image = new DatabaseImage(filename);
+			Bitmap = image.FinImage;
+			return image;
 		}
 
 		public void SaveFinz(string filename)
@@ -773,6 +782,43 @@ namespace Darwin.Wpf.ViewModel
 			TraceFinalized = true; //***006PD moved from beginning of function
 
 			TraceTool = TraceToolType.MoveFeature;
+		}
+
+		public void SetTraceStepOutline(double spaceBetweenPoints)
+        {
+			if (TraceFinalized)
+			{
+				if (BackupContour != null)
+				{
+					Contour = BackupContour;
+				}
+				else
+				{
+					var tempContour = new Contour(Contour, true);
+
+					double spacing = tempContour.GetTotalDistanceAlongContour() / 200.0;
+					if (spacing < spaceBetweenPoints)
+						spacing = spaceBetweenPoints;
+
+					Contour = tempContour.EvenlySpaceContourPoints(spacing);
+				}
+
+				Outline = null;
+
+				TraceLocked = false;
+				TraceFinalized = false;
+				TraceTool = TraceToolType.MovePoint;
+			}
+		}
+
+		public void SetTraceStepIdentifyFeatures()
+        {
+			if (!TraceFinalized)
+			{
+				TraceLocked = true;
+				TraceFinalize();
+				TraceTool = TraceToolType.MoveFeature;
+			}
 		}
 
 		private void LoadFin(DatabaseFin fin)

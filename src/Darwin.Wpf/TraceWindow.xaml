@@ -63,6 +63,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
         </x:Array>
         <converters:ComparisonConverter x:Key="ComparisonConverter" />
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
     <Border x:Name="TraceWindowBorder" BorderBrush="LightSlateGray" BorderThickness="1">
         <Grid>
@@ -336,17 +337,20 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
                         <StackPanel Orientation="Vertical" Margin="8">
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">ID Code:</Label>
-                            <TextBox  Text="{Binding Path=DatabaseFin.IDCode}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}"  />
-
+                            <TextBox Text="{Binding Path=DatabaseFin.IDCode}" Visibility="{Binding InverseEditVisibility}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}"  />
+                            <Label Content="{Binding Path=DatabaseFin.IDCode}" Visibility="{Binding EditVisibility}" Padding="0,0,10,5" FontWeight="Bold" />
+                            
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Name:</Label>
-                            <TextBox Text="{Binding Path=DatabaseFin.Name}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}" />
-
+                            <TextBox Text="{Binding Path=DatabaseFin.Name}" Visibility="{Binding InverseEditVisibility}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}" />
+                            <Label Content="{Binding Path=DatabaseFin.Name}" Visibility="{Binding EditVisibility}" Padding="0,0,10,5" FontWeight="Bold" />
+                            
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Damage Category:</Label>
-                            <ComboBox ItemsSource="{Binding Categories, Mode=OneWay}"
+                            <ComboBox ItemsSource="{Binding Categories, Mode=OneWay}" Visibility="{Binding InverseEditVisibility}"
                               DisplayMemberPath="Name"
                               SelectedValuePath="Name"
                               SelectedValue="{Binding Path=DatabaseFin.DamageCategory}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}">
                             </ComboBox>
+                            <Label Content="{Binding Path=DatabaseFin.DamageCategory}" Visibility="{Binding EditVisibility}" Padding="0,0,10,5" FontWeight="Bold" />
 
                             <Label Padding="0 5" Style="{StaticResource FormLabel}">Date of Sighting:</Label>
                             <DatePicker SelectedDate="{Binding Path=DatabaseFin.PrimaryImage.DateOfSighting}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}" />

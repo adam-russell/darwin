@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Darwin.Database
+namespace Darwin.Model
 {
     public class DatabaseImport : BaseEntity
     {

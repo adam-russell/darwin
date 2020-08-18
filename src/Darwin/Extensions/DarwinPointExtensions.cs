@@ -22,14 +22,14 @@ namespace Darwin.Extensions
 {
     public static class DarwinPointExtensions
     {
-        public static System.Drawing.Point ToDrawingPoint(this Darwin.Point point)
+        public static System.Drawing.Point ToDrawingPoint(this Darwin.Model.Point point)
         {
             return new System.Drawing.Point(point.X, point.Y);
         }
 
-        public static Darwin.Point ToDarwinPoint(this System.Drawing.Point point)
+        public static Darwin.Model.Point ToDarwinPoint(this System.Drawing.Point point)
         {
-            return new Darwin.Point(point.X, point.Y);
+            return new Darwin.Model.Point(point.X, point.Y);
         }
     }
 }

@@ -14,20 +14,24 @@
 // You should have received a copy of the GNU General Public License
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
+using Darwin.Database;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace Darwin
+namespace Darwin.Model
 {
-    public class Range
+    public enum ModificationType
     {
-        public int Start { get; set; }
-        public int Tip { get; set; }
-        public int End { get; set; }
-        public int HighestValue { get; set; }
-        public int PixelCount { get; set; }
+        Image,
+        Contour,
+        Both
+    }
+
+    public class Modification
+    {
+        public ModificationType ModificationType { get; set; }
+        public ImageMod ImageMod { get; set; }
+        public Contour Contour { get; set; }
     }
 }

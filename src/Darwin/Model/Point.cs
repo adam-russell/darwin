@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 
-namespace Darwin
+namespace Darwin.Model
 {
     public enum PointType
     {
@@ -99,7 +99,7 @@ namespace Darwin
             IsEmpty = false;
         }
 
-        public static bool operator ==(Darwin.Point p1, Darwin.Point p2)
+        public static bool operator ==(Point p1, Point p2)
         {
             // If both are null, or both are same instance, return true.
             if (System.Object.ReferenceEquals(p1, p2))
@@ -116,7 +116,7 @@ namespace Darwin
             return p1.X == p2.X && p1.Y == p2.Y;
         }
 
-        public static bool operator !=(Darwin.Point p1, Darwin.Point p2)
+        public static bool operator !=(Point p1, Point p2)
         {
             // If both are null, or both are same instance, return false.
             if (System.Object.ReferenceEquals(p1, p2))
@@ -136,7 +136,7 @@ namespace Darwin
         // this is third one 'Equals'
         public override bool Equals(object obj)
         {
-            var p = obj as Darwin.Point;
+            var p = obj as Point;
 
             return p != null && p.X == X && p.Y == Y;
         }

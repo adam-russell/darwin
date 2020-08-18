@@ -15,8 +15,8 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Database;
-using Darwin.Features;
 using Darwin.Matching;
+using Darwin.Model;
 using Darwin.Wpf.Commands;
 using Darwin.Wpf.ViewModel;
 using Microsoft.Win32;

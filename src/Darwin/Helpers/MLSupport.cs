@@ -17,7 +17,9 @@
 using CsvHelper;
 using Darwin.Database;
 using Darwin.Helpers;
+using Darwin.ImageProcessing;
 using Darwin.ML;
+using Darwin.Model;
 using System;
 using System.Collections.Generic;
 using System.Data;

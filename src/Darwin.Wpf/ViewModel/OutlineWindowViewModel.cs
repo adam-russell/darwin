@@ -18,6 +18,7 @@ using Darwin.Collections;
 using Darwin.Database;
 using Darwin.Features;
 using Darwin.Matching;
+using Darwin.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

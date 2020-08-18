@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
+using Darwin.Model;
 using System;
 using System.Collections.Generic;
 using System.Text;

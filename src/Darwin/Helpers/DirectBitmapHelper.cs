@@ -22,6 +22,8 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Text;
 using Darwin.Extensions;
+using Darwin.ImageProcessing;
+using Darwin.Model;
 
 namespace Darwin.Helpers
 {

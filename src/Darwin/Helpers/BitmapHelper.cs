@@ -15,6 +15,8 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Extensions;
+using Darwin.ImageProcessing;
+using Darwin.Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

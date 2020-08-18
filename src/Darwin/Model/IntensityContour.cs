@@ -35,7 +35,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Darwin
+namespace Darwin.Model
 {
     public class IntensityContour : Contour
     {
@@ -211,7 +211,7 @@ namespace Darwin
 
             //cout << "Finding first point..." << endl;
 
-            Darwin.Point pt = ctour[0];
+            var pt = ctour[0];
             //Contour::addPoint(pt.x,pt.y);//Add User start
             int stx = pt.X / factor - xoffset;
             int sty = pt.Y / factor - yoffset;

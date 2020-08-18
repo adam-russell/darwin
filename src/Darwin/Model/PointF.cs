@@ -24,7 +24,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Darwin
+using PointF = Darwin.Model.PointF;
+
+namespace Darwin.Model
 {
     public class PointF : INotifyPropertyChanged
     {
@@ -188,7 +190,7 @@ namespace Darwin
             };
         }
 
-        public static bool operator ==(Darwin.PointF p1, Darwin.PointF p2)
+        public static bool operator ==(PointF p1, PointF p2)
         {
             // If both are null, or both are same instance, return true.
             if (System.Object.ReferenceEquals(p1, p2))
@@ -205,7 +207,7 @@ namespace Darwin
             return p1.X == p2.X && p1.Y == p2.Y && p1.Z == p2.Z;
         }
 
-        public static bool operator !=(Darwin.PointF p1, Darwin.PointF p2)
+        public static bool operator !=(PointF p1, PointF p2)
         {
             // If both are null, or both are same instance, return false.
             if (System.Object.ReferenceEquals(p1, p2))
@@ -225,7 +227,7 @@ namespace Darwin
         // this is third one 'Equals'
         public override bool Equals(object obj)
         {
-            var p = obj as Darwin.PointF;
+            var p = obj as PointF;
 
             return p != null && p.X == X && p.Y == Y && p.Z == Z;
         }

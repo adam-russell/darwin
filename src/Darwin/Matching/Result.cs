@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
+using Darwin.Model;
 using MathNet.Numerics.LinearAlgebra;
 using System;
 using System.Collections.Generic;

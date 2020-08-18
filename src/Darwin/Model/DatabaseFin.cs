@@ -69,7 +69,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 
-namespace Darwin.Database
+namespace Darwin.Model
 {
     public class DatabaseFin : BaseEntity
     {
@@ -163,6 +163,7 @@ namespace Darwin.Database
             if (_images.Count < 1)
                 _images.Add(new DatabaseImage());
         }
+
         public DatabaseImage PrimaryImage
         {
             get
@@ -195,6 +196,12 @@ namespace Darwin.Database
 
         public DatabaseFin()
         {
+        }
+
+        public DatabaseFin(DatabaseImage image)
+        {
+            _images = new ObservableCollection<DatabaseImage>();
+            _images.Add(image);
         }
 
         //                                                **

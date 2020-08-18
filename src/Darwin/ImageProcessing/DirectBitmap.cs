@@ -21,7 +21,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
-namespace Darwin
+namespace Darwin.ImageProcessing
 {
     public class DirectBitmap
     {

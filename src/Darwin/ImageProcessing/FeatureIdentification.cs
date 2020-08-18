@@ -15,6 +15,7 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Extensions;
+using Darwin.Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -79,7 +80,7 @@ namespace Darwin.ImageProcessing
         public static Feature FindBlob(DirectBitmap srcImg, int seedrow, int seedcol)
         {
             //Based on code from deburekr
-            Stack<Darwin.PointF> nbr_stack = new Stack<Darwin.PointF>();
+            Stack<Model.PointF> nbr_stack = new Stack<Model.PointF>();
             int cr, cc; // removed done & j
             int l, r, t, b;  /*left, right, top , bottom neighbor */
             int area;
@@ -100,11 +101,11 @@ namespace Darwin.ImageProcessing
             //    graphics.FillRectangle(Brushes.White, 0, 0, map.Width, map.Height);
             //}
 
-            nbr_stack.Push(new Darwin.PointF(seedcol, seedrow));
+            nbr_stack.Push(new Model.PointF(seedcol, seedrow));
             area = 0;
             while (nbr_stack.Count > 0)
             {
-                Darwin.PointF pt = nbr_stack.Pop();
+                Model.PointF pt = nbr_stack.Pop();
                 cr = (int)Math.Round(pt.Y);
                 cc = (int)Math.Round(pt.X);
 
@@ -125,28 +126,28 @@ namespace Darwin.ImageProcessing
                     { /* border? */
                         if (srcImg.GetPixel(r, cr).GetIntensity() != 255)
                         {
-                            nbr_stack.Push(new Darwin.PointF(r, cr));
+                            nbr_stack.Push(new Model.PointF(r, cr));
                         }
                     }
                     if (b < srcImg.Height)
                     {
                         if (srcImg.GetPixel(cc, b).GetIntensity() != 255)
                         {
-                            nbr_stack.Push(new Darwin.PointF(cc, b));
+                            nbr_stack.Push(new Model.PointF(cc, b));
                         }
                     }
                     if (l >= 0)
                     {
                         if (srcImg.GetPixel(l, cr).GetIntensity() != 255)
                         {
-                            nbr_stack.Push(new Darwin.PointF(l, cr));
+                            nbr_stack.Push(new Model.PointF(l, cr));
                         }
                     }
                     if (t >= 0)
                     {
                         if (srcImg.GetPixel(cc, t).GetIntensity() != 255)
                         {
-                            nbr_stack.Push(new Darwin.PointF(cc, t));
+                            nbr_stack.Push(new Model.PointF(cc, t));
                         }
                     }
                 }

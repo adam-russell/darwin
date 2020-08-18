@@ -18,6 +18,7 @@ using Darwin.Collections;
 using Darwin.Database;
 using Darwin.Extensions;
 using Darwin.ImageProcessing;
+using Darwin.Model;
 using System;
 using System.Collections.Generic;
 using System.Drawing;

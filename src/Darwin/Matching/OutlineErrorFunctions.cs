@@ -16,6 +16,7 @@
 
 using Darwin.Database;
 using Darwin.Features;
+using Darwin.Model;
 using Darwin.Utilities;
 using MathNet.Numerics;
 using System;
@@ -24,6 +25,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
+using PointF = Darwin.Model.PointF;
 
 namespace Darwin.Matching
 {

@@ -27,6 +27,7 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Extensions;
+using Darwin.Model;
 using Darwin.Utilities;
 using System;
 using System.Drawing;
@@ -238,7 +239,7 @@ namespace Darwin.ImageProcessing
             // search backwards through table to find optimum positions
             for (int k = numPoints - 2; k > 0; k--)
             {
-                contour[k] = new Darwin.Point(contour[k].X + neighbor[pos].X, contour[k].Y + neighbor[pos].Y);
+                contour[k] = new Darwin.Model.Point(contour[k].X + neighbor[pos].X, contour[k].Y + neighbor[pos].Y);
 
                 pos = posMtx[k - 1, pos];
             }

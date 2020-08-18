@@ -16,6 +16,7 @@
 
 using Darwin.Database;
 using Darwin.Wpf.Model;
+using Darwin.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

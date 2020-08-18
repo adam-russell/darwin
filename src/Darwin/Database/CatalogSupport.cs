@@ -16,6 +16,7 @@
 
 using Darwin.Extensions;
 using Darwin.Helpers;
+using Darwin.Model;
 using Darwin.Utilities;
 using System;
 using System.Collections.Generic;
@@ -610,9 +611,6 @@ namespace Darwin.Database
         {
 			if (image == null)
 				return;
-			
-			if (image.FinOutline != null && image.FinOutline.ChainPoints != null)
-				image.Contour = new Contour(image.FinOutline.ChainPoints, image.FinOutline.Scale);
 
 			if (!string.IsNullOrEmpty(image.ImageFilename))
 			{
@@ -644,6 +642,9 @@ namespace Darwin.Database
 					image.FinImage = bitmap;
 				}
 			}
+
+			if (image.FinOutline != null && image.FinOutline.ChainPoints != null)
+				image.Contour = new Contour(image.FinOutline.ChainPoints, image.FinOutline.Scale);
 		}
 
 		public static void UnloadDatabaseImage(DatabaseImage image)

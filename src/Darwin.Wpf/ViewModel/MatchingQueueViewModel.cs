@@ -16,6 +16,7 @@
 
 using Darwin.Collections;
 using Darwin.Database;
+using Darwin.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;

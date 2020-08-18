@@ -38,7 +38,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace Darwin.Database
+namespace Darwin.Model
 {
     public enum ImageModType
     {

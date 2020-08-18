@@ -33,7 +33,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Darwin
+using PointF = Darwin.Model.PointF;
+
+namespace Darwin.Model
 {
     public class FloatContour
     {
@@ -311,14 +313,14 @@ namespace Darwin
         //
         public void AddPoint(float x, float y)
         {
-            Points.Add(new Darwin.PointF { X = x, Y = y });
+            Points.Add(new PointF { X = x, Y = y });
 
         }
 
         //********************************************************************
         // operator[]()
         //
-        public Darwin.PointF this[int i]
+        public PointF this[int i]
         {
             // Routing through "Points" rather than "_points" so we have the null check
             get

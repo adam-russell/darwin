@@ -32,7 +32,9 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Darwin
+using Point = Darwin.Model.Point;
+
+namespace Darwin.Model
 {
     public class Contour : INotifyPropertyChanged
     {
@@ -49,13 +51,13 @@ namespace Darwin
 			}
         }
 
-        private ObservableNotifiableCollection<Darwin.Point> _points;
-        public ObservableNotifiableCollection<Darwin.Point> Points
+        private ObservableNotifiableCollection<Point> _points;
+        public ObservableNotifiableCollection<Point> Points
         {
             get
             {
                 if (_points == null)
-                    _points = new ObservableNotifiableCollection<Darwin.Point>();
+                    _points = new ObservableNotifiableCollection<Point>();
 
                 return _points;
             }
@@ -66,7 +68,7 @@ namespace Darwin
 			}
         }
 
-		public Darwin.Point this[int i]
+		public Point this[int i]
 		{
 			// Routing through "Points" rather than "_points" so we have the null check
 			get
@@ -169,7 +171,7 @@ namespace Darwin
 		public Contour()
         {
 			_scale = 1.0;
-			_points = new ObservableNotifiableCollection<Darwin.Point>();
+			_points = new ObservableNotifiableCollection<Point>();
         }
 
 		public Contour(Contour c, bool rescale = false)
@@ -178,19 +180,19 @@ namespace Darwin
 				throw new ArgumentNullException(nameof(c));
 
 
-			_points = new ObservableNotifiableCollection<Darwin.Point>();
+			_points = new ObservableNotifiableCollection<Point>();
 
 			if (!rescale)
 			{
 				_scale = c.Scale;
 
 				foreach (var p in c.Points)
-					_points.Add(new Darwin.Point(p.X, p.Y));
+					_points.Add(new Point(p.X, p.Y));
 			}
 			else
             {
 				foreach (var p in c.Points)
-					_points.Add(new Darwin.Point((int)Math.Round(p.X / c.Scale), (int)Math.Round(p.Y / c.Scale)));
+					_points.Add(new Point((int)Math.Round(p.X / c.Scale), (int)Math.Round(p.Y / c.Scale)));
 
 				_scale = 1.0;
             }
@@ -200,26 +202,26 @@ namespace Darwin
         {
 			_scale = 1.0;
 
-			_points = new ObservableNotifiableCollection<Darwin.Point>();
+			_points = new ObservableNotifiableCollection<Point>();
 
 			foreach (var p in c.Points)
-				_points.Add(new Darwin.Point((int)Math.Round(p.X), (int)Math.Round(p.Y)));
+				_points.Add(new Point((int)Math.Round(p.X), (int)Math.Round(p.Y)));
 		}
 
 		public Contour(FloatContour c, double normalizationScale, bool rescale = false)
 		{
 			_scale = normalizationScale;
-			_points = new ObservableNotifiableCollection<Darwin.Point>();
+			_points = new ObservableNotifiableCollection<Point>();
 
 			if (!rescale)
 			{
 				foreach (var p in c.Points)
-					_points.Add(new Darwin.Point((int)Math.Round(p.X), (int)Math.Round(p.Y)));
+					_points.Add(new Point((int)Math.Round(p.X), (int)Math.Round(p.Y)));
 			}
 			else
 			{
 				foreach (var p in c.Points)
-					_points.Add(new Darwin.Point((int)Math.Round(p.X / normalizationScale), (int)Math.Round(p.Y / normalizationScale)));
+					_points.Add(new Point((int)Math.Round(p.X / normalizationScale), (int)Math.Round(p.Y / normalizationScale)));
 
 				_scale = 1.0;
 			}
@@ -228,12 +230,12 @@ namespace Darwin
 		public Contour(Outline outline, double normalizationScale)
 		{
 			_scale = normalizationScale;
-			_points = new ObservableNotifiableCollection<Darwin.Point>();
+			_points = new ObservableNotifiableCollection<Point>();
 
 			if (outline.ChainPoints != null && outline?.ChainPoints.Length > 0)
 			{
 				foreach (var p in outline.ChainPoints.Points)
-					_points.Add(new Darwin.Point((int)Math.Round(p.X), (int)Math.Round(p.Y)));
+					_points.Add(new Point((int)Math.Round(p.X), (int)Math.Round(p.Y)));
 			}
 
 			if (outline?.FeaturePointPositions.Count > 0)
@@ -246,7 +248,7 @@ namespace Darwin
             {
 				for (int i = 0; i < Points.Count; i++)
                 {
-					Points[i] = new Darwin.Point((int)Math.Round(Points[i].X / _scale), (int)Math.Round(Points[i].Y / _scale));
+					Points[i] = new Point((int)Math.Round(Points[i].X / _scale), (int)Math.Round(Points[i].Y / _scale));
 				}
             }
         }
@@ -259,7 +261,7 @@ namespace Darwin
 			Points.Clear();
 
 			foreach (var p in c.Points)
-				Points.Add(new Darwin.Point(p.X, p.Y));
+				Points.Add(new Point(p.X, p.Y));
         }
 
 		public void SetFeaturePointPositions(List<int> featurePointPositions)
@@ -283,22 +285,22 @@ namespace Darwin
 
 		public void AddPoint(int x, int y)
 		{
-			Points.Add(new Darwin.Point(x, y));
+			Points.Add(new Point(x, y));
 		}
 
-        public void AddPoint(Darwin.Point point)
+        public void AddPoint(Point point)
         {
             Points.Add(point);
         }
 
-        public void AddPoint(Darwin.Point point, int position)
+        public void AddPoint(Point point, int position)
         {
             Points.Insert(position, point);
         }
 
 		public void AddPoint(int x, int y, int position)
 		{
-			Points.Insert(position, new Darwin.Point(x, y));
+			Points.Insert(position, new Point(x, y));
 		}
 
 		//    The specified number of points is removed from the front of
@@ -475,7 +477,7 @@ namespace Darwin
 
 			for (var i = 0; i < _points.Count; i++)
             {
-				_points[i] = new Darwin.Point(
+				_points[i] = new Point(
 					(int)Math.Round(_points[i].X * factor),
 					(int)Math.Round(_points[i].Y * factor));
             }
@@ -520,7 +522,7 @@ namespace Darwin
             if (Points.Count < 1)
                 return -1;
 
-            var inputPoint = new Darwin.Point(x, y);
+            var inputPoint = new Point(x, y);
             double lowestDistance = -1;
             int position = -1;
 
@@ -1002,7 +1004,7 @@ namespace Darwin
 		// are removed.  Then if closest2EndPos < closest2StartPos, the Contour
 		// is reversed.  Finally, the startPt and endPts are placed at their
 		// respective ends of this Contour.
-		public bool TrimAndReorder(Darwin.Point startPt, Darwin.Point endPt)
+		public bool TrimAndReorder(Point startPt, Point endPt)
 		{
 			int closest2StartPos = FindPositionOfClosestPoint(startPt.X, startPt.Y);
 			int closest2EndPos = FindPositionOfClosestPoint(endPt.X, endPt.Y);

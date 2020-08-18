@@ -16,6 +16,7 @@
 
 using Darwin.Database;
 using Darwin.Features;
+using Darwin.Model;
 using Darwin.Utilities;
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
@@ -26,6 +27,7 @@ using System.Linq;
 using System.Text;
 
 using Complex = System.Numerics.Complex;
+using PointF = Darwin.Model.PointF;
 
 namespace Darwin.Matching
 {

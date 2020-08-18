@@ -17,6 +17,7 @@
 using Darwin.Database;
 using Darwin.Helpers;
 using Darwin.ML;
+using Darwin.Model;
 using Darwin.Utilities;
 using Darwin.Wavelet;
 using MathNet.Numerics.Interpolation;
@@ -226,8 +227,8 @@ namespace Darwin.Features
                 {
                     var coordinates = MLSupport.PredictCoordinates(image, chainPoints, scale);
 
-                    CoordinateFeaturePoints[FeaturePointType.Eye].Coordinate = new Point((int)Math.Round(coordinates[0]), (int)Math.Round(coordinates[1]));
-                    CoordinateFeaturePoints[FeaturePointType.NasalLateralCommissure].Coordinate = new Point((int)Math.Round(coordinates[2]), (int)Math.Round(coordinates[3]));
+                    CoordinateFeaturePoints[FeaturePointType.Eye].Coordinate = new Model.Point((int)Math.Round(coordinates[0]), (int)Math.Round(coordinates[1]));
+                    CoordinateFeaturePoints[FeaturePointType.NasalLateralCommissure].Coordinate = new Model.Point((int)Math.Round(coordinates[2]), (int)Math.Round(coordinates[3]));
                 }
 
                 // Fake the eye & nasal fold for right now (this at least gets the features on the display so we can move them)
@@ -933,7 +934,7 @@ namespace Darwin.Features
 
             float ratio = (float)(CurvatureLengthNormalizationLength / currentPositionDistance);
 
-            PointF scaledNasionPosition = new PointF(chainPoints[nasionPosition].X * ratio, chainPoints[nasionPosition].Y * ratio);
+            Model.PointF scaledNasionPosition = new Model.PointF(chainPoints[nasionPosition].X * ratio, chainPoints[nasionPosition].Y * ratio);
 
             FloatContour scaledContour = new FloatContour();
             for (int i = browPosition; i <= offsetTipOfNose; i++)

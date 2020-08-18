@@ -17,6 +17,7 @@
 using Darwin.Database;
 using Darwin.Features;
 using Darwin.Matching;
+using Darwin.Model;
 using Darwin.Wpf.Model;
 using System;
 using System.Collections.Generic;

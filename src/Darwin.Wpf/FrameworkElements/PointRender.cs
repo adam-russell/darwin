@@ -32,7 +32,7 @@ namespace Darwin.Wpf.FrameworkElements
     {
         public static readonly DependencyProperty ItemsSourceProperty =
             DependencyProperty.Register("ItemsSource",
-                typeof(ObservableNotifiableCollection<Darwin.Point>),
+                typeof(ObservableNotifiableCollection<Darwin.Model.Point>),
                 typeof(PointRender),
                 new PropertyMetadata(OnItemsSourceChanged));
 
@@ -67,10 +67,10 @@ namespace Darwin.Wpf.FrameworkElements
         public static readonly DependencyProperty BackgroundProperty =
             Panel.BackgroundProperty.AddOwner(typeof(PointRender));
 
-        public ObservableNotifiableCollection<Darwin.Point> ItemsSource
+        public ObservableNotifiableCollection<Darwin.Model.Point> ItemsSource
         {
             set { SetValue(ItemsSourceProperty, value); }
-            get { return (ObservableNotifiableCollection<Darwin.Point>)GetValue(ItemsSourceProperty); }
+            get { return (ObservableNotifiableCollection<Darwin.Model.Point>)GetValue(ItemsSourceProperty); }
         }
 
         public Brush[] Brushes
@@ -115,14 +115,14 @@ namespace Darwin.Wpf.FrameworkElements
         {
             if (args.OldValue != null)
             {
-                ObservableNotifiableCollection<Darwin.Point> coll = args.OldValue as ObservableNotifiableCollection<Darwin.Point>;
+                ObservableNotifiableCollection<Darwin.Model.Point> coll = args.OldValue as ObservableNotifiableCollection<Darwin.Model.Point>;
                 coll.CollectionChanged -= OnCollectionChanged;
                 coll.ItemPropertyChanged -= OnItemPropertyChanged;
             }
 
             if (args.NewValue != null)
             {
-                ObservableNotifiableCollection<Darwin.Point> coll = args.NewValue as ObservableNotifiableCollection<Darwin.Point>;
+                ObservableNotifiableCollection<Darwin.Model.Point> coll = args.NewValue as ObservableNotifiableCollection<Darwin.Model.Point>;
                 coll.CollectionChanged += OnCollectionChanged;
                 coll.ItemPropertyChanged += OnItemPropertyChanged;
             }
@@ -148,7 +148,7 @@ namespace Darwin.Wpf.FrameworkElements
             if (ItemsSource == null || Brushes == null)
                 return;
 
-            foreach (Darwin.Point dataPoint in ItemsSource)
+            foreach (Darwin.Model.Point dataPoint in ItemsSource)
             {
                 dc.DrawEllipse(Brushes[0], null,
                     new System.Windows.Point(dataPoint.X / ContourScale, dataPoint.Y / ContourScale), PointSize, PointSize);

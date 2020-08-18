@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
+using Darwin.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 
-namespace Darwin.Database
+namespace Darwin.Model
 {
     public class Category : BaseEntity, INotifyPropertyChanged
     {

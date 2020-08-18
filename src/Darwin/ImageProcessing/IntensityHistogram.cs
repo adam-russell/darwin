@@ -15,10 +15,11 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Extensions;
+using Darwin.Model;
 using System;
 using System.Drawing;
 
-namespace Darwin
+namespace Darwin.ImageProcessing
 {
     // TODO: The types are a little weird here.  Using byte length
     // but there are ints in places that probably should be byte.  Or

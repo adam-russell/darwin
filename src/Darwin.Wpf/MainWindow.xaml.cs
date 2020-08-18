@@ -17,6 +17,7 @@
 using Darwin.Wpf.Commands;
 using Darwin.Wpf.ViewModel;
 using Darwin.Database;
+using Darwin.Model;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -40,6 +41,7 @@ using System.Diagnostics;
 using System.IO;
 using Darwin.Extensions;
 using System.Threading;
+
 
 namespace Darwin.Wpf
 {

@@ -25,9 +25,10 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Extensions;
+using Darwin.ImageProcessing;
 using System.Drawing;
 
-namespace Darwin
+namespace Darwin.Model
 {
     public class IntensityContourCyan : IntensityContour
     {

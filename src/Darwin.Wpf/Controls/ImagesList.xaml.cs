@@ -15,6 +15,7 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Database;
+using Darwin.Model;
 using Darwin.Wpf.ViewModel;
 using System;
 using System.Collections.Generic;

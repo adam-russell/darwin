@@ -15,6 +15,7 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Database;
+using Darwin.Model;
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
