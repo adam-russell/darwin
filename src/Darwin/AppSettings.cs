@@ -47,7 +47,10 @@ namespace Darwin
 
         public const string DarwinModsFilenameAppend = "_wDarwinMods";
         public const string DarwinModsFilenameAppendPng = "_wDarwinMods.png";
+        public const string DarwinModsFilenameAppendJpg = "_wDarwinMods.jpg";
         public const string DarwinThumbnailFilenameAppendPng = "_thumb.png";
+        public const string DarwinThumbnailFilenameAppendJpg = "_thumb.jpg";
+        public const string DarwinCropFilenameAppendJpg = "_crop.jpg";
 
         public static readonly float[][] GrayscaleConversionMatrix = new float[][] {
                 new float[] { 0.299f, 0.299f, 0.299f, 0, 0 },

@@ -421,10 +421,13 @@ namespace Darwin.Wpf.ViewModel
                 {
                     foreach (var coordFeature in DatabaseFin.PrimaryImage.FinOutline.FeatureSet.CoordinateFeaturePointList)
                     {
-                        var featureCopy = new CoordinateFeaturePoint(coordFeature);
-                        featureCopy.Coordinate.X -= clippedContour.XMin;
-                        featureCopy.Coordinate.Y -= clippedContour.YMin;
-                        CoordinateFeaturePoints.Add(featureCopy);
+                        if (!coordFeature.IsEmpty)
+                        {
+                            var featureCopy = new CoordinateFeaturePoint(coordFeature);
+                            featureCopy.Coordinate.X -= clippedContour.XMin;
+                            featureCopy.Coordinate.Y -= clippedContour.YMin;
+                            CoordinateFeaturePoints.Add(featureCopy);
+                        }
                     }
                 }
 

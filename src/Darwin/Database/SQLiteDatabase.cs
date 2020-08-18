@@ -1551,10 +1551,11 @@ namespace Darwin.Database
         {
             using (var cmd = new SQLiteCommand(conn))
             {
-                cmd.CommandText = "INSERT INTO Individuals (ID, IDCode, Name, fkDamageCategoryID) " +
-                    "VALUES (NULL, @IDCode, @Name, @fkDamageCategoryID);";
+                cmd.CommandText = "INSERT INTO Individuals (ID, IDCode, Name, ThumbnailFilename, fkDamageCategoryID) " +
+                    "VALUES (NULL, @IDCode, @Name, @ThumbnailFilename, @fkDamageCategoryID);";
                 cmd.Parameters.AddWithValue("@IDCode", individual.idcode);
                 cmd.Parameters.AddWithValue("@Name", individual.name);
+                cmd.Parameters.AddWithValue("@ThumbnailFilename", individual.ThumbnailFilename);
                 cmd.Parameters.AddWithValue("@fkDamageCategoryID", individual.fkdamagecategoryid);
 
                 cmd.ExecuteNonQuery();

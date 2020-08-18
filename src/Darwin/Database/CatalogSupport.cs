@@ -442,6 +442,7 @@ namespace Darwin.Database
 			if (File.Exists(originalImageSaveAs))
 				originalImageSaveAs = FileHelper.FindUniqueFilename(originalImageSaveAs);
 
+			Trace.WriteLine("Saving original...");
 			if (File.Exists(databaseFin.PrimaryImage.OriginalImageFilename))
             {
 				File.Copy(databaseFin.PrimaryImage.OriginalImageFilename, originalImageSaveAs);
@@ -458,30 +459,40 @@ namespace Darwin.Database
 
 			// Now save the modified image (or the original if for some reason we don't have the modified one)
 			string modifiedImageSaveAs = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
-				Path.GetFileNameWithoutExtension(originalImageSaveAs) + AppSettings.DarwinModsFilenameAppendPng);
+				Path.GetFileNameWithoutExtension(originalImageSaveAs) + AppSettings.DarwinModsFilenameAppendJpg);
 
-			Bitmap thumbnail;
-
+			Trace.WriteLine("Saving primary...");
 			if (databaseFin.PrimaryImage.FinImage != null)
             {
-				databaseFin.PrimaryImage.FinImage.SaveAsCompressedPng(modifiedImageSaveAs);
-				thumbnail = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.FinImage, AppSettings.FinzThumbnailMaxDim, AppSettings.FinzThumbnailMaxDim);
+				// The jpeg encoder is way way faster than the compressed png encoder. On a 5472x3647 image
+				// on my computer, takes around a second on my computer with the jpg encoder.  Takes around 15 seconds
+				// for the png encoder.  Yes, losing quality here, though.
+				databaseFin.PrimaryImage.FinImage.SaveAsCompressedJpg(modifiedImageSaveAs);
             }
 			else
             {
-				databaseFin.PrimaryImage.OriginalFinImage.SaveAsCompressedPng(modifiedImageSaveAs);
-				thumbnail = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.OriginalFinImage, AppSettings.FinzThumbnailMaxDim, AppSettings.FinzThumbnailMaxDim);
+				databaseFin.PrimaryImage.OriginalFinImage.SaveAsCompressedJpg(modifiedImageSaveAs);
 			}
 
+			Trace.WriteLine("Generating crop...");
+			databaseFin.PrimaryImage.GenerateCropImage();
+			string cropImageSaveAs = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
+				Path.GetFileNameWithoutExtension(originalImageSaveAs) + AppSettings.DarwinCropFilenameAppendJpg);
+			Trace.WriteLine("Saving crop...");
+			databaseFin.PrimaryImage.CropImage.SaveAsCompressedJpg(cropImageSaveAs);
+
+			Trace.WriteLine("Generating thumbnail...");
+			var thumbnail = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.CropImage, AppSettings.FinzThumbnailMaxDim, AppSettings.FinzThumbnailMaxDim);
 			string thumbnailImageSaveAs = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
-				Path.GetFileNameWithoutExtension(originalImageSaveAs) + AppSettings.DarwinModsFilenameAppendPng);
-			thumbnail.SaveAsCompressedPng(thumbnailImageSaveAs);
+				Path.GetFileNameWithoutExtension(originalImageSaveAs) + AppSettings.DarwinThumbnailFilenameAppendJpg);
+			Trace.WriteLine("Saving thumbnail...");
+			thumbnail.SaveAsCompressedJpg(thumbnailImageSaveAs);
 
 			// Now let's overwrite the filenames without any paths
 			// TODO: Need to clean up paths and let there be subdirectories under catalog
 			databaseFin.PrimaryImage.OriginalImageFilename = Path.GetFileName(originalImageSaveAs);
 			databaseFin.PrimaryImage.ImageFilename = Path.GetFileName(modifiedImageSaveAs);
-
+			databaseFin.PrimaryImage.CropImageFilename = Path.GetFileName(cropImageSaveAs);
 			databaseFin.ThumbnailFilename = Path.GetFileName(thumbnailImageSaveAs);
 
 			Trace.WriteLine("Images written.");

@@ -59,7 +59,8 @@ namespace Darwin.Features
         public CoordinateFeaturePoint(CoordinateFeaturePoint coordinateFeaturePoint)
             : base(coordinateFeaturePoint)
         {
-            _coordinate = new Point(coordinateFeaturePoint._coordinate.X, coordinateFeaturePoint._coordinate.Y);
+            if (coordinateFeaturePoint != null && coordinateFeaturePoint._coordinate != null)
+                _coordinate = new Point(coordinateFeaturePoint._coordinate.X, coordinateFeaturePoint._coordinate.Y);
         }
 
         public static CoordinateFeaturePoint FindClosestCoordinateFeaturePointWithDistance(ObservableNotifiableCollection<CoordinateFeaturePoint> points, PointF p, out float distance)

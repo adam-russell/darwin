@@ -123,6 +123,32 @@ namespace Darwin.Extensions
             }
         }
 
+        private static ImageCodecInfo GetEncoder(ImageFormat format)
+        {
+            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+            foreach (ImageCodecInfo codec in codecs)
+            {
+                if (codec.FormatID == format.Guid)
+                {
+                    return codec;
+                }
+            }
+            return null;
+        }
+
+        public static void SaveAsCompressedJpg(this Bitmap bitmap, string filename, long quality = 80L)
+        {
+            ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
+ 
+            var encoder = System.Drawing.Imaging.Encoder.Quality;
+
+            EncoderParameters encoderParameters = new EncoderParameters(1);
+            EncoderParameter param = new EncoderParameter(encoder, quality);
+            encoderParameters.Param[0] = param;
+
+            bitmap.Save(filename, jpgEncoder, encoderParameters);
+        }
+
         /// <summary>
         /// Enhance the contrast of a Bitmap
         /// </summary>

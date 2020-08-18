@@ -1,5 +1,6 @@
 ﻿using Darwin.Database;
 using Darwin.Helpers;
+using Darwin.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,6 +11,8 @@ namespace Darwin.Model
 {
     public class DatabaseImage : BaseEntity
     {
+        private const int CropPadding = 10;
+
         public Bitmap FinImage { get; set; } // Modified image
         public Bitmap OriginalFinImage { get; set; }
         public Bitmap CropImage { get; set; }
@@ -213,16 +216,23 @@ namespace Darwin.Model
 
         public void GenerateCropImage()
         {
-            if (FinImage == null)
+            if (FinImage == null && OriginalFinImage == null)
                 throw new Exception("Main image is null, can't create a crop image.");
 
             if (FinOutline == null || FinOutline.ChainPoints == null)
                 throw new Exception("Missing outline/contour, can't create a crop image.");
 
-            int xMin = (int)Math.Floor(FinOutline.ChainPoints.MinX() / FinOutline.Scale);
-            int yMin = (int)Math.Floor(FinOutline.ChainPoints.MinY() / FinOutline.Scale);
-            int xMax = (int)Math.Ceiling(FinOutline.ChainPoints.MaxX() / FinOutline.Scale);
-            int yMax = (int)Math.Ceiling(FinOutline.ChainPoints.MaxY() / FinOutline.Scale);
+            Bitmap imageToUse = FinImage ?? OriginalFinImage;
+
+            int xMin = (int)Math.Floor((FinOutline.ChainPoints.MinX() - CropPadding) / FinOutline.Scale);
+            int yMin = (int)Math.Floor((FinOutline.ChainPoints.MinY() - CropPadding) / FinOutline.Scale);
+            int xMax = (int)Math.Ceiling((FinOutline.ChainPoints.MaxX() + CropPadding) / FinOutline.Scale);
+            int yMax = (int)Math.Ceiling((FinOutline.ChainPoints.MaxY() + CropPadding) / FinOutline.Scale);
+
+            ConstraintHelper.ConstrainInt(ref xMin, 0, imageToUse.Width);
+            ConstraintHelper.ConstrainInt(ref xMax, 0, imageToUse.Width);
+            ConstraintHelper.ConstrainInt(ref yMin, 0, imageToUse.Height);
+            ConstraintHelper.ConstrainInt(ref yMax, 0, imageToUse.Height);
 
             // Figure out the ratio
             var resizeRatioX = (float)AppSettings.FinzThumbnailMaxDim / (xMax - xMin);
@@ -241,16 +251,16 @@ namespace Darwin.Model
                     xMin = 0;
                 }
 
-                if (xMax > FinImage.Width)
+                if (xMax > imageToUse.Width)
                 {
-                    xMin -= xMax - FinImage.Width;
-                    xMax = FinImage.Width;
+                    xMin -= xMax - imageToUse.Width;
+                    xMax = imageToUse.Width;
                 }
 
                 if (xMin < 0)
                     xMin = 0;
-                if (xMax > FinImage.Width)
-                    xMax = FinImage.Width;
+                if (xMax > imageToUse.Width)
+                    xMax = imageToUse.Width;
             }
             else
             {
@@ -265,19 +275,19 @@ namespace Darwin.Model
                     yMin = 0;
                 }
 
-                if (yMax > FinImage.Height)
+                if (yMax > imageToUse.Height)
                 {
-                    yMin -= yMax - FinImage.Height;
-                    yMax = FinImage.Height;
+                    yMin -= yMax - imageToUse.Height;
+                    yMax = imageToUse.Height;
                 }
 
                 if (yMin < 0)
                     yMin = 0;
-                if (yMax > FinImage.Height)
-                    yMax = FinImage.Height;
+                if (yMax > imageToUse.Height)
+                    yMax = imageToUse.Height;
             }
 
-            CropImage = BitmapHelper.CropBitmap(FinImage,
+            CropImage = BitmapHelper.CropBitmap(imageToUse,
                 xMin, yMin,
                 xMax, yMax);
         }
