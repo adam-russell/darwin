@@ -128,7 +128,6 @@ namespace Darwin.Database
             DBIndividual individual;
             //DBThumbnail thumbnail;
             Category damagecategory;
-            FloatContour fc = new FloatContour();
 
             individual = SelectIndividualByID(id);
             damagecategory = SelectDamageCategoryByID(individual.fkdamagecategoryid);
@@ -161,10 +160,9 @@ namespace Darwin.Database
                     //}
 
                     // assumes list is returned as FIFO (queue)... should be due to use of ORDER BY OrderID
+                    var fc = new FloatContour();
                     foreach (var p in points)
-                    {
                         fc.AddPoint(p.xcoordinate, p.ycoordinate);
-                    }
 
                     var featurePoints = SelectFeaturePointsByFkOutlineID(outline.id);
 
@@ -260,7 +258,9 @@ namespace Darwin.Database
                         if (dmgCat.ID != existingIndividual.fkdamagecategoryid || existingIndividual.ThumbnailFilename != fin.ThumbnailFilename)
                         {
                             existingIndividual.fkdamagecategoryid = dmgCat.ID;
-                            existingIndividual.ThumbnailFilename = fin.ThumbnailFilename;
+
+                            if (!string.IsNullOrEmpty(fin.ThumbnailFilename))
+                                existingIndividual.ThumbnailFilename = fin.ThumbnailFilename;
 
                             UpdateDBIndividual(conn, existingIndividual);
                         }
@@ -1896,7 +1896,7 @@ namespace Darwin.Database
                     "BeginLE = @BeginLE, " +
                     "EndLE = @EndLE, " +
                     "NotchPosition = @NotchPosition, " +
-                    "fkIndividualID = @fkIndividualID " +
+                    "fkImageID = @fkImageID " +
                     "WHERE ID = @ID";
 
                 cmd.Parameters.AddWithValue("@Scale", outline.scale);
@@ -1986,9 +1986,9 @@ namespace Darwin.Database
                 cmd.Parameters.AddWithValue("@RollAndFrame", image.RollAndFrame);
                 cmd.Parameters.AddWithValue("@LocationCode", image.LocationCode);
                 cmd.Parameters.AddWithValue("@ShortDescription", image.ShortDescription);
-                cmd.Parameters.AddWithValue("@CropImageFilename", image.CropImageFilename);
-                cmd.Parameters.AddWithValue("@Order", image.OrderId);
                 cmd.Parameters.AddWithValue("@fkIndividualID", image.IndividualId);
+                cmd.Parameters.AddWithValue("@CropImageFilename", image.CropImageFilename);
+                cmd.Parameters.AddWithValue("@OrderId", image.OrderId);
                 cmd.Parameters.AddWithValue("@ID", image.ID);
 
                 cmd.ExecuteNonQuery();

@@ -732,8 +732,8 @@ namespace Darwin.Wpf.ViewModel
 
 		public void UpdateDatabaseFin()
         {
-			DatabaseFin.PrimaryImage.FinOutline.Scale = NormScale;
 			DatabaseFin.PrimaryImage.FinOutline = Outline;
+			DatabaseFin.PrimaryImage.FinOutline.Scale = NormScale;
 			DatabaseFin.PrimaryImage.FinImage = new Bitmap(Bitmap);
 
 			if (DatabaseFin.PrimaryImage.ImageMods == null)
@@ -758,10 +758,9 @@ namespace Darwin.Wpf.ViewModel
 			DatabaseFin.PrimaryImage.ImageMods = DatabaseFin.PrimaryImage.ImageMods.Concat(addedMods).ToList();
 		}
 
-		/////////////////////////////////////////////////////////////////////
-		// traceFinalize:  Locks in trace after user cleanup, but before
-		//    user is allowed to move feature points (tip, notch, etc)
-		//
+		/// <summary>
+		/// Locks in trace after user cleanup, but before user is allowed to move feature points (tip, notch, etc)
+		/// </summary>
 		public void TraceFinalize()
 		{
 			if (Contour == null || !TraceLocked) //***006FC

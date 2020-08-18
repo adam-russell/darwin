@@ -188,7 +188,7 @@ namespace Darwin.Model
             get
             {
                 if (string.IsNullOrEmpty(ThumbnailFilename))
-                    return null;
+                    return AppSettings.MissingImageUri;
 
                 return Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, ThumbnailFilename);
             }

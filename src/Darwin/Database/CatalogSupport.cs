@@ -458,18 +458,29 @@ namespace Darwin.Database
 			string modifiedImageSaveAs = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
 				Path.GetFileNameWithoutExtension(originalImageSaveAs) + AppSettings.DarwinModsFilenameAppendPng);
 
+			Bitmap thumbnail;
+
 			if (databaseFin.PrimaryImage.FinImage != null)
             {
 				databaseFin.PrimaryImage.FinImage.SaveAsCompressedPng(modifiedImageSaveAs);
+				thumbnail = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.FinImage, FinzThumbnailMaxDim, FinzThumbnailMaxDim);
             }
 			else
             {
 				databaseFin.PrimaryImage.OriginalFinImage.SaveAsCompressedPng(modifiedImageSaveAs);
-            }
+				thumbnail = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.OriginalFinImage, FinzThumbnailMaxDim, FinzThumbnailMaxDim);
+			}
+
+			string thumbnailImageSaveAs = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
+				Path.GetFileNameWithoutExtension(originalImageSaveAs) + AppSettings.DarwinModsFilenameAppendPng);
+			thumbnail.SaveAsCompressedPng(thumbnailImageSaveAs);
 
 			// Now let's overwrite the filenames without any paths
+			// TODO: Need to clean up paths and let there be subdirectories under catalog
 			databaseFin.PrimaryImage.OriginalImageFilename = Path.GetFileName(originalImageSaveAs);
 			databaseFin.PrimaryImage.ImageFilename = Path.GetFileName(modifiedImageSaveAs);
+
+			databaseFin.ThumbnailFilename = Path.GetFileName(thumbnailImageSaveAs);
 
 			// Finally, check if this an existing fin.  If it is, update the image, otherwise add the whole
 			// thing to the database.
