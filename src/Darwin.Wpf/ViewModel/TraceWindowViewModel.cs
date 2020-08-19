@@ -646,7 +646,9 @@ namespace Darwin.Wpf.ViewModel
 				TraceLocked = true;
 				TraceFinalized = true;
 				ViewerMode = true;
-				EditVisibility = Visibility.Visible;
+
+				if (!readOnly)
+					EditVisibility = Visibility.Visible;
 			}
 		}
 

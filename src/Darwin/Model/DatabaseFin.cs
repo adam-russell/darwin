@@ -293,6 +293,20 @@ namespace Darwin.Model
             FieldsChanged = false;
         }
 
+        /// <summary>
+        /// Note that this is destructive.
+        /// </summary>
+        /// <param name="image"></param>
+        public void SetPrimaryImage(DatabaseImage image)
+        {
+            if (_images == null)
+                _images = new ObservableCollection<DatabaseImage>();
+            else
+                _images.Clear();
+
+            _images.Add(image);
+        }
+
         public void SaveSightingData(string filename)
         {
             using (StreamWriter writer = File.AppendText(filename))

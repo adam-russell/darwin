@@ -294,7 +294,8 @@ namespace Darwin.Wpf.ViewModel
             }
             else
             {
-                DatabaseImage.FullyLoadDatabaseImages(SelectedFin.Images);
+                //DatabaseImage.FullyLoadDatabaseImages(SelectedFin.Images);
+                DatabaseImage.PrepareDatabaseImagesDisplay(SelectedFin.Images);
             }
         }
 

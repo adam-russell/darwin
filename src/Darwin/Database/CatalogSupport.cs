@@ -112,33 +112,6 @@ namespace Darwin.Database
 			}
 		}
 
-		public static void UpdateDatabaseImageFromImageFile(string basePath, DatabaseImage image)
-		{
-			// TODO:
-			// Probably not the best "flag" to look at to figure out if this an old image.
-			// We're saving OriginalImageFilename in the database for newer fins
-			if (string.IsNullOrEmpty(image.OriginalImageFilename))
-			{
-				List<ImageMod> imageMods;
-				bool thumbOnly;
-				string originalFilename;
-				float normScale;
-
-				string fullFilename = Path.Combine(basePath, image.ImageFilename);
-
-				PngHelper.ParsePngText(fullFilename, out normScale, out imageMods, out thumbOnly, out originalFilename);
-
-				image.ImageMods = imageMods;
-				image.FinOutline.Scale = normScale;
-
-				if (!string.IsNullOrEmpty(originalFilename))
-				{
-					image.OriginalImageFilename = image.ImageFilename = originalFilename;
-				}
-				// TODO: Save these changes back to the database?
-			}
-		}
-
 		public static string GetOriginalImageFilenameFromPng(string imageFilename)
         {
 			string originalFilename;
@@ -462,17 +435,22 @@ namespace Darwin.Database
 				Path.GetFileNameWithoutExtension(originalImageSaveAs) + AppSettings.DarwinModsFilenameAppendJpg);
 
 			Trace.WriteLine("Saving primary...");
+			Bitmap resizedModImage = null;
+
+			// Resize so we have a preview, but don't use the full vesrion to save on storage space
 			if (databaseFin.PrimaryImage.FinImage != null)
             {
-				// The jpeg encoder is way way faster than the compressed png encoder. On a 5472x3647 image
-				// on my computer, takes around a second on my computer with the jpg encoder.  Takes around 15 seconds
-				// for the png encoder.  Yes, losing quality here, though.
-				databaseFin.PrimaryImage.FinImage.SaveAsCompressedJpg(modifiedImageSaveAs);
+				resizedModImage = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.FinImage, AppSettings.CurrentImageScaledMaxDim, AppSettings.CurrentImageScaledMaxDim);
             }
 			else
             {
-				databaseFin.PrimaryImage.OriginalFinImage.SaveAsCompressedJpg(modifiedImageSaveAs);
+				resizedModImage = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.OriginalFinImage, AppSettings.CurrentImageScaledMaxDim, AppSettings.CurrentImageScaledMaxDim);
 			}
+
+			// The jpeg encoder is way way faster than the compressed png encoder. On a 5472x3647 image
+			// on my computer, takes around a second on my computer with the jpg encoder.  Takes around 15 seconds
+			// for the png encoder.  Yes, losing quality here, though.
+			resizedModImage.SaveAsCompressedJpg(modifiedImageSaveAs);
 
 			Trace.WriteLine("Generating crop...");
 			databaseFin.PrimaryImage.GenerateCropImage();
@@ -482,9 +460,11 @@ namespace Darwin.Database
 			databaseFin.PrimaryImage.CropImage.SaveAsCompressedJpg(cropImageSaveAs);
 
 			Trace.WriteLine("Generating thumbnail...");
+			
 			var thumbnail = BitmapHelper.ResizeKeepAspectRatio(databaseFin.PrimaryImage.CropImage, AppSettings.FinzThumbnailMaxDim, AppSettings.FinzThumbnailMaxDim);
 			string thumbnailImageSaveAs = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
 				Path.GetFileNameWithoutExtension(originalImageSaveAs) + AppSettings.DarwinThumbnailFilenameAppendJpg);
+
 			Trace.WriteLine("Saving thumbnail...");
 			thumbnail.SaveAsCompressedJpg(thumbnailImageSaveAs);
 
@@ -494,6 +474,8 @@ namespace Darwin.Database
 			databaseFin.PrimaryImage.ImageFilename = Path.GetFileName(modifiedImageSaveAs);
 			databaseFin.PrimaryImage.CropImageFilename = Path.GetFileName(cropImageSaveAs);
 			databaseFin.ThumbnailFilename = Path.GetFileName(thumbnailImageSaveAs);
+
+			databaseFin.PrimaryImage.Version = DatabaseImage.CurrentVersion;
 
 			Trace.WriteLine("Images written.");
 			Trace.WriteLine("Saving to the database file...");
@@ -629,60 +611,6 @@ namespace Darwin.Database
 
 			return finCopy;
 		}
-
-		/// <summary>
-		/// We're modifying the image itself here to fully load the images into bitmaps.
-		/// </summary>
-		/// <param name="image"></param>
-		public static void FullyLoadDatabaseImage(DatabaseImage image)
-        {
-			if (image == null)
-				return;
-
-			if (!string.IsNullOrEmpty(image.ImageFilename))
-			{
-				CatalogSupport.UpdateDatabaseImageFromImageFile(Options.CurrentUserOptions.CurrentCatalogPath, image);
-
-				string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
-					(string.IsNullOrEmpty(image.OriginalImageFilename)) ? image.ImageFilename : image.OriginalImageFilename);
-
-				if (File.Exists(fullImageFilename))
-				{
-					var img = Image.FromFile(fullImageFilename);
-
-					var bitmap = new Bitmap(img);
-
-					// TODO: Hack for HiDPI -- this should probably be more intelligent.
-					bitmap.SetResolution(96, 96);
-
-					image.OriginalFinImage = new Bitmap(bitmap);
-
-					// TODO: Maybe refactor this so we're not doing it every time?
-					if (image.ImageMods != null && image.ImageMods.Count > 0)
-					{
-						bitmap = ModificationHelper.ApplyImageModificationsToOriginal(bitmap, image.ImageMods);
-
-						// TODO: HiDPI hack
-						bitmap.SetResolution(96, 96);
-					}
-
-					image.FinImage = bitmap;
-				}
-			}
-
-			if (image.FinOutline != null && image.FinOutline.ChainPoints != null)
-				image.Contour = new Contour(image.FinOutline.ChainPoints, image.FinOutline.Scale);
-		}
-
-		public static void UnloadDatabaseImage(DatabaseImage image)
-        {
-			if (image != null)
-            {
-				image.FinImage = null;
-				image.OriginalFinImage = null;
-				image.Contour = null;
-            }
-        }
 
 		public static string RestoreDatabase(string backupFile, string surveyArea, string databaseName)
 		{

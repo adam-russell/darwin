@@ -1183,6 +1183,12 @@ namespace Darwin.Database
                                 ShortDescription = rdr.SafeGetStringStripNone("ShortDescription"),
                                 IndividualId = rdr.SafeGetInt("fkIndividualID"),
                                 CropImageFilename = rdr.SafeGetString("CropImageFilename"),
+                                Version = rdr.SafeGetInt("Version"),
+                                GeoLocation = new GeoLocation
+                                {
+                                    Latitude = rdr.SafeGetDouble("Latitude"),
+                                    Longitude = rdr.SafeGetDouble("Longitude")
+                                },
                                 OrderId = rdr.SafeGetInt("OrderId")
                             };
 
@@ -1724,8 +1730,8 @@ namespace Darwin.Database
         {
             using (var cmd = new SQLiteCommand(conn))
             {
-                cmd.CommandText = "INSERT INTO Images(ID, ImageFilename, OriginalImageFilename, DateOfSighting, RollAndFrame, LocationCode, ShortDescription, CropImageFilename, OrderId, fkIndividualID) " +
-                    "VALUES (NULL, @ImageFilename, @OriginalImageFilename, @DateOfSighting, @RollAndFrame, @LocationCode, @ShortDescription, @CropImageFilename, @OrderId, @fkIndividualID);";
+                cmd.CommandText = "INSERT INTO Images(ID, ImageFilename, OriginalImageFilename, DateOfSighting, RollAndFrame, LocationCode, ShortDescription, CropImageFilename, OrderId, Version, Latitude, Longitude, fkIndividualID) " +
+                    "VALUES (NULL, @ImageFilename, @OriginalImageFilename, @DateOfSighting, @RollAndFrame, @LocationCode, @ShortDescription, @CropImageFilename, @OrderId, @Version, @Latitude, @Longitude, @fkIndividualID);";
                 cmd.Parameters.AddWithValue("@ImageFilename", image.ImageFilename);
                 cmd.Parameters.AddWithValue("@OriginalImageFilename", image.OriginalImageFilename);
                 cmd.Parameters.AddWithValue("@DateOfSighting", image.DateOfSighting);
@@ -1734,6 +1740,9 @@ namespace Darwin.Database
                 cmd.Parameters.AddWithValue("@ShortDescription", image.ShortDescription);
                 cmd.Parameters.AddWithValue("@CropImageFilename", image.CropImageFilename);
                 cmd.Parameters.AddWithValue("@OrderId", image.OrderId);
+                cmd.Parameters.AddWithValue("@Version", image.Version);
+                cmd.Parameters.AddWithValue("@Latitude", image.GeoLocation?.Latitude);
+                cmd.Parameters.AddWithValue("@Longitude", image.GeoLocation?.Longitude);
                 cmd.Parameters.AddWithValue("@fkIndividualID", individualId);
 
                 cmd.ExecuteNonQuery();
@@ -1978,7 +1987,10 @@ namespace Darwin.Database
                     "ShortDescription = @ShortDescription, " +
                     "fkIndividualID = @fkIndividualID, " +
                     "CropImageFilename = @CropImageFilename, " +
-                    "OrderId = @OrderId " +
+                    "OrderId = @OrderId, " +
+                    "Version = @Version, " +
+                    "Latitude = @Latitude, " +
+                    "Longitude = @Longitude " +
                     "WHERE ID = @ID";
 
                 cmd.Parameters.AddWithValue("@ImageFilename", image.ImageFilename);
@@ -1990,6 +2002,9 @@ namespace Darwin.Database
                 cmd.Parameters.AddWithValue("@fkIndividualID", image.IndividualId);
                 cmd.Parameters.AddWithValue("@CropImageFilename", image.CropImageFilename);
                 cmd.Parameters.AddWithValue("@OrderId", image.OrderId);
+                cmd.Parameters.AddWithValue("@Version", image.Version);
+                cmd.Parameters.AddWithValue("@Latitude", image.GeoLocation?.Latitude);
+                cmd.Parameters.AddWithValue("@Longitude", image.GeoLocation?.Longitude);
                 cmd.Parameters.AddWithValue("@ID", image.ID);
 
                 cmd.ExecuteNonQuery();
@@ -2296,7 +2311,10 @@ namespace Darwin.Database
                         RollAndFrame TEXT,
                         LocationCode TEXT,
                         ShortDescription TEXT,
-                        OrderId INTEGER
+                        OrderId INTEGER,
+                        Version INTEGER DEFAULT 1,
+                        Latitude REAL,
+                        Longitude REAL
                     );
 
                     CREATE TABLE IF NOT EXISTS ImageModifications ( 
@@ -2593,6 +2611,10 @@ namespace Darwin.Database
 
                     ALTER TABLE Images ADD COLUMN CropImageFilename TEXT DEFAULT NULL;
                     ALTER TABLE Images ADD COLUMN OrderId INTEGER DEFAULT 100;
+
+                    ALTER TABLE Images ADD COLUMN Version INTEGER DEFAULT 1;
+                    ALTER TABLE Images ADD COLUMN Latitude REAL DEFAULT NULL;
+                    ALTER TABLE Images ADD COLUMN Longitude REAL  DEFAULT NULL;
 
                     ALTER TABLE Outlines ADD COLUMN fkImageID INTEGER DEFAULT 0;";
 

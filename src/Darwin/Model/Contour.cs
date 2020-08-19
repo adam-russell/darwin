@@ -253,6 +253,17 @@ namespace Darwin.Model
             }
         }
 
+		public void ApplyNonProportionalScale(float xScale, float yScale)
+        {
+			if (Points?.Count > 0)
+            {
+				for (int i = 0; i < Points.Count; i++)
+				{
+					Points[i] = new Point((int)Math.Round(Points[i].X / xScale), (int)Math.Round(Points[i].Y / yScale));
+				}
+			}
+        }
+
 		public void ReloadPoints(Contour c)
         {
 			if (c == null)

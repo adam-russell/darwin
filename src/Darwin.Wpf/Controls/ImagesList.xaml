@@ -62,24 +62,33 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             <TabControl TabStripPlacement="Bottom">
                                 <TabItem Header="Image">
                                     <Button x:Name="ViewImageButton" Click="ViewImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0">
-                                        <Image x:Name="SelectedImageSource" Source="{Binding FinImage, Converter={StaticResource ImageSourceConverter}}" />
+                                        <!--<Image x:Name="SelectedImageSource" Source="{Binding FinImage, Converter={StaticResource ImageSourceConverter}}" />-->
+                                        <Image>
+                                            <Image.Source>
+                                                <BitmapImage x:Name="SelectedBitmapImage" DecodePixelHeight="300" UriSource="{Binding ImageFilenameUri}" />
+                                            </Image.Source>
+                                        </Image>
                                     </Button>
                                 </TabItem>
                                 <TabItem Header="Outline">
                                     <Button x:Name="OutlineButton" Cursor="Hand" Click="OutlineButton_Click" Background="Transparent" BorderThickness="0">
-                                        <Viewbox>
-                                            <fe:PointVisuals IsHitTestVisible="False" Width="{Binding FinImage.Width}"  Height="{Binding FinImage.Height}"
+                                        <Viewbox Margin="10">
+                                            <fe:PointVisuals IsHitTestVisible="False" Width="{Binding ClippedContour.XMax}"  Height="{Binding ClippedContour.YMax}"
                                              Background="Transparent"
                                              PointSize="3"
-                                             ContourScale="{Binding Contour.Scale}"
-                                             ItemsSource="{Binding Contour.Points}"
+                                             ItemsSource="{Binding ClippedContour.Points}"
                                              Brushes="{StaticResource brushes}" />
                                         </Viewbox>
                                     </Button>
                                 </TabItem>
                                 <TabItem Header="Original Image">
                                     <Button x:Name="ViewOriginalImageButton" Click="ViewOriginalImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0">
-                                        <Image Source="{Binding OriginalFinImage, Converter={StaticResource ImageSourceConverter}}" />
+                                        <!--<Image Source="{Binding OriginalFinImage, Converter={StaticResource ImageSourceConverter}}" />-->
+                                        <Image>
+                                            <Image.Source>
+                                                <BitmapImage DecodePixelHeight="300" UriSource="{Binding OriginalImageFilenameUri}" />
+                                            </Image.Source>
+                                        </Image>
                                     </Button>
                                 </TabItem>
                             </TabControl>

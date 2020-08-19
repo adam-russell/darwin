@@ -221,9 +221,15 @@ namespace Darwin.Helpers
                 foreach (var image in fin.Images)
                 {
                     image.Contour.ApplyScale();
-                    var mask = BitmapHelper.CreateMaskImageFromContour(image.FinImage, image.Contour);
-                    mask = BitmapHelper.ResizeBitmap(mask, MaskImageWidth, MaskImageHeight);
+
                     var mlImage = BitmapHelper.ResizeBitmap(image.FinImage, MaskImageWidth, MaskImageHeight);
+
+                    float xRatio = (float)image.FinImage.Width / MaskImageWidth;
+                    float yRatio = (float)image.FinImage.Height / MaskImageHeight;
+                    image.Contour.ApplyNonProportionalScale(xRatio, yRatio);
+
+                    var mask = BitmapHelper.CreateMaskImageFromContour(mlImage, image.Contour);
+                    mask = BitmapHelper.ResizeBitmap(mask, MaskImageWidth, MaskImageHeight);
 
                     string imageFilename = imageNum.ToString().PadLeft(6, '0') + ".jpg";
                     string maskFilename = imageNum.ToString().PadLeft(6, '0') + "_mask.jpg";

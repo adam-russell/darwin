@@ -5,21 +5,26 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.IO;
 using System.Text;
 
 namespace Darwin.Model
 {
     public class DatabaseImage : BaseEntity
     {
+        public int Version { get; set; }
+
+        public static int CurrentVersion = 2;
+
         private const int CropPadding = 10;
 
         public Bitmap FinImage { get; set; } // Modified image
         public Bitmap OriginalFinImage { get; set; }
         public Bitmap CropImage { get; set; }
         public Contour Contour { get; set; }
+        public Contour ClippedContour { get; set; }
 
         public string CropImageFilename { get; set; }
-        public string OriginalImageFilename { get; set; } //  1.8 - filename of original unmodified image
 
         private Outline _finOutline;
         public Outline FinOutline //  008OL
@@ -90,6 +95,41 @@ namespace Darwin.Model
             {
                 _imageFilename = value;
                 RaisePropertyChanged("ImageFilename");
+                RaisePropertyChanged("ImageFilenameUri");
+            }
+        }
+
+        public string ImageFilenameUri
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ImageFilename))
+                    return AppSettings.MissingImageUri;
+
+                return Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, ImageFilename);
+            }
+        }
+
+        private string _originalImageFilename;
+        public string OriginalImageFilename
+        {
+            get => _originalImageFilename;
+            set
+            {
+                _originalImageFilename = value;
+                RaisePropertyChanged("OriginalImageFilename");
+                RaisePropertyChanged("OriginalImageFilenameUri");
+            }
+        }
+
+        public string OriginalImageFilenameUri
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(OriginalImageFilename))
+                    return AppSettings.MissingImageUri;
+
+                return Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, OriginalImageFilename);
             }
         }
 
@@ -139,6 +179,8 @@ namespace Darwin.Model
 
         public DatabaseImage(DatabaseImage imageToCopy)
         {
+            Version = imageToCopy.Version;
+
             _dateOfSighting = imageToCopy._dateOfSighting;
             _finOutline = new Outline(imageToCopy.FinOutline);
             _imageFilename = imageToCopy._imageFilename;
@@ -163,6 +205,9 @@ namespace Darwin.Model
                 foreach (var mod in imageToCopy.ImageMods)
                     ImageMods.Add(new ImageMod(mod));
             }
+
+            if (imageToCopy.GeoLocation != null)
+                _geoLocation = new GeoLocation(imageToCopy.GeoLocation.Latitude, imageToCopy.GeoLocation.Longitude);
         }
 
         public DatabaseImage(
@@ -183,35 +228,33 @@ namespace Darwin.Model
             FinImage = null; //  1.5
         }
 
-        public static ObservableCollection<DatabaseImage> CopyDatabaseImageList(ObservableCollection<DatabaseImage> imagesToCopy)
+        public void PrepareDisplay()
         {
-            if (imagesToCopy == null)
-                return null;
-
-            var result = new ObservableCollection<DatabaseImage>();
-
-            foreach (var image in imagesToCopy)
-                result.Add(new DatabaseImage(image));
-
-            return result;
+            CheckVersionAndUpgrade();
+            LoadContour();
         }
 
-        public static void FullyLoadDatabaseImages(ObservableCollection<DatabaseImage> images)
+        public void CheckVersionAndUpgrade()
         {
-            if (images == null)
-                return;
-
-            foreach (var image in images)
-                CatalogSupport.FullyLoadDatabaseImage(image);
+            if (Version < CurrentVersion)
+            {
+                UpdateDatabaseImageFromImageFile(Options.CurrentUserOptions.CurrentCatalogPath, this);
+                Version = CurrentVersion;
+            }
         }
 
-        public static void UnloadDatabaseImages(ObservableCollection<DatabaseImage> images)
+        public void LoadContour()
         {
-            if (images == null)
-                return;
+            if (Contour == null)
+            {
+                if (FinOutline != null && FinOutline.ChainPoints != null)
+                {
+                    Contour = new Contour(FinOutline.ChainPoints, FinOutline.Scale);
 
-            foreach (var image in images)
-                CatalogSupport.UnloadDatabaseImage(image);
+                    ClippedContour = new Contour(Contour);
+                    ClippedContour.ClipToBounds();
+                }
+            }
         }
 
         public void GenerateCropImage()
@@ -290,6 +333,126 @@ namespace Darwin.Model
             CropImage = BitmapHelper.CropBitmap(imageToUse,
                 xMin, yMin,
                 xMax, yMax);
+        }
+
+        public static ObservableCollection<DatabaseImage> CopyDatabaseImageList(ObservableCollection<DatabaseImage> imagesToCopy)
+        {
+            if (imagesToCopy == null)
+                return null;
+
+            var result = new ObservableCollection<DatabaseImage>();
+
+            foreach (var image in imagesToCopy)
+                result.Add(new DatabaseImage(image));
+
+            return result;
+        }
+
+        public static void PrepareDatabaseImagesDisplay(ObservableCollection<DatabaseImage> images)
+        {
+            if (images == null)
+                return;
+
+            foreach (var image in images)
+                image.PrepareDisplay();
+        }
+
+        public static void FullyLoadDatabaseImages(ObservableCollection<DatabaseImage> images)
+        {
+            if (images == null)
+                return;
+
+            foreach (var image in images)
+                FullyLoadDatabaseImage(image);
+        }
+
+        public static void UnloadDatabaseImages(ObservableCollection<DatabaseImage> images)
+        {
+            if (images == null)
+                return;
+
+            foreach (var image in images)
+                UnloadDatabaseImage(image);
+        }
+
+        public static void UpdateDatabaseImageFromImageFile(string basePath, DatabaseImage image)
+        {
+            // TODO:
+            // Probably not the best "flag" to look at to figure out if this an old image.
+            // We're saving OriginalImageFilename in the database for newer fins
+            if (string.IsNullOrEmpty(image.OriginalImageFilename))
+            {
+                List<ImageMod> imageMods;
+                bool thumbOnly;
+                string originalFilename;
+                float normScale;
+
+                string fullFilename = Path.Combine(basePath, image.ImageFilename);
+
+                PngHelper.ParsePngText(fullFilename, out normScale, out imageMods, out thumbOnly, out originalFilename);
+
+                image.ImageMods = imageMods;
+                image.FinOutline.Scale = normScale;
+
+                if (!string.IsNullOrEmpty(originalFilename))
+                {
+                    image.OriginalImageFilename = originalFilename;
+                }
+                // TODO: Save these changes back to the database?
+            }
+        }
+
+        /// <summary>
+        /// We're modifying the image itself here to fully load the images into bitmaps.
+        /// </summary>
+        /// <param name="image"></param>
+        public static void FullyLoadDatabaseImage(DatabaseImage image)
+        {
+            if (image == null)
+                return;
+
+            if (!string.IsNullOrEmpty(image.ImageFilename))
+            {
+                UpdateDatabaseImageFromImageFile(Options.CurrentUserOptions.CurrentCatalogPath, image);
+
+                string fullImageFilename = Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath,
+                    (string.IsNullOrEmpty(image.OriginalImageFilename)) ? image.ImageFilename : image.OriginalImageFilename);
+
+                if (File.Exists(fullImageFilename))
+                {
+                    var img = Image.FromFile(fullImageFilename);
+
+                    var bitmap = new Bitmap(img);
+
+                    // TODO: Hack for HiDPI -- this should probably be more intelligent.
+                    bitmap.SetResolution(96, 96);
+
+                    image.OriginalFinImage = new Bitmap(bitmap);
+
+                    // TODO: Maybe refactor this so we're not doing it every time?
+                    if (image.ImageMods != null && image.ImageMods.Count > 0)
+                    {
+                        bitmap = ModificationHelper.ApplyImageModificationsToOriginal(bitmap, image.ImageMods);
+
+                        // TODO: HiDPI hack
+                        bitmap.SetResolution(96, 96);
+                    }
+
+                    image.FinImage = bitmap;
+                }
+            }
+
+            image.LoadContour();
+        }
+
+        public static void UnloadDatabaseImage(DatabaseImage image)
+        {
+            if (image != null)
+            {
+                image.FinImage = null;
+                image.OriginalFinImage = null;
+                image.Contour = null;
+            }
         }
     }
 }

@@ -23,6 +23,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
+using System.Threading.Channels;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -40,13 +41,13 @@ namespace Darwin.Wpf.Controls
     /// </summary>
     public partial class ImagesList : UserControl
     {
-        public static DependencyProperty DatabaseInvidualProperty = DependencyProperty.Register("DatabaseInvidual", typeof(DatabaseFin), typeof(ImagesList),
+        public static DependencyProperty DatabaseIndividualProperty = DependencyProperty.Register("DatabaseIndividual", typeof(DatabaseFin), typeof(ImagesList),
                         new FrameworkPropertyMetadata(null) { BindsTwoWayByDefault = true });
 
-        public DatabaseFin DatabaseInvidual
+        public DatabaseFin DatabaseIndividual
         {
-            get { return (DatabaseFin)GetValue(DatabaseInvidualProperty); }
-            set { SetValue(DatabaseInvidualProperty, value); }
+            get { return (DatabaseFin)GetValue(DatabaseIndividualProperty); }
+            set { SetValue(DatabaseIndividualProperty, value); }
         }
 
         public static DependencyProperty ImagesProperty = DependencyProperty.Register("Images", typeof(ObservableCollection<DatabaseImage>), typeof(ImagesList),
@@ -81,7 +82,7 @@ namespace Darwin.Wpf.Controls
 
         private void OutlineButton_Click(object sender, RoutedEventArgs e)
         {
-            var outlineWindowVM = new OutlineWindowViewModel(MainWindow.CurrentDatabase, DatabaseInvidual);
+            var outlineWindowVM = new OutlineWindowViewModel(MainWindow.CurrentDatabase, DatabaseIndividual);
 
             var outlineWindow = new OutlineWindow(outlineWindowVM);
             outlineWindow.Show();
@@ -89,26 +90,45 @@ namespace Darwin.Wpf.Controls
 
         private void ViewImageButton_Click(object sender, RoutedEventArgs e)
         {
-            if (DatabaseInvidual != null)
+            if (DatabaseIndividual != null)
             {
-                //var fin = _vm.FullyLoadFin();
-                var vm = new TraceWindowViewModel(DatabaseInvidual, MainWindow.CurrentDatabase, "Viewing " + DatabaseInvidual.IDCode, MainWindow.CurrentInstance);
-                TraceWindow traceWindow = new TraceWindow(vm);
-                traceWindow.Show();
+                var image = ((Button)sender).DataContext as DatabaseImage;
+
+                if (image != null)
+                {
+                    var finCopy = new DatabaseFin(DatabaseIndividual);
+                    var imageCopy = new DatabaseImage(image);
+                    DatabaseImage.FullyLoadDatabaseImage(imageCopy);
+                    finCopy.SetPrimaryImage(imageCopy);
+
+                    var vm = new TraceWindowViewModel(finCopy, MainWindow.CurrentDatabase, "Viewing " + finCopy.IDCode, MainWindow.CurrentInstance);
+                    TraceWindow traceWindow = new TraceWindow(vm);
+                    traceWindow.Show();
+                }
             }
         }
 
         private void ViewOriginalImageButton_Click(object sender, RoutedEventArgs e)
         {
             // Little hacky
-            if (DatabaseInvidual != null)
+            if (DatabaseIndividual != null)
             {
-                var fin = new DatabaseFin(DatabaseInvidual);
-                fin.PrimaryImage.FinOutline.ChainPoints = null;
-                fin.PrimaryImage.FinImage = fin.PrimaryImage.OriginalFinImage;
-                var vm = new TraceWindowViewModel(fin, MainWindow.CurrentDatabase, "Viewing " + fin.IDCode + " Original Image", MainWindow.CurrentInstance);
-                TraceWindow traceWindow = new TraceWindow(vm);
-                traceWindow.Show();
+                var image = ((Button)sender).DataContext as DatabaseImage;
+
+                if (image != null)
+                {
+                    var finCopy = new DatabaseFin(DatabaseIndividual);
+                    var imageCopy = new DatabaseImage(image);
+                    DatabaseImage.FullyLoadDatabaseImage(imageCopy);
+                    finCopy.SetPrimaryImage(imageCopy);
+
+                    finCopy.PrimaryImage.FinOutline.ChainPoints = null;
+                    finCopy.PrimaryImage.FinImage = finCopy.PrimaryImage.OriginalFinImage;
+                    var vm = new TraceWindowViewModel(finCopy, MainWindow.CurrentDatabase, "Viewing " + finCopy.IDCode + " Original Image", MainWindow.CurrentInstance, true);
+
+                    TraceWindow traceWindow = new TraceWindow(vm);
+                    traceWindow.Show();
+                }
             }
         }
     }
