@@ -238,7 +238,7 @@ namespace Darwin.Model
 					_points.Add(new Point((int)Math.Round(p.X), (int)Math.Round(p.Y)));
 			}
 
-			if (outline?.FeaturePointPositions.Count > 0)
+			if (outline?.FeaturePointPositions.Count > 0 && Options.CurrentUserOptions.FindFeatures)
 				SetFeaturePointPositions(outline.FeaturePointPositions);
 		}
 

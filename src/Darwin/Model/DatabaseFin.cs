@@ -280,8 +280,8 @@ namespace Darwin.Model
         }
 
         public DatabaseFin(DatabaseFin fin)
+            : base(fin)
         {
-            ID = fin.ID; //  001DB
             IDCode = fin.IDCode;
             Name = fin.Name;
 

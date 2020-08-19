@@ -107,7 +107,8 @@ namespace Darwin.Model
 
             FeatureSet = FeatureSet.Create(featuresType, image, scale, _chain, _chainPoints);
 
-            c.SetFeaturePointPositions(FeaturePointPositions);
+            if (Options.CurrentUserOptions.FindFeatures)
+                c.SetFeaturePointPositions(FeaturePointPositions);
         }
 
         //////////////////////////////////////////////////////////////

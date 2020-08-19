@@ -38,6 +38,15 @@ namespace Darwin.Model
             }
         }
 
+        public BaseEntity()
+        {
+        }
+
+        public BaseEntity(BaseEntity entityToCopy)
+        {
+            ID = entityToCopy.ID;
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void RaisePropertyChanged(string propertyName)

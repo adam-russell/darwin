@@ -178,8 +178,10 @@ namespace Darwin.Model
         }
 
         public DatabaseImage(DatabaseImage imageToCopy)
+            : base(imageToCopy)
         {
             Version = imageToCopy.Version;
+            IndividualId = imageToCopy.IndividualId;
 
             _dateOfSighting = imageToCopy._dateOfSighting;
             _finOutline = new Outline(imageToCopy.FinOutline);

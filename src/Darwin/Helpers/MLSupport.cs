@@ -241,7 +241,7 @@ namespace Darwin.Helpers
                     {
                         image = imageFilename,
                         mask_image = maskFilename,
-                        id_code = fin.IDCode
+                        id_code = fin.IDCode.ToLowerInvariant()
                     });
 
                     imageNum += 1;
