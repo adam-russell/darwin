@@ -47,7 +47,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
             <RowDefinition />
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer x:Name="ImagesScrollViewer" Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
             <ItemsControl x:Name="ImagesListBox" Margin="5"  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Images}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -60,13 +60,13 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                                     Margin="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxMargin}">
                             <!--<Image Source="{Binding ImageFilename, Converter={StaticResource ImagePathConverter}}" />-->
                             <!--<Image Source="{Binding FinImage, Converter={StaticResource ImageSourceConverter}}" />-->
-                            <TabControl TabStripPlacement="Bottom">
+                            <TabControl TabStripPlacement="Bottom" Height="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxHeight}">
                                 <TabItem Header="Image">
                                     <Button x:Name="ViewImageButton" Click="ViewImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0">
                                         <!--<Image x:Name="SelectedImageSource" Source="{Binding FinImage, Converter={StaticResource ImageSourceConverter}}" />-->
                                         <Image>
                                             <Image.Source>
-                                                <BitmapImage x:Name="SelectedBitmapImage" DecodePixelHeight="300" UriSource="{Binding ImageFilenameUri}" />
+                                                <BitmapImage x:Name="SelectedBitmapImage" DecodePixelHeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxHeight}" UriSource="{Binding ImageFilenameUri}" />
                                             </Image.Source>
                                         </Image>
                                     </Button>
@@ -87,7 +87,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                                         <!--<Image Source="{Binding OriginalFinImage, Converter={StaticResource ImageSourceConverter}}" />-->
                                         <Image>
                                             <Image.Source>
-                                                <BitmapImage DecodePixelHeight="300" UriSource="{Binding OriginalImageFilenameUri}" />
+                                                <BitmapImage DecodePixelHeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxHeight}" UriSource="{Binding OriginalImageFilenameUri}" />
                                             </Image.Source>
                                         </Image>
                                     </Button>

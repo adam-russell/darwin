@@ -44,7 +44,7 @@ namespace Darwin
         public const int MinZoom = 6;
 
         public const int FinzThumbnailMaxDim = 256;
-        public const int CurrentImageScaledMaxDim = 512;
+        public const int CurrentImageScaledMaxDim = 1024;
 
         public const string DarwinModsFilenameAppend = "_wDarwinMods";
         public const string DarwinModsFilenameAppendPng = "_wDarwinMods.png";

@@ -344,7 +344,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             <TextBox Text="{Binding Path=DatabaseFin.Name}" Visibility="{Binding InverseEditVisibility}" Margin="0,0,10,5" IsEnabled="{Binding ViewerMode, Converter={StaticResource InverseBooleanConverter}}" />
                             <Label Content="{Binding Path=DatabaseFin.Name}" Visibility="{Binding EditVisibility}" Padding="0,0,10,5" FontWeight="Bold" />
                             
-                            <Label Padding="0 5" Style="{StaticResource FormLabel}">Damage Category:</Label>
+                            <Label Padding="0 5" Style="{StaticResource FormLabel}">Category:</Label>
                             <ComboBox ItemsSource="{Binding Categories, Mode=OneWay}" Visibility="{Binding InverseEditVisibility}"
                               DisplayMemberPath="Name"
                               SelectedValuePath="Name"

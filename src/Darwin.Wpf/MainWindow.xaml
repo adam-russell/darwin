@@ -211,7 +211,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
 
                 <Grid Grid.Column="1" Visibility="{Binding Path=ShowHome,Converter={StaticResource BooleanToVisibilityConverter}}">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="500" />
+                        <ColumnDefinition Width="440" />
                         <ColumnDefinition Width="5" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
@@ -228,22 +228,22 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                                     <GridViewColumn>
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Image Height="40" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Image Height="45" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                     <Image.Source>
-                                                        <BitmapImage DecodePixelHeight="40" UriSource="{Binding Path=ThumbnailFilenameUri}" />
+                                                        <BitmapImage DecodePixelHeight="45" UriSource="{Binding Path=ThumbnailFilenameUri}" />
                                                     </Image.Source>
                                                 </Image>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
                                     <GridViewColumn DisplayMemberBinding="{Binding IDCode}">
-                                        <GridViewColumnHeader Content="ID Code" Padding="5,0,0,0" HorizontalContentAlignment="Left" MinWidth="55" />
+                                        <GridViewColumnHeader Content="ID Code" Padding="5,0,0,0" HorizontalContentAlignment="Left" MinWidth="100" />
                                     </GridViewColumn>
                                     <GridViewColumn DisplayMemberBinding="{Binding Name}">
-                                        <GridViewColumnHeader Content="Name" Padding="5,0,0,0" HorizontalContentAlignment="Left" MinWidth="50" />
+                                        <GridViewColumnHeader Content="Name" Padding="5,0,0,0" HorizontalContentAlignment="Left" MinWidth="120" />
                                     </GridViewColumn>
                                     <GridViewColumn DisplayMemberBinding="{Binding DamageCategory}">
-                                        <GridViewColumnHeader Content="Damage" Padding="5,0,0,0" HorizontalContentAlignment="Left" MinWidth="50" />
+                                        <GridViewColumnHeader Content="Category" Padding="5,0,0,0" HorizontalContentAlignment="Left" MinWidth="110" />
                                     </GridViewColumn>
                                     <!--<GridViewColumn DisplayMemberBinding="{Binding DateOfSighting}">
                                         <GridViewColumnHeader Content="Date" Padding="5,0,0,0" HorizontalContentAlignment="Left" MinWidth="50" />
@@ -322,7 +322,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                                 <!--<Label Grid.Row="1" Grid.Column="2" Padding="1" Style="{StaticResource FormLabel}">Date of Sighting:</Label>
                             <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding Path=SelectedFin.DateOfSighting, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,10,5"  />-->
 
-                                <Label Grid.Row="1" Grid.Column="2" Padding="1" Style="{StaticResource FormLabel}">Damage Category:</Label>
+                                <Label Grid.Row="1" Grid.Column="2" Padding="1" Style="{StaticResource FormLabel}">Category:</Label>
                                 <ComboBox Grid.Row="2" Grid.Column="2" ItemsSource="{Binding Path=DarwinDatabase.Categories}" DisplayMemberPath="Name" SelectedValuePath="Name"
                               SelectedValue="{Binding Path=SelectedFin.DamageCategory}" Margin="0,5,10,5" />
                                 <!--<Label Grid.Row="3" Grid.Column="1" Padding="1" Style="{StaticResource FormLabel}">Location Code:</Label>

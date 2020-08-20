@@ -41,6 +41,8 @@ namespace Darwin.Wpf.Controls
     /// </summary>
     public partial class ImagesList : UserControl, INotifyPropertyChanged
     {
+        private const int CalculatedSingleHeightPadding = 15;
+        private const double HeightProportion = 0.75;
         public static DependencyProperty DatabaseIndividualProperty = DependencyProperty.Register("DatabaseIndividual", typeof(DatabaseFin), typeof(ImagesList),
                         new FrameworkPropertyMetadata(null) { BindsTwoWayByDefault = true });
 
@@ -56,7 +58,12 @@ namespace Darwin.Wpf.Controls
         public ObservableCollection<DatabaseImage> Images
         {
             get { return (ObservableCollection<DatabaseImage>)GetValue(ImagesProperty); }
-            set { SetValue(ImagesProperty, value); }
+            set
+            {
+                SetValue(ImagesProperty, value);
+                RaisePropertyChanged("ImageBoxWidth");
+                RaisePropertyChanged("ImageBoxHeight");
+            }
         }
 
         private int _numImagesPerRow;
@@ -68,6 +75,7 @@ namespace Darwin.Wpf.Controls
                 _numImagesPerRow = value;
                 RaisePropertyChanged("NumImagesPerRow");
                 RaisePropertyChanged("ImageBoxWidth");
+                RaisePropertyChanged("ImageBoxHeight");
             }
         }
 
@@ -80,6 +88,7 @@ namespace Darwin.Wpf.Controls
                 _imageBoxMargin = value;
                 RaisePropertyChanged("ImageBoxMargin");
                 RaisePropertyChanged("ImageBoxWidth");
+                RaisePropertyChanged("ImageBoxHeight");
             }
         }
 
@@ -90,10 +99,29 @@ namespace Darwin.Wpf.Controls
                 if (NumImagesPerRow <= 0)
                     return ImagesListBox.ActualWidth;
 
-                if (NumImagesPerRow == 1)
+                if (NumImagesPerRow == 1 || Images.Count == 1)
                     return ImagesListBox.ActualWidth - 2 * ImageBoxMargin;
 
-                return ((double)ImagesListBox.ActualWidth - 2 * ImageBoxMargin * NumImagesPerRow) / NumImagesPerRow;
+                int numImages = NumImagesPerRow;
+
+                if (Images.Count < NumImagesPerRow)
+                    numImages = Images.Count;
+
+                return ((double)ImagesListBox.ActualWidth - 2 * ImageBoxMargin * numImages) / numImages;
+            }
+        }
+
+        public double ImageBoxHeight
+        {
+            get
+            {
+                if (NumImagesPerRow <= 0)
+                    return ImagesScrollViewer.ViewportHeight - CalculatedSingleHeightPadding;
+
+                if (Images.Count == 1)
+                    return ImagesScrollViewer.ViewportHeight - 2 * ImageBoxMargin - CalculatedSingleHeightPadding;
+
+                return ImageBoxWidth * HeightProportion;
             }
         }
 
@@ -104,7 +132,21 @@ namespace Darwin.Wpf.Controls
 
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
+            //Trace.WriteLine("Width: " + sizeInfo.NewSize.Width);
+
+            if (sizeInfo.NewSize.Width < 500)
+                NumImagesPerRow = 1;
+            else if (sizeInfo.NewSize.Width < 1050)
+                NumImagesPerRow = 2;
+            else if (sizeInfo.NewSize.Width < 1550)
+                NumImagesPerRow = 3;
+            else if (sizeInfo.NewSize.Width < 2050)
+                NumImagesPerRow = 4;
+            else
+                NumImagesPerRow = 5;
+
             RaisePropertyChanged("ImageBoxWidth");
+            RaisePropertyChanged("ImageBoxHeight");
             base.OnRenderSizeChanged(sizeInfo);
         }
 
@@ -116,7 +158,8 @@ namespace Darwin.Wpf.Controls
 
         void Images_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            Trace.WriteLine("Changed");
+            RaisePropertyChanged("ImageBoxWidth");
+            RaisePropertyChanged("ImageBoxHeight");
         }
 
         public ImagesList()
