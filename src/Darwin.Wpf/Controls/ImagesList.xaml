@@ -48,7 +48,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
-            <ItemsControl x:Name="ImagesListBox" ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Images}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="ImagesListBox" Margin="5"  ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=Images}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />
@@ -56,7 +56,8 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Width="350">
+                        <StackPanel Width="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxWidth}"
+                                    Margin="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxMargin}">
                             <!--<Image Source="{Binding ImageFilename, Converter={StaticResource ImagePathConverter}}" />-->
                             <!--<Image Source="{Binding FinImage, Converter={StaticResource ImageSourceConverter}}" />-->
                             <TabControl TabStripPlacement="Bottom">

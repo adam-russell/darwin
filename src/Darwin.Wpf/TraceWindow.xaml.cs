@@ -1395,7 +1395,7 @@ namespace Darwin.Wpf
 
 		private void ShowOutlineDeleteDialog()
         {
-			var result = MessageBox.Show("Delete the current outline of the fin?", "Delete Confirmation", MessageBoxButton.YesNo);
+			var result = MessageBox.Show("Delete the current outline of the " + _vm.Database.CatalogScheme.IndividualTerminology  + "? ", "Delete Confirmation", MessageBoxButton.YesNo);
 
 			if (result == MessageBoxResult.Yes)
 				TraceReset();

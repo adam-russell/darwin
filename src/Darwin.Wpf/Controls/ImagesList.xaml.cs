@@ -39,7 +39,7 @@ namespace Darwin.Wpf.Controls
     /// <summary>
     /// Interaction logic for ImagesList.xaml
     /// </summary>
-    public partial class ImagesList : UserControl
+    public partial class ImagesList : UserControl, INotifyPropertyChanged
     {
         public static DependencyProperty DatabaseIndividualProperty = DependencyProperty.Register("DatabaseIndividual", typeof(DatabaseFin), typeof(ImagesList),
                         new FrameworkPropertyMetadata(null) { BindsTwoWayByDefault = true });
@@ -59,9 +59,53 @@ namespace Darwin.Wpf.Controls
             set { SetValue(ImagesProperty, value); }
         }
 
+        private int _numImagesPerRow;
+        public int NumImagesPerRow
+        {
+            get => _numImagesPerRow;
+            set
+            {
+                _numImagesPerRow = value;
+                RaisePropertyChanged("NumImagesPerRow");
+                RaisePropertyChanged("ImageBoxWidth");
+            }
+        }
+
+        private int _imageBoxMargin;
+        public int ImageBoxMargin
+        {
+            get => _imageBoxMargin;
+            set
+            {
+                _imageBoxMargin = value;
+                RaisePropertyChanged("ImageBoxMargin");
+                RaisePropertyChanged("ImageBoxWidth");
+            }
+        }
+
+        public double ImageBoxWidth
+        {
+            get
+            {
+                if (NumImagesPerRow <= 0)
+                    return ImagesListBox.ActualWidth;
+
+                if (NumImagesPerRow == 1)
+                    return ImagesListBox.ActualWidth - 2 * ImageBoxMargin;
+
+                return ((double)ImagesListBox.ActualWidth - 2 * ImageBoxMargin * NumImagesPerRow) / NumImagesPerRow;
+            }
+        }
+
         static void OnChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
             (sender as ImagesList).OnChanged();
+        }
+
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+        {
+            RaisePropertyChanged("ImageBoxWidth");
+            base.OnRenderSizeChanged(sizeInfo);
         }
 
         void OnChanged()
@@ -77,6 +121,8 @@ namespace Darwin.Wpf.Controls
 
         public ImagesList()
         {
+            ImageBoxMargin = 5;
+            NumImagesPerRow = 3;
             InitializeComponent();
         }
 
@@ -130,6 +176,16 @@ namespace Darwin.Wpf.Controls
                     traceWindow.Show();
                 }
             }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void RaisePropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler == null) return;
+
+            handler(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
