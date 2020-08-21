@@ -568,9 +568,15 @@ namespace Darwin.Database
 			return fullBackupName;
 		}
 
-		public static DatabaseFin FullyLoadFin(DatabaseFin fin)
+		public static void UnloadFin(DatabaseFin individual)
+        {
+			if (individual != null && individual.Images != null)
+				DatabaseImage.UnloadDatabaseImages(individual.Images);
+        }
+
+		public static DatabaseFin FullyLoadFin(DatabaseFin individual)
 		{
-			DatabaseFin finCopy = new DatabaseFin(fin);
+			DatabaseFin finCopy = new DatabaseFin(individual);
 
 			DatabaseImage.FullyLoadDatabaseImages(finCopy.Images);
 

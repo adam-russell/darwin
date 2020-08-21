@@ -354,7 +354,7 @@ namespace Darwin.Wpf
             SelectFirstFin();
         }
 
-        public void RefreshDatabaseAfterAdd()
+        public void RefreshDatabaseAfterAdd(string idCode = null)
         {
             Trace.WriteLine("Start database refresh after add...");
             _vm.Fins = new ObservableNotifiableCollection<DatabaseFin>(
@@ -366,7 +366,11 @@ namespace Darwin.Wpf
             {
                 Trace.WriteLine("Selecting added individual...");
 
-                _vm.SelectedFin = _vm.Fins[_vm.Fins.Count - 1];
+                if (string.IsNullOrEmpty(idCode) == null)
+                    _vm.SelectedFin = _vm.Fins[_vm.Fins.Count - 1];
+                else
+                    _vm.SelectedFin = _vm.Fins.Where(f => f.IDCode.ToUpperInvariant() == idCode.ToUpperInvariant()).FirstOrDefault();
+
                 DatabaseGrid.ScrollIntoView(_vm.SelectedFin);
             }
 

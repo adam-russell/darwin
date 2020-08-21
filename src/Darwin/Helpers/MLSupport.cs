@@ -42,8 +42,8 @@ namespace Darwin.Helpers
         public const int FeatureImageHeight = 224;
         public const string FeatureCsvFilename = "darwin_coordinates.csv";
 
-        public const int MaskImageWidth = 224;
-        public const int MaskImageHeight = 224;
+        //public const int MaskImageWidth = 224;
+        //public const int MaskImageHeight = 224;
         public const string MaskCsvFilename = "darwin_coordinates.csv";
 
         public static MLFeatureImage ConvertDatabaseFinToMLFeatureImage(Bitmap image, FloatContour contour, double scale)
@@ -190,7 +190,7 @@ namespace Darwin.Helpers
             Trace.WriteLine("done.");
         }
 
-        public static void SaveSegmentationMaskDatasetImages(string datasetDirectory, DarwinDatabase database)
+        public static void SaveSegmentationMaskDatasetImages(string datasetDirectory, DarwinDatabase database, int maskImageWidth = 512, int maskImageHeight = 512)
         {
             if (datasetDirectory == null)
                 throw new ArgumentNullException(nameof(datasetDirectory));
@@ -222,14 +222,20 @@ namespace Darwin.Helpers
                 {
                     image.Contour.ApplyScale();
 
-                    var mlImage = BitmapHelper.ResizeBitmap(image.FinImage, MaskImageWidth, MaskImageHeight);
+                    double ratio;
+                    var mlImage = BitmapHelper.ResizeKeepAspectRatio(image.FinImage, maskImageWidth, maskImageHeight, out ratio);
 
-                    float xRatio = (float)image.FinImage.Width / MaskImageWidth;
-                    float yRatio = (float)image.FinImage.Height / MaskImageHeight;
-                    image.Contour.ApplyNonProportionalScale(xRatio, yRatio);
+                    //float xRatio = (float)image.FinImage.Width / maskImageWidth;
+                    //float yRatio = (float)image.FinImage.Height / maskImageHeight;
+                    float contourRatio = (float)(1 / ratio);
+                    image.Contour.ApplyNonProportionalScale(contourRatio, contourRatio);
 
                     var mask = BitmapHelper.CreateMaskImageFromContour(mlImage, image.Contour);
-                    mask = BitmapHelper.ResizeBitmap(mask, MaskImageWidth, MaskImageHeight);
+                    mask = BitmapHelper.ResizeKeepAspectRatio(mask, maskImageWidth, maskImageHeight);
+
+                    // Now pad the images so they're the "full" desired size
+                    mlImage = BitmapHelper.Pad(mlImage, maskImageWidth, maskImageHeight, Color.Black);
+                    mask = BitmapHelper.Pad(mask, maskImageWidth, maskImageHeight, Color.Black);
 
                     string imageFilename = imageNum.ToString().PadLeft(6, '0') + ".jpg";
                     string maskFilename = imageNum.ToString().PadLeft(6, '0') + "_mask.jpg";
@@ -246,6 +252,14 @@ namespace Darwin.Helpers
 
                     imageNum += 1;
                 }
+
+                CatalogSupport.UnloadFin(fin);
+                fin = null;
+
+                // Wait for the garbage collector after we just dereferenced some objects,
+                // otherwise we end up maxing RAM if we have a large database.
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
 
             using (var writer = new StreamWriter(Path.Combine(datasetDirectory, MaskCsvFilename), false))

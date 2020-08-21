@@ -35,10 +35,35 @@ namespace Darwin.Wpf.ViewModel
             }
         }
 
+        private int _maskImageWidth;
+        public int MaskImageWidth
+        {
+            get => _maskImageWidth;
+            set
+            {
+                _maskImageWidth = value;
+                RaisePropertyChanged("MaskImageWidth");
+            }
+        }
+
+        private int _maskImageHeight;
+        public int MaskImageHeight
+        {
+            get => _maskImageHeight;
+            set
+            {
+                _maskImageHeight = value;
+                RaisePropertyChanged("MaskImageHeight");
+            }
+        }
+
         public DeveloperToolsViewModel(DarwinDatabase database)
         {
             WindowTitle = "Developer Tools";
             Database = database;
+
+            MaskImageHeight = 512;
+            MaskImageWidth = 512;
         }
     }
 }

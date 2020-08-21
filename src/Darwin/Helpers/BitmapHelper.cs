@@ -51,19 +51,46 @@ namespace Darwin.Helpers
             return ResizeBitmap(bmp, newWidth, newHeight, InterpolationMode.NearestNeighbor);
         }
 
-        public static Bitmap ResizeKeepAspectRatio(Bitmap bmp, int maxWidth, int maxHeight)
+        public static Bitmap ResizeKeepAspectRatio(Bitmap bmp, int maxWidth, int maxHeight, out double ratio)
         {
             // Figure out the ratio
             double ratioX = (double)maxWidth / (double)bmp.Width;
             double ratioY = (double)maxHeight / (double)bmp.Height;
 
             // Use whichever multiplier is smaller
-            double ratio = ratioX < ratioY ? ratioX : ratioY;
+            ratio = ratioX < ratioY ? ratioX : ratioY;
 
             int newHeight = Convert.ToInt32(bmp.Height * ratio);
             int newWidth = Convert.ToInt32(bmp.Width * ratio);
 
             return ResizeBitmap(bmp, newWidth, newHeight);
+        }
+
+        public static Bitmap ResizeKeepAspectRatio(Bitmap bmp, int maxWidth, int maxHeight)
+        {
+            return ResizeKeepAspectRatio(bmp, maxWidth, maxHeight, out _);
+        }
+
+        /// <summary>
+        /// Pads an image up to width and height with whatever color is passed in as padColor
+        /// </summary>
+        /// <param name="bmp">Original image to pad</param>
+        /// <param name="width">Width to pad up to</param>
+        /// <param name="height">Height to pad up to</param>
+        /// <param name="padColor">Color to pad with (e.g. Color.Black)</param>
+        /// <returns>Padded image</returns>
+        public static Bitmap Pad(Bitmap bmp, int width, int height, Color padColor)
+        {
+            var result = new Bitmap(width, height);
+            using (Graphics graphics = Graphics.FromImage(result))
+            {
+                graphics.Clear(padColor);
+                int x = (result.Width - bmp.Width) / 2;
+                int y = (result.Height - bmp.Height) / 2;
+                graphics.DrawImage(bmp, x, y);
+
+                return result;
+            }
         }
 
         public static Bitmap ResizeBitmap(Bitmap bmp, int newWidth, int newHeight, InterpolationMode interpolationMode = InterpolationMode.HighQualityBicubic)

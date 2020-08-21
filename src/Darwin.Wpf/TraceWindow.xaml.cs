@@ -2112,7 +2112,7 @@ namespace Darwin.Wpf
 						var mainWindow = Application.Current.MainWindow as MainWindow;
 
 						if (mainWindow != null)
-							mainWindow.RefreshDatabaseAfterAdd();
+							mainWindow.RefreshDatabaseAfterAdd(_vm.DatabaseFin.IDCode);
 					}
 					finally
 					{
@@ -2198,7 +2198,7 @@ namespace Darwin.Wpf
 						var mainWindow = Application.Current.MainWindow as MainWindow;
 
 						if (mainWindow != null)
-							mainWindow.RefreshDatabaseAfterAdd();
+							mainWindow.RefreshDatabaseAfterAdd(_vm.DatabaseFin.IDCode);
 					}
 					finally
 					{

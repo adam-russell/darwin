@@ -90,7 +90,7 @@ namespace Darwin.Wpf
                         this.IsHitTestVisible = false;
                         Mouse.OverrideCursor = Cursors.Wait;
 
-                        MLSupport.SaveSegmentationMaskDatasetImages(dialog.SelectedPath, _vm.Database);
+                        MLSupport.SaveSegmentationMaskDatasetImages(dialog.SelectedPath, _vm.Database, _vm.MaskImageWidth, _vm.MaskImageHeight);
 
                         MessageBox.Show("Dataset generation complete.", "Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                     }

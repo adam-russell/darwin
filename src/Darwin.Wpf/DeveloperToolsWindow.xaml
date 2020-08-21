@@ -35,6 +35,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Label Grid.Row="0" FontWeight="Bold">Machine Learning</Label>
             
@@ -45,6 +46,12 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
 
             <TextBlock TextWrapping="Wrap" Grid.Row="3" Margin="5">Export segmentation mask dataset (slow -- takes a long time).</TextBlock>
             <StackPanel Grid.Row="4" Orientation="Horizontal">
+                <Label VerticalAlignment="Center">Image Width:</Label>
+                <TextBox Text="{Binding MaskImageWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                <Label VerticalAlignment="Center">Image Height:</Label>
+                <TextBox Text="{Binding MaskImageHeight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" />
+            </StackPanel>
+            <StackPanel Grid.Row="5" Orientation="Horizontal">
                 <Button x:Name="ExportSegmentationMasks" Click="ExportSegmentationMasks_Click">Export Segmentation Mask Dataset</Button>
             </StackPanel>
         </Grid>
