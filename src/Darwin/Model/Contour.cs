@@ -250,6 +250,8 @@ namespace Darwin.Model
                 {
 					Points[i] = new Point((int)Math.Round(Points[i].X / _scale), (int)Math.Round(Points[i].Y / _scale));
 				}
+
+				_scale = 1;
             }
         }
 
@@ -473,6 +475,7 @@ namespace Darwin.Model
 		public float NormalizeContour()
 		{
 			ApplyScale();
+
 			// Get X,Y Position of pseudo tip (middle point on Contour)
 			float tipx = this[this.Length / 2].X, tipy = this[this.Length / 2].Y;
 			float basex = (float)(0.5 * (this[0].X + this[this.Length - 1].X)),

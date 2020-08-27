@@ -261,6 +261,11 @@ namespace Darwin.Model
 
         public void GenerateCropImage()
         {
+            CropImage = CreateCropImage(out _, out _, out _, out _);
+        }
+
+        public Bitmap CreateCropImage(out int xMin, out int yMin, out int xMax, out int yMax)
+        {
             if (FinImage == null && OriginalFinImage == null)
                 throw new Exception("Main image is null, can't create a crop image.");
 
@@ -269,10 +274,10 @@ namespace Darwin.Model
 
             Bitmap imageToUse = FinImage ?? OriginalFinImage;
 
-            int xMin = (int)Math.Floor((FinOutline.ChainPoints.MinX() - CropPadding) / FinOutline.Scale);
-            int yMin = (int)Math.Floor((FinOutline.ChainPoints.MinY() - CropPadding) / FinOutline.Scale);
-            int xMax = (int)Math.Ceiling((FinOutline.ChainPoints.MaxX() + CropPadding) / FinOutline.Scale);
-            int yMax = (int)Math.Ceiling((FinOutline.ChainPoints.MaxY() + CropPadding) / FinOutline.Scale);
+            xMin = (int)Math.Floor((FinOutline.ChainPoints.MinX() - CropPadding) / FinOutline.Scale);
+            yMin = (int)Math.Floor((FinOutline.ChainPoints.MinY() - CropPadding) / FinOutline.Scale);
+            xMax = (int)Math.Ceiling((FinOutline.ChainPoints.MaxX() + CropPadding) / FinOutline.Scale);
+            yMax = (int)Math.Ceiling((FinOutline.ChainPoints.MaxY() + CropPadding) / FinOutline.Scale);
 
             ConstraintHelper.ConstrainInt(ref xMin, 0, imageToUse.Width);
             ConstraintHelper.ConstrainInt(ref xMax, 0, imageToUse.Width);
@@ -332,7 +337,7 @@ namespace Darwin.Model
                     yMax = imageToUse.Height;
             }
 
-            CropImage = BitmapHelper.CropBitmap(imageToUse,
+            return BitmapHelper.CropBitmap(imageToUse,
                 xMin, yMin,
                 xMax, yMax);
         }

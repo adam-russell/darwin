@@ -22,7 +22,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Darwin.Wpf"
         mc:Ignorable="d" Background="{StaticResource LightBackground}"
-        Title="{Binding WindowTitle}" Height="350" Width="800" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+        Title="{Binding WindowTitle}" Height="450" Width="800" ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -36,15 +36,18 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Label Grid.Row="0" FontWeight="Bold">Machine Learning</Label>
-            
-            <TextBlock TextWrapping="Wrap" Grid.Row="1" Margin="5">(Currently only for Bears) Export a coordinate and image dataset to train against.  Eye and nasal lateral commissure need to already be labeled on database individuals for a usable dataset.</TextBlock>
+
+            <TextBlock TextWrapping="Wrap" Grid.Row="1" Margin="5">Export a coordinate and image dataset.  Eye and nasal lateral commissure need to already be labeled on database individuals for a usable dataset. (Currently only for Bears)</TextBlock>
             <StackPanel Grid.Row="2" Orientation="Horizontal">
                 <Button x:Name="ExportDatasetButton" Click="ExportDatasetButton_Click">Export Feature Dataset</Button>
             </StackPanel>
 
-            <TextBlock TextWrapping="Wrap" Grid.Row="3" Margin="5">Export segmentation mask dataset (slow -- takes a long time).</TextBlock>
+            <TextBlock TextWrapping="Wrap" Grid.Row="3" Margin="5">Export segmentation mask dataset (takes a long time)</TextBlock>
             <StackPanel Grid.Row="4" Orientation="Horizontal">
                 <Label VerticalAlignment="Center">Image Width:</Label>
                 <TextBox Text="{Binding MaskImageWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
@@ -53,6 +56,17 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
             </StackPanel>
             <StackPanel Grid.Row="5" Orientation="Horizontal">
                 <Button x:Name="ExportSegmentationMasks" Click="ExportSegmentationMasks_Click">Export Segmentation Mask Dataset</Button>
+            </StackPanel>
+
+            <TextBlock TextWrapping="Wrap" Grid.Row="6" Margin="5">Export classification dataset (takes a long time)</TextBlock>
+            <StackPanel Grid.Row="7" Orientation="Horizontal">
+                <Label VerticalAlignment="Center">Image Width:</Label>
+                <TextBox Text="{Binding ClassificationImageWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
+                <Label VerticalAlignment="Center">Image Height:</Label>
+                <TextBox Text="{Binding ClassificationImageHeight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" />
+            </StackPanel>
+            <StackPanel Grid.Row="8" Orientation="Horizontal">
+                <Button x:Name="ExportClassification" Click="ExportClassification_Click">Export Classification Dataset</Button>
             </StackPanel>
         </Grid>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10,10,10,10">

@@ -44,7 +44,9 @@ namespace Darwin.Helpers
 
         //public const int MaskImageWidth = 224;
         //public const int MaskImageHeight = 224;
-        public const string MaskCsvFilename = "darwin_coordinates.csv";
+        public const string MaskCsvFilename = "darwin_masks.csv";
+
+        public const string ClassificationCsvFilename = "darwin_classification.csv";
 
         public static MLFeatureImage ConvertDatabaseFinToMLFeatureImage(Bitmap image, FloatContour contour, double scale)
         {
@@ -263,6 +265,91 @@ namespace Darwin.Helpers
             }
 
             using (var writer = new StreamWriter(Path.Combine(datasetDirectory, MaskCsvFilename), false))
+            using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
+            {
+                csv.WriteRecords(csvRecords);
+            }
+
+            Trace.WriteLine("done.");
+        }
+
+        public static void SaveClassificationDatasetImages(string datasetDirectory, DarwinDatabase database, int datasetImageWidth = 299, int datasetImageHeight = 299)
+        {
+            if (datasetDirectory == null)
+                throw new ArgumentNullException(nameof(datasetDirectory));
+
+            if (database == null)
+                throw new ArgumentNullException(nameof(database));
+
+            if (!Directory.Exists(datasetDirectory))
+                throw new ArgumentOutOfRangeException(nameof(datasetDirectory));
+
+            Trace.WriteLine("Starting dataset export...");
+
+            string fullImagesDirectory = Path.Combine(datasetDirectory, ImagesDirectoryName);
+
+            Directory.CreateDirectory(fullImagesDirectory);
+
+            var csvRecords = new List<MLMaskCsvRecord>();
+
+            int imageNum = 1;
+
+            foreach (var dbFin in database.AllFins)
+            {
+                var fin = CatalogSupport.FullyLoadFin(dbFin);
+
+                if (!string.IsNullOrEmpty(fin?.IDCode))
+                    Trace.WriteLine("Exporting " + fin.IDCode);
+
+                foreach (var image in fin.Images)
+                {
+                    image.Contour.ApplyScale();
+
+                    int xMin, xMax, yMin, yMax;
+                    var cropImage = image.CreateCropImage(out xMin, out yMin, out xMax, out yMax);
+
+                    double ratio;
+                    var mlImage = BitmapHelper.ResizeKeepAspectRatio(cropImage, datasetImageWidth, datasetImageHeight, out ratio);
+
+                    image.Contour.Crop(xMin, yMin, xMax, yMax);
+
+                    float contourRatio = (float)(1 / ratio);
+                    image.Contour.ApplyNonProportionalScale(contourRatio, contourRatio);
+
+                    var mask = BitmapHelper.CreateMaskImageFromContour(mlImage, image.Contour);
+
+                    //mask = BitmapHelper.ResizeKeepAspectRatio(mask, datasetImageWidth, datasetImageHeight);
+
+                    // Now pad the images so they're the "full" desired size
+                    mlImage = BitmapHelper.Pad(mlImage, datasetImageWidth, datasetImageHeight, Color.Black);
+                    mask = BitmapHelper.Pad(mask, datasetImageWidth, datasetImageHeight, Color.Black);
+
+                    string imageFilename = imageNum.ToString().PadLeft(6, '0') + ".jpg";
+                    string maskFilename = imageNum.ToString().PadLeft(6, '0') + "_mask.jpg";
+
+                    mlImage.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, imageFilename));
+                    mask.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, maskFilename));
+
+                    csvRecords.Add(new MLMaskCsvRecord
+                    {
+                        image = imageFilename,
+                        mask_image = maskFilename,
+                        id_code = fin.IDCode.ToLowerInvariant()
+                    });
+
+                    imageNum += 1;
+                }
+
+                CatalogSupport.UnloadFin(fin);
+                fin = null;
+
+                // Wait for the garbage collector after we just dereferenced some objects,
+                // otherwise we end up maxing RAM if we have a large database.
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+
+            using (var writer = new StreamWriter(Path.Combine(datasetDirectory, ClassificationCsvFilename), false))
             using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
             {
                 csv.WriteRecords(csvRecords);

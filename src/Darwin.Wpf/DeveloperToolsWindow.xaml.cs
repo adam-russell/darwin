@@ -92,7 +92,34 @@ namespace Darwin.Wpf
 
                         MLSupport.SaveSegmentationMaskDatasetImages(dialog.SelectedPath, _vm.Database, _vm.MaskImageWidth, _vm.MaskImageHeight);
 
-                        MessageBox.Show("Dataset generation complete.", "Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show("Segmentation mask dataset generation complete.", "Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    finally
+                    {
+                        Mouse.OverrideCursor = null;
+                        this.IsHitTestVisible = true;
+                    }
+                }
+            }
+        }
+
+        private void ExportClassification_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                dialog.Description = "Pick an output folder for the training dataset";
+                System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+
+                if (result == System.Windows.Forms.DialogResult.OK)
+                {
+                    try
+                    {
+                        this.IsHitTestVisible = false;
+                        Mouse.OverrideCursor = Cursors.Wait;
+
+                        MLSupport.SaveClassificationDatasetImages(dialog.SelectedPath, _vm.Database, _vm.ClassificationImageWidth, _vm.ClassificationImageHeight);
+
+                        MessageBox.Show("Classification dataset generation complete.", "Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     finally
                     {

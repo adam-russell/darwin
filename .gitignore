@@ -76,3 +76,7 @@ dlldata.c
 
 autom4te.cache
 darwin/src/darwin
+Jupyter Notebooks/data
+Jupyter Notebooks/.ipynb_checkpoints
+*.h5
+Jupyter Notebooks/models
