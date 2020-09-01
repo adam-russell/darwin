@@ -366,7 +366,7 @@ namespace Darwin.Wpf
             {
                 Trace.WriteLine("Selecting added individual...");
 
-                if (string.IsNullOrEmpty(idCode) == null)
+                if (string.IsNullOrEmpty(idCode))
                     _vm.SelectedFin = _vm.Fins[_vm.Fins.Count - 1];
                 else
                     _vm.SelectedFin = _vm.Fins.Where(f => f.IDCode.ToUpperInvariant() == idCode.ToUpperInvariant()).FirstOrDefault();

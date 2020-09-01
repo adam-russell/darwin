@@ -167,6 +167,14 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
             <TextBlock x:Name="TextBlock1" FontFamily="{StaticResource FontAwesome}" Text="&#xf004;" HorizontalAlignment="Center" Margin="0" TextWrapping="Wrap" VerticalAlignment="Center" FontSize="100"/>
         </StackPanel>-->
             <StackPanel Grid.Row="2" Orientation="Horizontal">
+                <Button x:Name="AutoTrace2Button" Style="{StaticResource ToolbarButton}" Click="AutoTrace2Button_Click" ToolTip="AutoTrace" Visibility="{Binding TraceToolsVisibility}">
+                    <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                        <Image Source="/Darwin.Wpf;component/Resources/Images/wand.png" />
+                        <!--<Label Padding="2" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalAlignment="Center">&#xf0d0;</Label>-->
+                        <!--<Label FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" Padding="2" FontSize="16">&#xE7AD;</Label>-->
+                        <!--<Label Padding="2" HorizontalAlignment="Center">Rotate CW</Label>-->
+                    </StackPanel>
+                </Button>
                 <Button x:Name="FlipHorizontalButton" Style="{StaticResource ToolbarButton}" ToolTip="Flip the image horizontally" Click="FlipHorizontalButton_Click" Visibility="{Binding TraceToolsVisibility}">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="2">
                         <!--<Label Padding="2" FontFamily="{StaticResource FontAwesomeSolid}" FontSize="15" HorizontalAlignment="Center">&#xf362;</Label>-->

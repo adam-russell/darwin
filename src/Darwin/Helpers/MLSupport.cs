@@ -20,6 +20,7 @@ using Darwin.Extensions;
 using Darwin.Helpers;
 using Darwin.ImageProcessing;
 using Darwin.ML;
+using Darwin.ML.Services;
 using Darwin.Model;
 using System;
 using System.Collections.Generic;
@@ -32,6 +33,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Darwin.Helpers
 {
@@ -240,10 +242,13 @@ namespace Darwin.Helpers
                     mask = BitmapHelper.Pad(mask, maskImageWidth, maskImageHeight, Color.Black);
 
                     string imageFilename = imageNum.ToString().PadLeft(6, '0') + ".jpg";
-                    string maskFilename = imageNum.ToString().PadLeft(6, '0') + "_mask.jpg";
+                    string maskFilename = imageNum.ToString().PadLeft(6, '0') + "_mask.png";
 
                     mlImage.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, imageFilename));
-                    mask.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, maskFilename));
+
+                    // Note we're saving as a PNG to make sure we don't get compression artificacts -- we
+                    // want the mask to be strictly white/black
+                    mask.SaveAsCompressedPng(Path.Combine(fullImagesDirectory, maskFilename));
 
                     csvRecords.Add(new MLMaskCsvRecord
                     {
@@ -325,10 +330,13 @@ namespace Darwin.Helpers
                     mask = BitmapHelper.Pad(mask, datasetImageWidth, datasetImageHeight, Color.Black);
 
                     string imageFilename = imageNum.ToString().PadLeft(6, '0') + ".jpg";
-                    string maskFilename = imageNum.ToString().PadLeft(6, '0') + "_mask.jpg";
+                    string maskFilename = imageNum.ToString().PadLeft(6, '0') + "_mask.png";
 
                     mlImage.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, imageFilename));
-                    mask.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, maskFilename));
+
+                    // Note we're saving as a PNG to make sure we don't get compression artificacts -- we
+                    // want the mask to be strictly white/black
+                    mask.SaveAsCompressedPng(Path.Combine(fullImagesDirectory, maskFilename));
 
                     csvRecords.Add(new MLMaskCsvRecord
                     {
@@ -389,6 +397,34 @@ namespace Darwin.Helpers
             Trace.WriteLine(" ");
 
             return coordinates;
+        }
+
+        public static async Task<Contour> DetectContour(Bitmap bitmap, string filename)
+        {
+            double ratio;
+            var mlImage = BitmapHelper.ResizeKeepAspectRatio(bitmap, AppSettings.DefaultMaskImageWidth, AppSettings.DefaultMaskImageHeight, out ratio);
+            int resizedWidth = mlImage.Width;
+            int resizedHeight = mlImage.Height;
+            mlImage = BitmapHelper.Pad(mlImage, AppSettings.DefaultMaskImageWidth, AppSettings.DefaultMaskImageHeight, Color.Black);
+
+            var mlService = new MLService();
+
+            Trace.WriteLine("Sending image to service to find contours...");
+            var rawContour = await mlService.GetRawContourAsync(mlImage, filename);
+
+            if (rawContour == null)
+                return null;
+
+            Trace.WriteLine("Got the contour back");
+
+            int xOffset = -1 * ((AppSettings.DefaultMaskImageWidth - resizedWidth) / 2);
+            int yOffset = -1 * ((AppSettings.DefaultMaskImageHeight - resizedHeight) / 2);
+
+            var contour = new Contour(rawContour, (float)ratio, xOffset, yOffset);
+
+            //contour.EvenlySpaceContourPoints(Options.CurrentUserOptions.ContourSpacing);
+
+            return contour;
         }
     }
 }

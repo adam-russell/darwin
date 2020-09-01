@@ -760,6 +760,11 @@ namespace Darwin.Wpf.ViewModel
 			DatabaseFin.PrimaryImage.ImageMods = DatabaseFin.PrimaryImage.ImageMods.Concat(addedMods).ToList();
 		}
 
+		public async Task<Contour> DetectContour()
+        {
+			return await MLSupport.DetectContour(DatabaseFin.PrimaryImage.FinImage, DatabaseFin.PrimaryImage.ImageFilename);
+        }
+
 		/// <summary>
 		/// Locks in trace after user cleanup, but before user is allowed to move feature points (tip, notch, etc)
 		/// </summary>

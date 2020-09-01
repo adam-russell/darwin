@@ -84,11 +84,11 @@ namespace Darwin.Wpf.ViewModel
             WindowTitle = "Developer Tools";
             Database = database;
 
-            MaskImageHeight = 512;
-            MaskImageWidth = 512;
+            MaskImageHeight = AppSettings.DefaultMaskImageHeight;
+            MaskImageWidth = AppSettings.DefaultMaskImageWidth;
 
-            ClassificationImageWidth = 299;
-            ClassificationImageHeight = 299;
+            ClassificationImageWidth = AppSettings.DefaultClassificationImageWidth;
+            ClassificationImageHeight = AppSettings.DefaultClassificationImageHeight;
         }
     }
 }

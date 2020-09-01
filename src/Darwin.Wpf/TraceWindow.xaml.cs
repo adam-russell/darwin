@@ -1559,8 +1559,7 @@ namespace Darwin.Wpf
 
 		private void TraceCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
 		{
-			Trace.WriteLine("left mouse button up");
-
+			//Trace.WriteLine("left mouse button up");
 			var clickedPoint = e.GetPosition(this.TraceCanvas);
 			var bitmapPoint = MapWindowsPointToDarwinPoint(clickedPoint);
 
@@ -2216,6 +2215,42 @@ namespace Darwin.Wpf
 			}
 		}
 
-		#endregion
-	}
+        #endregion
+
+        private async void AutoTrace2Button_Click(object sender, RoutedEventArgs e)
+        {
+			try
+			{
+				_vm.StatusBarMessage = "Autotracing...";
+				this.IsHitTestVisible = false;
+				Mouse.OverrideCursor = Cursors.Wait;
+
+				var newContour = await _vm.DetectContour();
+
+				if (newContour == null)
+					throw new NullReferenceException(nameof(newContour));
+
+				await Dispatcher.BeginInvoke(new Action(() =>
+				{
+					_vm.Contour = newContour;
+				}), DispatcherPriority.Background);
+
+				_vm.StatusBarMessage = string.Empty;
+			}
+			catch (Exception ex)
+			{
+				_vm.StatusBarMessage = "Problem autotracing.";
+				Mouse.OverrideCursor = null;
+				this.IsHitTestVisible = true;
+				Trace.Write(ex);
+				MessageBox.Show("There was a problem autotracing." + Environment.NewLine + Environment.NewLine +
+					"Please try again or trace your " + _vm.Database.CatalogScheme.IndividualTerminology + " manually.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+			}
+			finally
+			{
+				Mouse.OverrideCursor = null;
+				this.IsHitTestVisible = true;
+			}
+		}
+    }
 }

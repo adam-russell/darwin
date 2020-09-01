@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 namespace Darwin
 {
     // TODO: Move the image processing stuff out of this
-    // Put this in a settings file or something
+    // Put this in a settings file
     public static class AppSettings
     {
         public static string MissingImageUri = "/Resources/Images/fnf.png";
@@ -40,6 +40,13 @@ namespace Darwin
                 return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Documentation\\usersguide.htm");
             }
         }
+
+        public const int DefaultMaskImageHeight = 512;
+        public const int DefaultMaskImageWidth = 512;
+
+        public const int DefaultClassificationImageHeight = 299;
+        public const int DefaultClassificationImageWidth = 299;
+
         public const int MaxZoom = 1600;
         public const int MinZoom = 6;
 

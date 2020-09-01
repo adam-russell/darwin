@@ -25,6 +25,7 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Collections;
+using Darwin.ML.Model;
 using Darwin.Utilities;
 using System;
 using System.Collections.Generic;
@@ -207,6 +208,16 @@ namespace Darwin.Model
 			foreach (var p in c.Points)
 				_points.Add(new Point((int)Math.Round(p.X), (int)Math.Round(p.Y)));
 		}
+
+		public Contour(List<RawPoint> rawPoints, float scale, int xOffset, int yOffset)
+			: this()
+        {
+			if (rawPoints != null)
+            {
+				foreach (var p in rawPoints)
+					_points.Add(new Point((int)Math.Round((p.x + xOffset) / scale), (int)Math.Round((p.y + yOffset)/ scale)));
+            }
+        }
 
 		public Contour(FloatContour c, double normalizationScale, bool rescale = false)
 		{

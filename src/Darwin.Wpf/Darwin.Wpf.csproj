@@ -53,6 +53,7 @@
     <None Remove="Resources\Images\rotate_button.png" />
     <None Remove="Resources\Images\trace.png" />
     <None Remove="Resources\Images\view_points.png" />
+    <None Remove="Resources\Images\wand.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -102,6 +103,7 @@
     <Resource Include="Resources\Images\rotate_button.png" />
     <Resource Include="Resources\Images\trace.png" />
     <Resource Include="Resources\Images\view_points.png" />
+    <Resource Include="Resources\Images\wand.png" />
   </ItemGroup>
 
   <ItemGroup>
