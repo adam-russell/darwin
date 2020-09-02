@@ -417,6 +417,7 @@ namespace Darwin.Wpf.ViewModel
 				_zoomRatio = value;
 
 				RaisePropertyChanged("ZoomRatio");
+				RaisePropertyChanged("ZoomPointSize");
 
 				if (_preventPropagation)
 				{
@@ -477,8 +478,8 @@ namespace Darwin.Wpf.ViewModel
 		{
 			get
 			{
-				if (_zoomRatio > 0.5f)
-					return Options.CurrentUserOptions.DrawingPointSize * _zoomRatio;
+				if (_zoomRatio < 1.0f)
+					return Options.CurrentUserOptions.DrawingPointSize / _zoomRatio;
 
 				return Options.CurrentUserOptions.DrawingPointSize;
 			}

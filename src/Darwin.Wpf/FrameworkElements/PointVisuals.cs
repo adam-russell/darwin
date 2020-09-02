@@ -55,7 +55,8 @@ namespace Darwin.Wpf.FrameworkElements
                 typeof(double),
                 typeof(PointVisuals),
                 new FrameworkPropertyMetadata(2.0,
-                        FrameworkPropertyMetadataOptions.AffectsRender));
+                        FrameworkPropertyMetadataOptions.AffectsRender,
+                        new PropertyChangedCallback(OnPointSizeChanged)));
 
         public static readonly DependencyProperty FeaturePointSizeProperty =
             DependencyProperty.Register("FeaturePointSize",
@@ -113,9 +114,20 @@ namespace Darwin.Wpf.FrameworkElements
             get { return (Brush)GetValue(BackgroundProperty); }
         }
 
+        private double _lastPointSize;
+        private bool _redrawPoints;
+
         public double PointSize
         {
-            set { SetValue(PointSizeProperty, value); }
+            set
+            {
+                SetValue(PointSizeProperty, value);
+
+                if (value != _lastPointSize && ItemsSource != null && ItemsSource.Count > 0)
+                    RedrawPoints();
+
+                _lastPointSize = value;
+            }
             get { return (double)GetValue(PointSizeProperty); }
         }
 
@@ -146,6 +158,25 @@ namespace Darwin.Wpf.FrameworkElements
         static void OnItemsSourceChanged(DependencyObject obj, DependencyPropertyChangedEventArgs args)
         {
             (obj as PointVisuals).OnItemsSourceChanged(args);
+        }
+
+        private static void OnPointSizeChanged(DependencyObject obj, DependencyPropertyChangedEventArgs e)
+        {
+            var pointVisuals = obj as PointVisuals;
+
+            if (pointVisuals != null)
+            {
+                if ((double)e.NewValue != pointVisuals._lastPointSize)
+                    pointVisuals._redrawPoints = true;
+
+                pointVisuals._lastPointSize = (double)e.NewValue;
+            }
+        }
+
+        protected void RedrawPoints()
+        {
+            visualChildren.Clear();
+            CreateVisualChildren(ItemsSource);
         }
 
         protected void OnItemsSourceChanged(DependencyPropertyChangedEventArgs args)
@@ -247,6 +278,9 @@ namespace Darwin.Wpf.FrameworkElements
 
         protected void CreateVisualChildren(ICollection coll)
         {
+            if (coll == null)
+                return;
+
             foreach (object obj in coll)
             {
                 Darwin.Model.Point point  = obj as Darwin.Model.Point;
@@ -412,6 +446,12 @@ namespace Darwin.Wpf.FrameworkElements
         {
             if (Background != System.Windows.Media.Brushes.Transparent)
                 dc.DrawRectangle(Background, null, new Rect(RenderSize));
+
+            if (_redrawPoints)
+            {
+                RedrawPoints();
+                _redrawPoints = false;
+            }
         }
 
         //protected override void OnToolTipOpening(ToolTipEventArgs e)

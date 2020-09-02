@@ -321,7 +321,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                                 <!-- This is for the contour/outline feature points -->
                                 <fe:PointVisuals Width="{Binding Path=ActualWidth, ElementName=TraceImage}" Height="{Binding Path=ActualHeight, ElementName=TraceImage}"
                                             Background="Transparent"
-                                            PointSize="3"
+                                            PointSize="{Binding ZoomPointSize}"
                                             ContourScale="{Binding Contour.Scale}"
                                             ItemsSource="{Binding Contour.Points}"
                                             Brushes="{StaticResource brushes}" />
