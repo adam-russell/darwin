@@ -64,7 +64,7 @@ namespace Darwin.ML.Services
             fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
             {
                 Name = "File",
-                FileName = Path.GetFileName(filename)
+                FileName = Path.GetFileNameWithoutExtension(filename) + ".jpg"
             };
             form.Add(fileContent);
 

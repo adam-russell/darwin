@@ -777,9 +777,16 @@ namespace Darwin.Wpf.ViewModel
 
 			// After even spacing and normalization fin height will be approx 600 units
 			NormScale = Contour.NormalizeContour(); //***006CN
-			Contour.RemoveKnots(3.0);       //***006CN
 
-			Contour = Contour.EvenlySpaceContourPoints(3.0); //***006CN
+			if (Options.CurrentUserOptions.ContoursAreClosedLoop)
+			{
+				Contour = Contour.EvenlySpaceContourPoints2(3.0); //***006CN
+			}
+			else
+			{
+				Contour.RemoveKnots(3.0);
+				Contour = Contour.EvenlySpaceContourPoints(3.0); //***006CN
+			}
 
 			Outline = new Outline(Contour, Database.CatalogScheme.FeatureSetType, Bitmap, NormScale); //***008OL
 
@@ -806,7 +813,10 @@ namespace Darwin.Wpf.ViewModel
 					if (spacing < spaceBetweenPoints)
 						spacing = spaceBetweenPoints;
 
-					Contour = tempContour.EvenlySpaceContourPoints(spacing);
+					if (Options.CurrentUserOptions.ContoursAreClosedLoop)
+						Contour = tempContour.EvenlySpaceContourPoints2(spacing);
+					else
+						Contour = tempContour.EvenlySpaceContourPoints(spacing);
 				}
 
 				Outline = null;

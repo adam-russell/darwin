@@ -934,7 +934,7 @@ namespace Darwin.Model
 
 					/////////////////////// begin old /////////////////////
 					if (Math.Abs(MathHelper.RadiansToDegrees(prevBearing - curBearing)) <= MaxTurnAngle) //***1.4 - was 150
-																											////////////////////// end old ///////////////////////
+					////////////////////// end old ///////////////////////
 					{
 						// add Q to new countour and move cc forward
 						newContour.AddPoint(qx, qy);
@@ -981,17 +981,344 @@ namespace Darwin.Model
 
 			} // while (!done)
 
-			// debugging code -- JHS
-			//for (int k = 1; k < newContour.NumPoints; k++)
-			//{
-			//	double dx = newContour[k - 1].X - newContour[k].X;
-			//	double dy = newContour[k - 1].Y - newContour[k].Y;
-			//	double dist = Math.Sqrt(dx * dx + dy * dy);
-			//	//if ((dist < space-0.2) || (space+0.2 < dist))
-			//	//	std::cout << '|' << dist << '|';
-			//	//else
-			//	//	std::cout << '.';
-			//}
+			return newContour;
+		}
+
+		/// <summary>
+		/// Evenly space contour points, but allow greater turn angles and minor changes
+		/// for closed loop contours.
+		/// </summary>
+		/// <param name="space"></param>
+		/// <returns></returns>
+		public Contour EvenlySpaceContourPoints2(double space)
+		{
+			if (NumPoints < 3)
+				return new Contour();
+
+			double maxTurnAngle = 360;
+
+			int x, y, ccx, ccy, tx, ty, vx, vy, vsx, vsy, qx = 0, qy = 0;
+			int idx;                                          //005CT
+			double a, b, c, sqrt_b2_4ac, t1, t2, t, tLen;              //005CT
+			double curBearing, prevBearing;                            //005CT
+																	   //double changeInAngle;
+
+			// cc= (ccx,ccy) is the center point of the current circle with radius == space
+			// vs= (vsx,vsy) is the beginning of the edge segment being intersected with the circle
+			// p = (x,y) is the end of the vector being intersected with the circle
+			//
+			// there are three cases for intersections
+			//
+			// (1) vs == cc and dist(cc,p) > space
+			//     compute Q = point on edge (cc,p) at dist space from cc
+			// (2) dist(cc,p) == space
+			//     Q is simply p
+			// (3) dist(cc,p) < space
+			//     set vs = p
+			//     set p = next point in original contour
+			// (4) vs != cc and dist(cc,p) > space
+			//     this means that dist(vs,p) < space (from previous tests)
+			//     find Q = point on edge(vs,p) at dist space from cc
+			//
+			// in all cases the edge (cc,Q) is the next edge in the new contour
+			// and Q will be added to the new contour, cc will be moved to Q
+			// vs will be moved to Q and and in case (2) p will be moved to the next p
+			// ONLY IF the edge bearing is less than 150 degrees change from previous
+			// edge bearing
+			//
+			// if the bearing change is 150 degrees or more, the edge (cc,Q) is skipped
+			// and the following occurs
+			//
+			// case (1) increment index i (moves point p only, leaving vs == cc)
+			// case (2) increment index i (moves point p only, leaving vs == cc)
+			// case (4) vs is moved back to cc
+			//
+
+			// will be true when all original contour points have been used
+			bool done = false;
+
+			// Point cc (circle center & previous point added to new contour)
+			ccx = Points[0].X;
+			ccy = Points[0].Y;
+
+			// Point vs (start of edge being tested for intersection with circle)
+			vsx = Points[0].X;
+			vsy = Points[0].Y;
+
+			// Point p (end point of edge being tested for circle intersection)
+			x = Points[1].X;
+			y = Points[1].Y;
+
+			// Index of p
+			idx = 1;
+
+			var newContour = new Contour()
+			{
+				Scale = Scale
+			};
+
+			// First point of new Contour is first point of old contour
+			newContour.AddPoint(ccx, ccy); //005CT
+
+			// bearing into first point should be approximately this
+			prevBearing = -Math.PI * 0.25; // -45 degrees
+
+			bool lastPoint = false;
+
+			while (!done)
+			{
+				// vector from vs to p
+				vx = x - vsx;
+				vy = y - vsy;
+				// vector from cc to p
+				tx = x - ccx;
+				ty = y - ccy;
+
+				//005CT - new thru line 461
+				tLen = Math.Sqrt((double)(tx * tx + ty * ty));    // dist(cc,p)
+
+				if (tLen > space)
+				{     // then evaluate intersection
+					if ((ccx == vsx) && (ccy == vsy))
+					{
+						// case (1) Q is on edge(cc,p) at dist space from cc
+						//***1.3 - added round() function - truncation was causing points to
+						//         drift away from long line segments
+						qx = (int)Math.Round((space / tLen) * x + (1.0 - (space / tLen)) * ccx);
+						qy = (int)Math.Round((space / tLen) * y + (1.0 - (space / tLen)) * ccy);
+
+						// check that wrapping is not occurring
+						curBearing = Math.Atan2((double)(qy - ccy), (double)(qx - ccx));
+
+						/*
+						/////////////////////// begin new /////////////////////
+						//***1.1ER - correct for limits (+/- pi) of atan2
+						// fixing this is required to prevent pulling edge out of 
+						// deep downward turned notches, but creates problem
+						// with notch finding -- fix in next version
+						*/
+						double changeInAngle = Math.Abs(MathHelper.RadiansToDegrees(prevBearing - curBearing));
+
+						//if (changeInAngle > 180)
+						//	changeInAngle = 360 - changeInAngle;
+
+						if (changeInAngle <= maxTurnAngle)
+						{
+							// add Q to new contour and move forward
+							newContour.AddPoint(qx, qy);
+							//cout << "x=" << qx << ":" << "y=" << qy << ":" << distance(qx,qy,ccx,ccy)
+							//	   << " from previous point" << endl;
+							prevBearing = curBearing;
+							ccx = qx;
+							ccy = qy;
+							vsx = qx;
+							vsy = qy;
+						}
+						else // Change in bearing is excessive
+						{
+							// Skip this point Q and move p forward
+							// Next time we calculate edge(cc,p) intersection with circle
+							idx += 1;
+
+							if (lastPoint)
+							{
+								done = true;
+							}
+							else if (idx < NumPoints)
+							{
+								vsx = ccx;
+								vsy = ccy;
+								x = Points[idx].X;
+								y = Points[idx].Y;
+							}
+							else
+							{
+								if (!Options.CurrentUserOptions.ContoursAreClosedLoop)
+								{
+									done = true;
+								}
+								else
+								{
+									lastPoint = true;
+									vsx = ccx;
+									vsy = ccy;
+									x = Points[0].X;
+									y = Points[0].Y;
+								}
+							}
+						}
+					}
+					else  // cc != vs
+					{
+						// case (4) Q is on edge(vs,p) at dist space from cc
+						tx = vsx - ccx;
+						ty = vsy - ccy;
+						a = vx * vx + vy * vy;
+						b = 2 * (vx * tx + vy * ty);    // 2 * dot(v, t)
+						c = tx * tx + ty * ty - space * space;
+
+						if (b * b - 4 * a * c < 0.0)
+							Trace.Write("Neg Radical"); // this should NEVER happen
+						else
+						{
+							sqrt_b2_4ac = Math.Sqrt(b * b - 4 * a * c);
+							t1 = (-b + sqrt_b2_4ac) / (2 * a);
+							t2 = (-b - sqrt_b2_4ac) / (2 * a);
+							if ((t1 >= 0) && (t1 <= 1))
+								t = t1;
+							else if ((t2 >= 0) && (t2 <= 1))
+								t = t2;
+							else
+								t = 0; // this should NEVER happen, either
+
+							qx = (int)Math.Round(vsx + (t * vx));
+							qy = (int)Math.Round(vsy + (t * vy));
+						}
+
+						// check that wrapping is not occurring
+						curBearing = Math.Atan2((double)(qy - ccy), (double)(qx - ccx));
+
+						/*
+						//////////////////////// begin new ///////////////////
+						//***1.1ER - correct for limits (+/- pi) of atan2
+						// fixing this is required to prevent pulling edge out of 
+						// deep downward turned notches, but creates problem
+						// with notch finding -- fix in next version
+						//
+						changeInAngle = fabs(rtod(prevBearing - curBearing));
+						if (changeInAngle > 180)
+							changeInAngle = 360 - changeInAngle;
+
+						if (changeInAngle <= 150)
+						//////////////////////// end new ////////////////////
+						*/
+
+						//////////////////////// begin old //////////////////
+						if (Math.Abs(MathHelper.RadiansToDegrees(prevBearing - curBearing)) <= maxTurnAngle) //***1.4 - was 150
+																											 /////////////////////// end old /////////////////////
+						{
+							// add Q to new countour and move cc forward
+							newContour.AddPoint(qx, qy);
+							//cout << "x=" << qx << ":" << "y=" << qy << ":" << distance(qx,qy,ccx,ccy)
+							//	   << " from previous point" << endl;
+							prevBearing = curBearing;
+							ccx = qx;
+							ccy = qy;
+							vsx = qx;
+							vsy = qy;
+						}
+						else // change in angle is excessive
+						{
+							// skip this point Q, move vs back to cc
+							// next time we calculate edge(cc,p) intersection with circle
+							vsx = ccx;
+							vsy = ccy;
+						}
+					}
+				}
+				else if (tLen < space)
+				{
+					// case(3) move vs and p forward
+					idx += 1;
+
+					if (lastPoint)
+					{
+						done = true;
+					}
+					else if (idx < Points.Count)
+					{
+						vsx = x;
+						vsy = y;
+						x = Points[idx].X;
+						y = Points[idx].Y;
+					}
+					else
+					{
+						if (!Options.CurrentUserOptions.ContoursAreClosedLoop)
+						{
+							done = true;
+						}
+						else
+						{
+							lastPoint = true;
+							vsx = x;
+							vsy = y;
+							x = Points[0].X;
+							y = Points[0].Y;
+						}
+					}
+				}
+				else // tLen == space
+				{
+					// case(2) point Q is simply point p
+					qx = x;
+					qy = y;
+
+					// check that wrapping is not occurring
+					curBearing = Math.Atan2((double)(qy - ccy), (double)(qx - ccx));
+
+					/*
+					/////////////////// begin new //////////////////////
+					//***1.1ER - correct for limits (+/- pi) of atan2
+					// fixing this is required to prevent pulling edge out of 
+					// deep downward turned notches, but creates problem
+					// with notch finding -- fix in next version
+					//
+					changeInAngle = fabs(rtod(prevBearing - curBearing));
+					if (changeInAngle > 180)
+						changeInAngle = 360 - changeInAngle;
+
+					if (changeInAngle <= 150)
+					/////////////////// end new /////////////////////
+					*/
+
+					/////////////////////// begin old /////////////////////
+					if (Math.Abs(MathHelper.RadiansToDegrees(prevBearing - curBearing)) <= maxTurnAngle) //***1.4 - was 150
+																										 ////////////////////// end old ///////////////////////
+					{
+						// add Q to new countour and move cc forward
+						newContour.AddPoint(qx, qy);
+						//cout << "x=" << qx << ":" << "y=" << qy << ":" << distance(qx,qy,ccx,ccy)
+						//	   << " from previous point" << endl;
+						prevBearing = curBearing;
+						ccx = qx;
+						ccy = qy;
+						vsx = qx;
+						vsy = qy;
+					}
+					else // change in angle is excessive
+					{
+						// skip this point Q, move vs back to cc (if needed) and move p forward
+						// next time we calculate edge(cc,p) intersection with circle
+						vsx = ccx;
+						vsy = ccy;
+						idx += 1;
+
+						if (lastPoint)
+						{
+							done = true;
+						}
+						else if (idx < Points.Count)
+						{
+							x = Points[idx].X;
+							y = Points[idx].Y;
+						}
+						else
+						{
+							if (!Options.CurrentUserOptions.ContoursAreClosedLoop)
+							{
+								done = true;
+							}
+							else
+							{
+								lastPoint = true;
+								x = Points[0].X;
+								y = Points[0].Y;
+							}
+						}
+					}
+				}
+			} 
 
 			return newContour;
 		}
@@ -1159,8 +1486,6 @@ namespace Darwin.Model
 				if (changeInAngle > 150)
 				{
 					/////////////////////////// end new //////////////////////////
-
-
 					/*
 					////////////////////// begin old //////////////////////////
 					double changeInAngle = rtod(prevBearing - curBearing);

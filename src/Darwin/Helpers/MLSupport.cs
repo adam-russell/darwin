@@ -415,16 +415,15 @@ namespace Darwin.Helpers
             if (rawContour == null)
                 return null;
 
-            Trace.WriteLine("Got the contour back");
+            Trace.WriteLine("Received response with contour.");
 
             int xOffset = -1 * ((AppSettings.DefaultMaskImageWidth - resizedWidth) / 2);
             int yOffset = -1 * ((AppSettings.DefaultMaskImageHeight - resizedHeight) / 2);
 
             var contour = new Contour(rawContour, (float)ratio, xOffset, yOffset);
 
-            //contour.EvenlySpaceContourPoints(Options.CurrentUserOptions.ContourSpacing);
-
-            return contour;
+            return contour.EvenlySpaceContourPoints2(Options.CurrentUserOptions.ContourSpacing);
+            //return contour;
         }
     }
 }

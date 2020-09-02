@@ -578,7 +578,12 @@ namespace Darwin.Wpf
 
 			float ratio = _vm.ZoomRatio * 100f;
 
-			Contour evenContour = _vm.Contour.EvenlySpaceContourPoints(spacing);
+			Contour evenContour = null;
+			if (Options.CurrentUserOptions.ContoursAreClosedLoop)
+				evenContour = _vm.Contour.EvenlySpaceContourPoints2(spacing);
+			else
+				evenContour = _vm.Contour.EvenlySpaceContourPoints(spacing);
+
 			Contour scaledContour = evenContour.CreateScaledContour(ratio / 100.0f, 0, 0); // small sized countour
 																								  
 			int chunkSize;  // used to divide up iterations among the scales
@@ -632,7 +637,9 @@ namespace Darwin.Wpf
 			Dispatcher.BeginInvoke(new Action(() =>
 			{
 				_vm.Contour = new Contour(scaledContour);
-				_vm.Contour.RemoveKnots(spacing); //***005CM
+
+				if (!Options.CurrentUserOptions.ContoursAreClosedLoop)
+					_vm.Contour.RemoveKnots(spacing); //***005CM
 			}), DispatcherPriority.Background);
 		}
 
@@ -705,7 +712,11 @@ namespace Darwin.Wpf
 
 			float ratio = _vm.ZoomRatio * 100f;
 
-			Contour evenContour = _vm.Contour.EvenlySpaceContourPoints(spacing);
+			Contour evenContour = null;
+			if (Options.CurrentUserOptions.ContoursAreClosedLoop)
+				evenContour = _vm.Contour.EvenlySpaceContourPoints2(spacing);
+			else
+				evenContour = _vm.Contour.EvenlySpaceContourPoints(spacing);
 
 			for (int i = 0; i < Options.CurrentUserOptions.SnakeMaximumIterations; i++)
 			{
@@ -728,7 +739,8 @@ namespace Darwin.Wpf
 			Dispatcher.BeginInvoke(new Action(() =>
 			{
 				_vm.Contour = new Contour(evenContour);
-				_vm.Contour.RemoveKnots(spacing); //***005CM
+				if (!Options.CurrentUserOptions.ContoursAreClosedLoop)
+					_vm.Contour.RemoveKnots(spacing); //***005CM
 			}), DispatcherPriority.Background);
 		}
 
