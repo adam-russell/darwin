@@ -608,7 +608,7 @@ namespace Darwin.Model
 			}
 		}
 
-		public void Crop(int xMin, int yMin, int xMax, int yMax)
+		public void Crop(int xMin, int yMin, int xMax, int yMax, int padding = 0)
         {
 			if (Points == null)
 				return;
@@ -624,8 +624,8 @@ namespace Darwin.Model
                 }
 				else
                 {
-					p.X = (int)((xScaled - xMin) * Scale);
-					p.Y = (int)((yScaled - yMin) * Scale);
+					p.X = (int)((xScaled - xMin) * Scale) + padding;
+					p.Y = (int)((yScaled - yMin) * Scale) + padding;
                 }
 			}
 

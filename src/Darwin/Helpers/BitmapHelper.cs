@@ -113,7 +113,12 @@ namespace Darwin.Helpers
                 graphic.CompositingQuality = _CompositingQuality;
 
                 graphic.Clear(Color.Transparent); // Transparent padding, just in case
-                graphic.DrawImage(bmp, 0, 0, newWidth, newHeight);
+                using (var attribute = new ImageAttributes())
+                {
+                    attribute.SetWrapMode(WrapMode.TileFlipXY);
+
+                    graphic.DrawImage(bmp, new Rectangle(0, 0, newWidth, newHeight), 0, 0, bmp.Width, bmp.Height, GraphicsUnit.Pixel, attribute);
+                }
             }
 
             return resizedImage;

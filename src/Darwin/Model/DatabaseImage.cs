@@ -16,7 +16,7 @@ namespace Darwin.Model
 
         public static int CurrentVersion = 2;
 
-        private const int CropPadding = 10;
+        public const float AutoCropPaddingPercentage = 0.05f;
 
         public Bitmap FinImage { get; set; } // Modified image
         public Bitmap OriginalFinImage { get; set; }
@@ -264,7 +264,7 @@ namespace Darwin.Model
             CropImage = CreateCropImage(out _, out _, out _, out _);
         }
 
-        public Bitmap CreateCropImage(out int xMin, out int yMin, out int xMax, out int yMax)
+        public Bitmap CreateCropImage(out int xMin, out int yMin, out int xMax, out int yMax, Contour selectedContour = null)
         {
             if (FinImage == null && OriginalFinImage == null)
                 throw new Exception("Main image is null, can't create a crop image.");
@@ -274,10 +274,28 @@ namespace Darwin.Model
 
             Bitmap imageToUse = FinImage ?? OriginalFinImage;
 
-            xMin = (int)Math.Floor((FinOutline.ChainPoints.MinX() - CropPadding) / FinOutline.Scale);
-            yMin = (int)Math.Floor((FinOutline.ChainPoints.MinY() - CropPadding) / FinOutline.Scale);
-            xMax = (int)Math.Ceiling((FinOutline.ChainPoints.MaxX() + CropPadding) / FinOutline.Scale);
-            yMax = (int)Math.Ceiling((FinOutline.ChainPoints.MaxY() + CropPadding) / FinOutline.Scale);
+            if (selectedContour == null)
+            {
+                xMin = (int)Math.Floor(FinOutline.ChainPoints.MinX() / FinOutline.Scale);
+                yMin = (int)Math.Floor(FinOutline.ChainPoints.MinY() / FinOutline.Scale);
+                xMax = (int)Math.Ceiling(FinOutline.ChainPoints.MaxX() / FinOutline.Scale);
+                yMax = (int)Math.Ceiling(FinOutline.ChainPoints.MaxY() / FinOutline.Scale);
+            }
+            else
+            {
+                xMin = selectedContour.XMin;
+                yMin = selectedContour.YMin;
+                xMax = selectedContour.XMax;
+                yMax = selectedContour.YMax;
+            }
+
+            int xPadding = (int)Math.Round((xMax - xMin) * AutoCropPaddingPercentage);
+            int yPadding = (int)Math.Round((yMax - yMin) * AutoCropPaddingPercentage);
+
+            xMin -= xPadding;
+            yMin -= yPadding;
+            xMax += xPadding;
+            yMax += yPadding;
 
             ConstraintHelper.ConstrainInt(ref xMin, 0, imageToUse.Width);
             ConstraintHelper.ConstrainInt(ref xMax, 0, imageToUse.Width);

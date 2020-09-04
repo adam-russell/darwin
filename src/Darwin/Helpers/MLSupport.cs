@@ -22,6 +22,7 @@ using Darwin.ImageProcessing;
 using Darwin.ML;
 using Darwin.ML.Services;
 using Darwin.Model;
+using Darwin.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -279,6 +280,30 @@ namespace Darwin.Helpers
             Trace.WriteLine("done.");
         }
 
+        public static (Bitmap, Bitmap) CreateClassificationImageAndMask(DatabaseImage image, int datasetImageWidth = 299, int datasetImageHeight = 299)
+        {
+            int xMin, xMax, yMin, yMax;
+            var cropImage = image.CreateCropImage(out xMin, out yMin, out xMax, out yMax, image.Contour);
+
+            double ratio;
+            var mlImage = BitmapHelper.ResizeKeepAspectRatio(cropImage, datasetImageWidth, datasetImageHeight, out ratio);
+
+            image.Contour.Crop(xMin, yMin, xMax, yMax);
+
+            float contourRatio = (float)(1 / ratio);
+            image.Contour.ApplyNonProportionalScale(contourRatio, contourRatio);
+
+            var mask = BitmapHelper.CreateMaskImageFromContour(mlImage, image.Contour);
+
+            //mask = BitmapHelper.ResizeKeepAspectRatio(mask, datasetImageWidth, datasetImageHeight);
+
+            // Now pad the images so they're the "full" desired size
+            mlImage = BitmapHelper.Pad(mlImage, datasetImageWidth, datasetImageHeight, Color.Black);
+            mask = BitmapHelper.Pad(mask, datasetImageWidth, datasetImageHeight, Color.Black);
+
+            return (mlImage, mask);
+        }
+
         public static async Task SaveClassificationDatasetImages(string datasetDirectory, DarwinDatabase database, int datasetImageWidth = 299, int datasetImageHeight = 299, bool remask = false)
         {
             if (datasetDirectory == null)
@@ -344,31 +369,15 @@ namespace Darwin.Helpers
                     }
 
                     GoodContour:
-                    int xMin, xMax, yMin, yMax;
-                    var cropImage = image.CreateCropImage(out xMin, out yMin, out xMax, out yMax);
 
-                    double ratio;
-                    var mlImage = BitmapHelper.ResizeKeepAspectRatio(cropImage, datasetImageWidth, datasetImageHeight, out ratio);
-
-                    image.Contour.Crop(xMin, yMin, xMax, yMax);
-
-                    float contourRatio = (float)(1 / ratio);
-                    image.Contour.ApplyNonProportionalScale(contourRatio, contourRatio);
-
-                    var mask = BitmapHelper.CreateMaskImageFromContour(mlImage, image.Contour);
-
-                    //mask = BitmapHelper.ResizeKeepAspectRatio(mask, datasetImageWidth, datasetImageHeight);
-
-                    // Now pad the images so they're the "full" desired size
-                    mlImage = BitmapHelper.Pad(mlImage, datasetImageWidth, datasetImageHeight, Color.Black);
-                    mask = BitmapHelper.Pad(mask, datasetImageWidth, datasetImageHeight, Color.Black);
+                    (var mlImage, var mask) = CreateClassificationImageAndMask(image, datasetImageWidth, datasetImageHeight);
 
                     string imageFilename = imageNum.ToString().PadLeft(6, '0') + ".jpg";
                     string maskFilename = imageNum.ToString().PadLeft(6, '0') + "_mask.png";
 
                     mlImage.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, imageFilename));
 
-                    // Note we're saving as a PNG to make sure we don't get compression artificacts -- we
+                    // Note we're saving as a PNG to make sure we don't get compression artifacts -- we
                     // want the mask to be strictly white/black
                     mask.SaveAsCompressedPng(Path.Combine(fullImagesDirectory, maskFilename));
 
