@@ -79,6 +79,17 @@ namespace Darwin.Wpf.ViewModel
             }
         }
 
+        private bool _remaskClassification;
+        public bool RemaskClassification
+        {
+            get => _remaskClassification;
+            set
+            {
+                _remaskClassification = value;
+                RaisePropertyChanged("RemaskClassification");
+            }
+        }
+
         public DeveloperToolsViewModel(DarwinDatabase database)
         {
             WindowTitle = "Developer Tools";

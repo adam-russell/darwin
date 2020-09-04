@@ -68,6 +68,7 @@ namespace Darwin.ML.Services
             };
             form.Add(fileContent);
 
+            client.Timeout = TimeSpan.FromMinutes(4);
             var streamResult = await client.PostAsync(requestUri, form);
             return await JsonSerializer.DeserializeAsync<List<RawPoint>>(await streamResult.Content.ReadAsStreamAsync());
         }

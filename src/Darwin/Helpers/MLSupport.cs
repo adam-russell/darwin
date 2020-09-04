@@ -33,6 +33,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Darwin.Helpers
@@ -278,7 +279,7 @@ namespace Darwin.Helpers
             Trace.WriteLine("done.");
         }
 
-        public static void SaveClassificationDatasetImages(string datasetDirectory, DarwinDatabase database, int datasetImageWidth = 299, int datasetImageHeight = 299)
+        public static async Task SaveClassificationDatasetImages(string datasetDirectory, DarwinDatabase database, int datasetImageWidth = 299, int datasetImageHeight = 299, bool remask = false)
         {
             if (datasetDirectory == null)
                 throw new ArgumentNullException(nameof(datasetDirectory));
@@ -308,8 +309,41 @@ namespace Darwin.Helpers
 
                 foreach (var image in fin.Images)
                 {
-                    image.Contour.ApplyScale();
+                    if (remask)
+                    {
+                        var backupContour = image.Contour;
 
+                        int tryNum = 0;
+                        while (tryNum < AppSettings.NumRetries)
+                        {
+                            try
+                            {
+                                image.Contour = await DetectContour(image.FinImage, image.ImageFilename);
+
+                                if (image.Contour == null || image.Contour.Length < 1)
+                                    throw new Exception("Empty contour!");
+
+                                goto GoodContour;
+                            }
+                            catch (Exception ex)
+                            {
+                                Trace.WriteLine(ex);
+                                tryNum += 1;
+                                Thread.Sleep(AppSettings.RetrySleepMilliseconds);
+                            }
+                        }
+
+                        Trace.WriteLine("Failed to find contours automatically, falling back to stored contour.");
+                        // We didn't find a contour, fall back to the one that's on the already.
+                        image.Contour = backupContour;
+                        image.Contour.ApplyScale();
+                    }
+                    else
+                    {
+                        image.Contour.ApplyScale();
+                    }
+
+                    GoodContour:
                     int xMin, xMax, yMin, yMax;
                     var cropImage = image.CreateCropImage(out xMin, out yMin, out xMax, out yMax);
 

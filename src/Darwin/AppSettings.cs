@@ -28,6 +28,9 @@ namespace Darwin
     // Put this in a settings file
     public static class AppSettings
     {
+        public static int NumRetries = 3;
+        public static int RetrySleepMilliseconds = 120000;
+
         public static string MissingImageUri = "/Resources/Images/fnf.png";
 
         //public static string MLModelFilename = "bear_coordinates_regular_noscale_flip.tflite";
@@ -41,8 +44,8 @@ namespace Darwin
             }
         }
 
-        public const int DefaultMaskImageHeight = 512;
-        public const int DefaultMaskImageWidth = 512;
+        public const int DefaultMaskImageHeight = 1024;
+        public const int DefaultMaskImageWidth = 1024;
 
         public const int DefaultClassificationImageHeight = 299;
         public const int DefaultClassificationImageWidth = 299;

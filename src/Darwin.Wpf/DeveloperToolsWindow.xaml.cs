@@ -103,7 +103,7 @@ namespace Darwin.Wpf
             }
         }
 
-        private void ExportClassification_Click(object sender, RoutedEventArgs e)
+        private async void ExportClassification_Click(object sender, RoutedEventArgs e)
         {
             using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
             {
@@ -117,7 +117,9 @@ namespace Darwin.Wpf
                         this.IsHitTestVisible = false;
                         Mouse.OverrideCursor = Cursors.Wait;
 
-                        MLSupport.SaveClassificationDatasetImages(dialog.SelectedPath, _vm.Database, _vm.ClassificationImageWidth, _vm.ClassificationImageHeight);
+                        await MLSupport.SaveClassificationDatasetImages(dialog.SelectedPath,
+                            _vm.Database, _vm.ClassificationImageWidth,
+                            _vm.ClassificationImageHeight, _vm.RemaskClassification);
 
                         MessageBox.Show("Classification dataset generation complete.", "Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                     }

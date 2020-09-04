@@ -64,6 +64,8 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 <TextBox Text="{Binding ClassificationImageWidth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"/>
                 <Label VerticalAlignment="Center">Image Height:</Label>
                 <TextBox Text="{Binding ClassificationImageHeight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" />
+
+                <CheckBox IsChecked="{Binding RemaskClassification,Mode=TwoWay}" VerticalAlignment="Center" Margin="10,0,0,0">Remask/resegment images</CheckBox>
             </StackPanel>
             <StackPanel Grid.Row="8" Orientation="Horizontal">
                 <Button x:Name="ExportClassification" Click="ExportClassification_Click">Export Classification Dataset</Button>
