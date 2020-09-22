@@ -95,8 +95,9 @@ namespace Darwin.Matching
             RegistrationMethodType registrationMethod,
             bool useFullFinError)
             : this(unknownFin, db, updateOutlines)
-        { 
-            SetMatchOptions(registrationMethod, useFullFinError);
+        {
+            MatchFactors = MatchFactorPresets.CreateFinMatchFactors(registrationMethod, useFullFinError, _updateOutlines);
+            CheckUnknownForRequiredFeatures();
         }
 
         public Match(
@@ -116,129 +117,25 @@ namespace Darwin.Matching
                 switch (db.CatalogScheme.FeatureSetType)
                 {
                     case FeatureSetType.DorsalFin:
-                        SetMatchOptions(RegistrationMethodType.TrimOptimalTip, true);
+                        MatchFactors = MatchFactorPresets.CreateFinMatchFactors(RegistrationMethodType.TrimOptimalTip, true, _updateOutlines);
                         break;
 
                     case FeatureSetType.Bear:
-                        MatchFactors = MatchFactorPresets.CreateBearMatchFactors(db);
+                        if (Options.CurrentUserOptions.MatchingScheme == MatchingSchemeType.Classic)
+                            MatchFactors = MatchFactorPresets.CreateBearMatchFactors(db);
+                        else
+                            MatchFactors = MatchFactorPresets.CreateBearMachineLearningMatchFactors(db);
                         break;
                 }
             }
-
             CheckUnknownForRequiredFeatures();
-
             // Force rediscovery (for debugging/testing, can uncomment
             //UnknownFin.FinOutline.RediscoverFeaturePoints(Database.CatalogScheme.FeatureSetType);
         }
 
-        public void SetMatchOptions(
-            RegistrationMethodType registrationMethod,
-            bool useFullFinError)
+        public void SetMatchOptions(RegistrationMethodType registrationMethod, bool useFullFinError)
         {
-            MatchFactors = new List<MatchFactor>();
-
-            // TODO: Move this elsewhere, change for Fins/Bears?
-            var controlPoints = new List<FeaturePointType> { FeaturePointType.LeadingEdgeBegin, FeaturePointType.Tip, FeaturePointType.PointOfInflection };
-
-            switch (registrationMethod)
-            {
-                case RegistrationMethodType.Original3Point:
-                    // use beginning of leading edge, tip and largest trailing notch
-                    // to map unknown outline to database outline, and then use
-                    // version of meanSqError... that trims leading and trailing
-                    // edge points to equalize number of points on each contour,
-                    // and finally compute error between "corresponding" pairs of
-                    // mapped points
-                    MatchFactors.Add(MatchFactor.CreateOutlineFactor(
-                        1.0f,
-                        controlPoints,
-                        OutlineErrorFunctions.MeanSquaredErrorBetweenOutlineSegments,
-                        OutlineErrorFunctions.FindErrorBetweenFins_Original3Point,
-                        _updateOutlines));
-                    break;
-                case RegistrationMethodType.TrimFixedPercent:
-                    // use a series of calls to meanSqError..., each with different amounts
-                    // of the leading edge of each fin "ignored" in order to find the BEST
-                    // choice of "leading edge beginning point" correspondence.  This prevents
-                    // "bulging" of outlines due to long or short placement of the
-                    // beginning of the trace.  Also, the version of meanSqError... used
-                    // is one that walks the unknown fin outline point by point, and 
-                    // computes the "closest point" on the database outline by finding
-                    // the intersection of a perpendicular from the unknown outline point.
-                    // This helps minimize errors due to nonuniform point spacing created
-                    // during the mapping process.
-                    MatchFactors.Add(MatchFactor.CreateOutlineFactor(
-                        1.0f,
-                        controlPoints,
-                        OutlineErrorFunctions.MeanSquaredErrorBetweenOutlineSegments,
-                        OutlineErrorFunctions.FindErrorBetweenFins,
-                        _updateOutlines));
-                    break;
-                /*removed - JHS
-                            case TRIM_OPTIMAL :
-                                // use an optimization process (essentially Newton-Raphson) to
-                                // shorten the leading edges of each fin to produce a correspondence
-                                // that yeilds the BEST match.  A fin Outline walking approach
-                                // is used to conpute the meanSqError....
-                                result = Match::findErrorBetweenFinsJHS(
-                                            thisDBFin, timeTaken, regSegmentsUsed,
-                                            useFullFinError);
-                                break;
-                */
-                case RegistrationMethodType.TrimOptimalTotal:
-                    // use an optimization process (essentially Newton-Raphson) to
-                    // shorten the leading AND trailing edges of each fin to produce a correspondence
-                    // that yeilds the BEST match.  A fin Outline walking approach
-                    // is used to compute the meanSqError....
-                    MatchFactors.Add(MatchFactor.CreateOutlineFactor(
-                        1.0f,
-                        controlPoints,
-                        OutlineErrorFunctions.MeanSquaredErrorBetweenOutlineSegments,
-                        OutlineErrorFunctions.FindErrorBetweenFinsOptimal,
-                        _updateOutlines,
-                        new OutlineMatchOptions
-                        {
-                            MoveTip = false,
-                            MoveEndsInAndOut = false,
-                            UseFullFinError = useFullFinError
-                        }));
-
-                    break;
-                case RegistrationMethodType.TrimOptimalTip:
-                    MatchFactors.Add(MatchFactor.CreateOutlineFactor(
-                        1.0f,
-                        controlPoints,
-                        OutlineErrorFunctions.MeanSquaredErrorBetweenOutlineSegments,
-                        OutlineErrorFunctions.FindErrorBetweenFinsOptimal,
-                        _updateOutlines,
-                        new OutlineMatchOptions
-                        {
-                            MoveTip = true,
-                            MoveEndsInAndOut = false,
-                            UseFullFinError = useFullFinError
-                        }));
-                    break;
-                case RegistrationMethodType.TrimOptimalArea: //***1.85 - new area based metric option
-                    MatchFactors.Add(MatchFactor.CreateOutlineFactor(
-                        1.0f,
-                        controlPoints,
-                        OutlineErrorFunctions.AreaBasedErrorBetweenOutlineSegments,
-                        OutlineErrorFunctions.FindErrorBetweenFinsOptimal,
-                        _updateOutlines,
-                        new OutlineMatchOptions
-                        {
-                            MoveTip = true,
-                            MoveEndsInAndOut = false,
-                            UseFullFinError = useFullFinError
-                        }));
-                    break;
-                case RegistrationMethodType.TrimOptimalInOut:
-                case RegistrationMethodType.TrimOptimalInOutTip:
-                default:
-                    throw new NotImplementedException();
-            }
-
-            CheckUnknownForRequiredFeatures();
+            MatchFactors = MatchFactorPresets.CreateFinMatchFactors(registrationMethod, useFullFinError, _updateOutlines);
         }
 
         /// <summary>
@@ -274,7 +171,16 @@ namespace Darwin.Matching
                 UnknownFin.PrimaryImage.FinOutline.RediscoverFeaturePoints(Database.CatalogScheme.FeatureSetType, UnknownFin);
             }
 
-            return Database.ContainsAllFeaturePointTypes(distinctFeaturePointList) && Database.ContainsAllFeatureTypes(distinctFeatureList);
+            if (!Database.ContainsAllFeaturePointTypes(distinctFeaturePointList) && Database.ContainsAllFeatureTypes(distinctFeatureList))
+                return false;
+
+            if (Options.CurrentUserOptions.MatchingScheme == MatchingSchemeType.MachineLearning &&
+                !Database.ContainsImageEmbeddings())
+            {
+                return false;
+            }
+
+            return true;
         }
 
         //*******************************************************************
@@ -313,7 +219,7 @@ namespace Darwin.Matching
             if (MatchFactors == null || MatchFactors.Count < 1)
                 throw new Exception("Match factors haven't been set yet!");
 
-            var stopWatch = System.Diagnostics.Stopwatch.StartNew();
+            var stopWatch = Stopwatch.StartNew();
 
             int matchIndex = 0;
 
@@ -388,13 +294,18 @@ namespace Darwin.Matching
                             if (saveDBRHat != null)
                                 matchErrorResult.DBRHat = saveDBRHat;
                         }
-                        else
+                        else if (factor.MatchFactorType == MatchFactorType.Feature || factor.MatchFactorType == MatchFactorType.FeaturePoint)
                         {
                             matchErrorResult.RawRatios = factorResult.RawRatios;
                             matchErrorResult.RHat = factorResult.RHat;
                             matchErrorResult.DBRawRatios = factorResult.DBRawRatios;
                             matchErrorResult.DBRHat = factorResult.DBRHat;
                         }
+
+                        if (matchErrorResult.Contour1 == null && factorResult.Contour1 != null)
+                            matchErrorResult.Contour1 = factorResult.Contour1;
+                        if (matchErrorResult.Contour2 == null && factorResult.Contour2 != null)
+                            matchErrorResult.Contour2 = factorResult.Contour2;
 
                         // We're going to rescale this later -- should probably remove this
                         // errorBetweenFins += factor.Weight * result.Error;

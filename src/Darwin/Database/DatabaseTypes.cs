@@ -26,6 +26,7 @@ namespace Darwin.Database
         public long id { get; set; }
         public string idcode { get; set; }
         public string name { get; set; }
+        public string gender { get; set; }
         public string ThumbnailFilename { get; set; }
         public long fkdamagecategoryid { get; set; }
     }

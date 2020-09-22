@@ -286,6 +286,30 @@ namespace Darwin.ImageProcessing
             return result;
         }
 
+        public float[] ToScaledTorchRGBPreprocessInput()
+        {
+            float[] result = new float[Width * Height * 3];
+
+            // These means/standard deviations are originally from ImageNet
+            // See https://github.com/keras-team/keras-applications/blob/master/keras_applications/imagenet_utils.py
+            float[] means = { 0.485f, 0.456f, 0.406f };
+            float[] stdDeviations = { 0.229f, 0.224f, 0.225f };
+
+            int idx = 0;
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    var pixel = GetPixel(x, y);
+                    result[idx++] = ((pixel.R / 255.0f) - means[0]) / stdDeviations[0];
+                    result[idx++] = ((pixel.G / 255.0f) - means[1]) / stdDeviations[1];
+                    result[idx++] = ((pixel.B / 255.0f) - means[2]) / stdDeviations[2];
+                }
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// Returns a scaled float array, as if this is a grayscale image with each byte
         /// divided by 255.0f

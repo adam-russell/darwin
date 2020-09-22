@@ -19,6 +19,7 @@ using Darwin.Database;
 using Darwin.Extensions;
 using Darwin.Helpers;
 using Darwin.ImageProcessing;
+using Darwin.Matching;
 using Darwin.ML;
 using Darwin.ML.Services;
 using Darwin.Model;
@@ -293,6 +294,9 @@ namespace Darwin.Helpers
             float contourRatio = (float)(1 / ratio);
             image.Contour.ApplyNonProportionalScale(contourRatio, contourRatio);
 
+            if (image.Contour.Length < 1)
+                Trace.WriteLine("Hello");
+
             var mask = BitmapHelper.CreateMaskImageFromContour(mlImage, image.Contour);
 
             //mask = BitmapHelper.ResizeKeepAspectRatio(mask, datasetImageWidth, datasetImageHeight);
@@ -370,16 +374,16 @@ namespace Darwin.Helpers
 
                     GoodContour:
 
-                    (var mlImage, var mask) = CreateClassificationImageAndMask(image, datasetImageWidth, datasetImageHeight);
+                    //(var mlImage, var mask) = CreateClassificationImageAndMask(image, datasetImageWidth, datasetImageHeight);
 
                     string imageFilename = imageNum.ToString().PadLeft(6, '0') + ".jpg";
                     string maskFilename = imageNum.ToString().PadLeft(6, '0') + "_mask.png";
 
-                    mlImage.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, imageFilename));
+                    //mlImage.SaveAsCompressedJpg(Path.Combine(fullImagesDirectory, imageFilename));
 
                     // Note we're saving as a PNG to make sure we don't get compression artifacts -- we
                     // want the mask to be strictly white/black
-                    mask.SaveAsCompressedPng(Path.Combine(fullImagesDirectory, maskFilename));
+                    //mask.SaveAsCompressedPng(Path.Combine(fullImagesDirectory, maskFilename));
 
                     csvRecords.Add(new MLMaskCsvRecord
                     {
@@ -411,9 +415,9 @@ namespace Darwin.Helpers
 
         public static float[] PredictCoordinates(Bitmap image, FloatContour chainPoints, double scale)
         {
-            Trace.WriteLine("Predicting coordinates with " + AppSettings.MLModelFilename + " model using Emgu.TF.Lite / TensorFlow Lite");
+            Trace.WriteLine("Predicting coordinates with " + AppSettings.MLModelFilename_BearFeatureIdentification + " model using Emgu.TF.Lite / TensorFlow Lite");
 
-            var model = new MLModel(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), AppSettings.MLModelFilename));
+            var model = new MLModel(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), AppSettings.MLModelFilename_BearFeatureIdentification));
 
             var mlImage = ConvertDatabaseFinToMLFeatureImage(image, chainPoints, scale);
             var directBmp = new DirectBitmap(mlImage.Image);
@@ -440,6 +444,42 @@ namespace Darwin.Helpers
             Trace.WriteLine(" ");
 
             return coordinates;
+        }
+
+        public static string GetImageEmbedding(DatabaseImage image)
+        {
+            image.Contour.ApplyScale();
+            (var imageToEncode, var mask) = CreateClassificationImageAndMask(image, AppSettings.MLModel_BearClassification_ImageDim, AppSettings.MLModel_BearClassification_ImageDim);
+
+            var directImageToEncode = new DirectBitmap(imageToEncode);
+            var directMask = new DirectBitmap(mask);
+
+            var imageArray = directImageToEncode.ToScaledTorchRGBPreprocessInput();
+            var maskArray = directMask.ToScaledTorchRGBPreprocessInput();
+
+            // Create a 4 channel float array out of the image and the mask
+            float[] combinedArray = new float[directImageToEncode.Width * directImageToEncode.Height * 4];
+
+            int idx = 0;
+            int imageIdx = 0;
+            int maskArrayIdx = 0;
+            for (int y = 0; y < directImageToEncode.Height; y++)
+            {
+                for (int x = 0; x < directImageToEncode.Width; x++)
+                {
+                    combinedArray[idx++] = imageArray[imageIdx++];
+                    combinedArray[idx++] = imageArray[imageIdx++];
+                    combinedArray[idx++] = imageArray[imageIdx++];
+                    combinedArray[idx++] = maskArray[maskArrayIdx];
+                    maskArrayIdx += 3;
+                }
+            }
+
+            var model = new MLModel(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), AppSettings.MLModelFilename_BearClassification));
+
+            var encoding = model.Run(combinedArray);
+
+            return FloatHelper.ConvertToBase64String(encoding);
         }
 
         public static async Task<Contour> DetectContour(Bitmap bitmap, string filename)

@@ -1,10 +1,4 @@
-﻿// This is originally based off Microsoft's WPF examples of RubberbandAdorner and CroppingAdorner, though
-// it's been modified a lot.
-// Original copyright and license from https://github.com/microsoft/WPF-Samples
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-
-// This file is part of DARWIN.
+﻿// This file is part of DARWIN.
 // Copyright (C) 1994 - 2020
 //
 // DARWIN is free software: you can redistribute it and/or modify
@@ -19,6 +13,12 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
+
+// This is originally based off Microsoft's WPF examples of RubberbandAdorner and CroppingAdorner, though
+// it's been modified a lot.
+// Original copyright and license from https://github.com/microsoft/WPF-Samples
+// Copyright (c) Microsoft. All rights reserved.
+// Original license was MIT
 
 using System;
 using System.Diagnostics;

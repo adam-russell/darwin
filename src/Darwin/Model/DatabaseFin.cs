@@ -77,6 +77,7 @@ namespace Darwin.Model
         private string _name;
         private string _damageCategory;
         private string _thumbnailFileName;
+        private string _gender;
 
         private string _finFilename;
         public string FinFilename  // 1.6 - for name of fin file if fin saved outside DB
@@ -129,6 +130,17 @@ namespace Darwin.Model
             {
                 _damageCategory = value;
                 RaisePropertyChanged("DamageCategory");
+                FieldsChanged = true;
+            }
+        }
+
+        public string Gender
+        {
+            get => _gender;
+            set
+            {
+                _gender = value;
+                RaisePropertyChanged("Gender");
                 FieldsChanged = true;
             }
         }
@@ -219,7 +231,8 @@ namespace Darwin.Model
             string rollAndFrame,
             string locationCode,
             string damageCategory,
-            string shortDescription
+            string shortDescription,
+            string gender
         )
         {
             FinFilename = string.Empty; //  1.6
@@ -227,6 +240,7 @@ namespace Darwin.Model
             IDCode = idcode;
             Name = name;
             DamageCategory = damageCategory;
+            Gender = gender;
 
             _images = new ObservableCollection<DatabaseImage>();
             _images.Add(new DatabaseImage(
@@ -259,6 +273,7 @@ namespace Darwin.Model
             long id,
 			string idcode,
 			string name,
+            string gender,
             string thumbnailFilename,
 			string damageCategory,
             ObservableCollection<DatabaseImage> images
@@ -267,6 +282,7 @@ namespace Darwin.Model
             ID = id;
             IDCode = idcode;
             Name = name;
+            Gender = gender;
             ThumbnailFilename = thumbnailFilename;
             DamageCategory = damageCategory;
 
@@ -284,6 +300,7 @@ namespace Darwin.Model
         {
             IDCode = fin.IDCode;
             Name = fin.Name;
+            Gender = fin.Gender;
 
             Images = DatabaseImage.CopyDatabaseImageList(fin.Images);
 

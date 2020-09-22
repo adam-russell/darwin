@@ -30,6 +30,12 @@ namespace Darwin.Helpers
         // Return true if the point is in the polygon.
         public static bool PointInPolygon(List<Point> points, float X, float Y)
         {
+            if (points == null)
+                throw new ArgumentNullException(nameof(points));
+
+            if (points.Count < 1)
+                throw new ArgumentOutOfRangeException(nameof(points));
+
             // Get the angle between the point and the
             // first and last vertices.
             int max_point = points.Count - 1;

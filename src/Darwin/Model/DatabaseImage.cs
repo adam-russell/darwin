@@ -18,10 +18,27 @@ namespace Darwin.Model
 
         public const float AutoCropPaddingPercentage = 0.05f;
 
+        public string Embedding { get; set; }
+
         public Bitmap FinImage { get; set; } // Modified image
         public Bitmap OriginalFinImage { get; set; }
         public Bitmap CropImage { get; set; }
-        public Contour Contour { get; set; }
+
+        private Contour _contour;
+        public Contour Contour
+        {
+            get
+            {
+                if (_contour == null && _finOutline != null)
+                    LoadContour();
+
+                return _contour;
+            }
+            set
+            {
+                _contour = value;
+            }
+        }
         public Contour ClippedContour { get; set; }
 
         public string CropImageFilename { get; set; }
@@ -182,6 +199,7 @@ namespace Darwin.Model
         {
             Version = imageToCopy.Version;
             IndividualId = imageToCopy.IndividualId;
+            Embedding = imageToCopy.Embedding;
 
             _dateOfSighting = imageToCopy._dateOfSighting;
             _finOutline = new Outline(imageToCopy.FinOutline);
@@ -247,13 +265,13 @@ namespace Darwin.Model
 
         public void LoadContour()
         {
-            if (Contour == null)
+            if (_contour == null)
             {
                 if (FinOutline != null && FinOutline.ChainPoints != null)
                 {
-                    Contour = new Contour(FinOutline.ChainPoints, FinOutline.Scale);
+                    _contour = new Contour(FinOutline.ChainPoints, FinOutline.Scale);
 
-                    ClippedContour = new Contour(Contour);
+                    ClippedContour = new Contour(_contour);
                     ClippedContour.ClipToBounds();
                 }
             }

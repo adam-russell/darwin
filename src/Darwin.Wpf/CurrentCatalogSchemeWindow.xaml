@@ -54,7 +54,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="120" />
                     <ColumnDefinition />
-                    <ColumnDefinition Width="140" />
+                    <ColumnDefinition Width="160" />
                 </Grid.ColumnDefinitions>
                 <Label HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="0">Feature Set Type:</Label>
                 <StackPanel Grid.Column="1" Orientation="Vertical" Margin="0,6,0,0">
@@ -65,8 +65,9 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                         Bear
                     </RadioButton>
                 </StackPanel>
-                <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                <StackPanel Grid.Column="2" HorizontalAlignment="Right" Orientation="Vertical">
                     <Button x:Name="RediscoverDatabaseFeatures" Click="RediscoverDatabaseFeatures_Click">Rediscover Features</Button>
+                    <Button x:Name="RecomputeEmbeddingsButton" Click="RecomputeEmbeddingsButton_Click" Visibility="{Binding ShowRecomputeEmbeddings, Converter={StaticResource BooleanToVisibilityConverter}}">Re-compute Embeddings</Button>
                 </StackPanel>
             </Grid>
             <Grid Grid.Row="2">

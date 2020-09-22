@@ -20,6 +20,7 @@ using Darwin.Model;
 using Darwin.Utilities;
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Factorization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -238,8 +239,19 @@ namespace Darwin.Matching
 
             var covarianceMatrix = galleryMatrix * galleryMatrix.Transpose();
 
+            Evd<double> evd;
+
             // Perform the Eigenvalue Decomposition
-            var evd = covarianceMatrix.Evd(Symmetricity.Unknown);
+            try
+            {
+                evd = covarianceMatrix.Evd(Symmetricity.Unknown);
+            }
+            catch (Exception ex)
+            {
+                // The exception most likely to be thrown here is that the evd failed to converge.
+                Trace.WriteLine(ex);
+                return null;
+            }
 
             // Find all the EigenValues with only real components (no imaginary)
             // and store their original index, and sort them descending so we

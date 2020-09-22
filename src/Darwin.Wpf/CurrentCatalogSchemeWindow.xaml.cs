@@ -111,9 +111,52 @@ namespace Darwin.Wpf
 
             if (result == MessageBoxResult.Yes)
             {
-                _vm.RediscoverAllFeatures();
+                try
+                {
+                    this.IsHitTestVisible = false;
+                    Mouse.OverrideCursor = Cursors.Wait;
+
+                    _vm.RediscoverAllFeatures();
+                }
+                finally
+                {
+                    Mouse.OverrideCursor = null;
+                    this.IsHitTestVisible = true;
+                }
 
                 MessageBox.Show("Feature discovery complete." + Environment.NewLine + "Your database has been updated.",
+                    "Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
+
+                if (mainWindow != null)
+                    mainWindow.RefreshDatabase();
+            }
+        }
+
+        private void RecomputeEmbeddingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show("Warning: This will overwrite all current image embeddings for machine learning classification.  There is no undo on this feature."
+                + Environment.NewLine + Environment.NewLine +
+                "Are you sure you want to continue?" + Environment.NewLine + Environment.NewLine +
+                "(Note that this process can take a long time -- please be patient.)",
+                "Warning", MessageBoxButton.YesNo, MessageBoxImage.Exclamation);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    this.IsHitTestVisible = false;
+                    Mouse.OverrideCursor = Cursors.Wait;
+
+                    _vm.RecomputeAllEmbeddings();
+                }
+                finally
+                {
+                    Mouse.OverrideCursor = null;
+                    this.IsHitTestVisible = true;
+                }
+
+                MessageBox.Show("Embeddings re-computed." + Environment.NewLine + "Your database has been updated.",
                     "Complete", MessageBoxButton.OK, MessageBoxImage.Information);
                 MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
 

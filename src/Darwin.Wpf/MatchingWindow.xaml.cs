@@ -66,10 +66,20 @@ namespace Darwin.Wpf
 
             if (!_vm.Match.VerifyMatchSettings())
             {
-                MessageBox.Show("Sorry, at least some individuals in your database " + 
-                    "are missing feature points needed to run the current match settings." + Environment.NewLine + Environment.NewLine +
-                    "Please use Rediscover Features in Settings -> Current Catalog Schemes in the main window, " +
-                    "or recreate your database with the current feature set scheme.", "Missing Features", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (Options.CurrentUserOptions.MatchingScheme == Darwin.Model.MatchingSchemeType.MachineLearning)
+                {
+                    MessageBox.Show("Sorry, at least some individuals in your database " +
+                        "are missing embeddings needed to run the current match settings." + Environment.NewLine + Environment.NewLine +
+                        "Please use Re-compute Embeddings in Settings -> Current Catalog Schemes in the main window, " +
+                        "or recreate your database with the current settings.", "Missing Embeddings", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    MessageBox.Show("Sorry, at least some individuals in your database " +
+                        "are missing feature points needed to run the current match settings." + Environment.NewLine + Environment.NewLine +
+                        "Please use Rediscover Features in Settings -> Current Catalog Schemes in the main window, " +
+                        "or recreate your database with the current feature set scheme.", "Missing Features", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             else
             {

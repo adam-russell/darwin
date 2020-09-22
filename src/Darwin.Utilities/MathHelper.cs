@@ -45,6 +45,25 @@ namespace Darwin.Utilities
             return Math.Sqrt((p2.X - p1.X) * (p2.X - p1.X) + (p2.Y - p1.Y) * (p2.Y - p1.Y));
         }
 
+        public static double GetDistance(float[] array1, float[] array2)
+        {
+            if (array1 == null)
+                throw new ArgumentNullException(nameof(array1));
+
+            if (array2 == null)
+                throw new ArgumentNullException(nameof(array2));
+
+            if (array1.Length != array2.Length)
+                throw new ArgumentException("Array lengths don't match");
+
+            double sum = 0.0;
+
+            for (int i = 0; i < array1.Length; i++)
+                sum += Math.Pow(array1[i] - array2[i], 2);
+
+            return Math.Sqrt(sum);
+        }
+
         public static int NextPowerOfTwo(int x)
         {
             double powerOfTwo = 0.0;

@@ -74,6 +74,17 @@ namespace Darwin.Wpf.ViewModel
             }
         }
 
+        private bool _showOutlineOptions;
+        public bool ShowOutlineOptions
+        {
+            get => _showOutlineOptions;
+            set
+            {
+                _showOutlineOptions = value;
+                RaisePropertyChanged("ShowOutlineOptions");
+            }
+        }
+
         private DatabaseFin _databaseFin;
         public DatabaseFin DatabaseFin
         {
@@ -258,6 +269,7 @@ namespace Darwin.Wpf.ViewModel
 
             if (database.CatalogScheme.FeatureSetType == Features.FeatureSetType.DorsalFin)
             {
+                ShowOutlineOptions = true;
                 Match = new Match(DatabaseFin,
                     Database,
                     UpdateOutlines,
@@ -266,6 +278,7 @@ namespace Darwin.Wpf.ViewModel
             }
             else
             {
+                ShowOutlineOptions = false;
                 Match = new Match(DatabaseFin,
                     Database,
                     UpdateOutlines,

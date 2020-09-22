@@ -18,8 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="resnetv2_noscale_flip_3.tflite">
+    <None Update="bear_classification_v1.tflite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="resnetv2_noscale_flip_3.tflite">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

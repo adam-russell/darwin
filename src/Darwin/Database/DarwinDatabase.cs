@@ -77,9 +77,11 @@ namespace Darwin.Database
         public abstract void Update(DatabaseImage data);
         public abstract void UpdateIndividual(DatabaseFin data);
         public abstract void UpdateOutline(DatabaseImage databaseImage, bool preventInvalidate = false);
+        public abstract void UpdateImage(DatabaseImage databaseImage, bool preventInvalidate = false);
         public abstract void Delete(DatabaseFin fin);
         public abstract void Delete(DatabaseImage data);
 
+        public abstract bool ContainsImageEmbeddings();
         public abstract bool ContainsAllFeatureTypes(List<FeatureType> featureTypes);
         public abstract bool ContainsAllFeaturePointTypes(List<FeaturePointType> featurePointTypes);
 

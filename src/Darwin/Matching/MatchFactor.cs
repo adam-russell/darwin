@@ -32,7 +32,7 @@ namespace Darwin.Matching
         DatabaseFin databaseFin,
         MatchOptions options);
 
-    public delegate MatchError ErrorBetweenIndividualFeaturesDelegate(
+    public delegate MatchError ErrorBetweenIndividualsDelegate(
         DatabaseFin unknownFin,
         DatabaseFin databaseFin,
         MatchOptions options);
@@ -67,7 +67,8 @@ namespace Darwin.Matching
     {
         Outline = 0,
         FeaturePoint = 1,
-        Feature = 2
+        Feature = 2,
+        MachineLearning = 10
     }
 
     public class MatchFactor : INotifyPropertyChanged
@@ -115,14 +116,14 @@ namespace Darwin.Matching
             }
         }
 
-        private ErrorBetweenIndividualFeaturesDelegate _errorBetweenIndividualFeatures;
-        public ErrorBetweenIndividualFeaturesDelegate ErrorBetweenIndividualFeatures
+        private ErrorBetweenIndividualsDelegate _errorBetweenIndividuals;
+        public ErrorBetweenIndividualsDelegate ErrorBetweenIndividuals
         {
-            get => _errorBetweenIndividualFeatures;
+            get => _errorBetweenIndividuals;
             set
             {
-                _errorBetweenIndividualFeatures = value;
-                RaisePropertyChanged("ErrorBetweenIndividualFeatures");
+                _errorBetweenIndividuals = value;
+                RaisePropertyChanged("ErrorBetweenIndividuals");
             }
         }
 
@@ -305,7 +306,7 @@ namespace Darwin.Matching
 
         public static MatchFactor CreateFeatureFactor(
             float weight,
-            ErrorBetweenIndividualFeaturesDelegate errorBetweenIndividualFeatures,
+            ErrorBetweenIndividualsDelegate errorBetweenIndividuals,
             FeatureType dependentFeature,
             MatchOptions options = null)
         {
@@ -313,8 +314,22 @@ namespace Darwin.Matching
             {
                 MatchFactorType = MatchFactorType.Feature,
                 Weight = weight,
-                ErrorBetweenIndividualFeatures = errorBetweenIndividualFeatures,
+                ErrorBetweenIndividuals = errorBetweenIndividuals,
                 DependentFeatures = new List<FeatureType> { dependentFeature },
+                MatchOptions = options
+            };
+        }
+
+        public static MatchFactor CreateMachineLearningFactor(
+            ErrorBetweenIndividualsDelegate errorBetweenIndividuals,
+            float weight,
+            MatchOptions options = null)
+        {
+            return new MatchFactor
+            {
+                MatchFactorType = MatchFactorType.MachineLearning,
+                ErrorBetweenIndividuals = errorBetweenIndividuals,
+                Weight = weight,
                 MatchOptions = options
             };
         }
@@ -327,8 +342,8 @@ namespace Darwin.Matching
             if (MatchFactorType == MatchFactorType.FeaturePoint)
                 return ErrorBetweenIndividualFeatureRatios(_ratioComparison, unknownFin, databaseFin, MatchOptions);
 
-            if (MatchFactorType == MatchFactorType.Feature)
-                return ErrorBetweenIndividualFeatures(unknownFin, databaseFin, MatchOptions);
+            if (MatchFactorType == MatchFactorType.Feature || MatchFactorType == MatchFactorType.MachineLearning)
+                return ErrorBetweenIndividuals(unknownFin, databaseFin, MatchOptions);
 
             throw new NotImplementedException();
         }

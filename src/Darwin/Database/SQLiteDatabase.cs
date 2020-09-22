@@ -42,7 +42,7 @@ namespace Darwin.Database
         private const string SettingsCatalogSchemeName = "CatalogSchemeName";
         private const string SettingsFeatureSetType = "FeatureSetType";
 
-        public const int LatestDBVersion = 7;
+        public const int LatestDBVersion = 8;
 
         private CatalogScheme _catalogScheme;
         public override CatalogScheme CatalogScheme
@@ -193,6 +193,7 @@ namespace Darwin.Database
             DatabaseFin fin = new DatabaseFin(id,
                 individual.idcode,
                 individual.name,
+                individual.gender,
                 individual.ThumbnailFilename,
                 damagecategory.Name,
                 new ObservableCollection<DatabaseImage>(images));
@@ -247,6 +248,7 @@ namespace Darwin.Database
                         individual.idcode = fin.IDCode;
                         individual.name = fin.Name;
                         individual.fkdamagecategoryid = dmgCat.ID;
+                        individual.gender = fin.Gender;
                         individual.ThumbnailFilename = fin.ThumbnailFilename;
                         InsertIndividual(conn, ref individual);
                         individualId = individual.id;
@@ -390,6 +392,7 @@ namespace Darwin.Database
                     individual.id = fin.ID; // mapping Individuals id to mDataPos
                     individual.idcode = fin.IDCode;
                     individual.name = fin.Name;
+                    individual.gender = fin.Gender;
                     individual.fkdamagecategoryid = dmgCat.ID;
                     individual.ThumbnailFilename = fin.ThumbnailFilename;
 
@@ -523,6 +526,28 @@ namespace Darwin.Database
             InvalidateAllFins();
         }
 
+        public override void UpdateImage(DatabaseImage databaseImage, bool preventInvalidate = false)
+        {
+            if (!preventInvalidate)
+                InvalidateAllFins();
+
+            if (databaseImage == null)
+                throw new ArgumentNullException(nameof(databaseImage));
+
+            using (var conn = new SQLiteConnection(_connectionString))
+            {
+                conn.Open();
+
+                using (var transaction = conn.BeginTransaction())
+                {
+                    UpdateImage(conn, databaseImage);
+                    transaction.Commit();
+                }
+
+                conn.Close();
+            }
+        }
+
         public override void UpdateOutline(DatabaseImage databaseImage, bool preventInvalidate = false)
         {
             if (!preventInvalidate)
@@ -605,6 +630,26 @@ namespace Darwin.Database
                 conn.Close();
             }
         }
+
+        public override bool ContainsImageEmbeddings()
+        {
+            if (AllFins == null || AllFins.Count < 1)
+                return true;
+
+            foreach (var individual in AllFins)
+            {
+                foreach (var image in individual.Images)
+                {
+                    if (image == null || string.IsNullOrEmpty(image.Embedding))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         public override bool ContainsAllFeatureTypes(List<FeatureType> featureTypes)
         {
             if (featureTypes == null || featureTypes.Count < 1)
@@ -778,6 +823,7 @@ namespace Darwin.Database
                                 id = rdr.SafeGetInt("ID"),
                                 idcode = rdr.SafeGetString("IDCode"),
                                 name = rdr.SafeGetStringStripNone("Name"),
+                                gender = rdr.SafeGetStringStripNone("Gender"),
                                 fkdamagecategoryid = rdr.SafeGetInt("fkDamageCategoryID"),
                                 ThumbnailFilename = rdr.SafeGetString("ThumbnailFilename")
                             };
@@ -813,6 +859,7 @@ namespace Darwin.Database
                                 id = rdr.SafeGetInt("ID"),
                                 idcode = rdr.SafeGetString("IDCode"),
                                 name = rdr.SafeGetStringStripNone("Name"),
+                                gender = rdr.SafeGetStringStripNone("Gender"),
                                 fkdamagecategoryid = rdr.SafeGetInt("fkDamageCategoryID"),
                                 ThumbnailFilename = rdr.SafeGetString("ThumbnailFilename")
                             };
@@ -1184,6 +1231,7 @@ namespace Darwin.Database
                                 IndividualId = rdr.SafeGetInt("fkIndividualID"),
                                 CropImageFilename = rdr.SafeGetString("CropImageFilename"),
                                 Version = rdr.SafeGetInt("Version"),
+                                Embedding = rdr.SafeGetString("Embedding"),
                                 GeoLocation = new GeoLocation
                                 {
                                     Latitude = rdr.SafeGetDouble("Latitude"),
@@ -1557,10 +1605,11 @@ namespace Darwin.Database
         {
             using (var cmd = new SQLiteCommand(conn))
             {
-                cmd.CommandText = "INSERT INTO Individuals (ID, IDCode, Name, ThumbnailFilename, fkDamageCategoryID) " +
-                    "VALUES (NULL, @IDCode, @Name, @ThumbnailFilename, @fkDamageCategoryID);";
+                cmd.CommandText = "INSERT INTO Individuals (ID, IDCode, Name, Gender, ThumbnailFilename, fkDamageCategoryID) " +
+                    "VALUES (NULL, @IDCode, @Name, @Gender, @ThumbnailFilename, @fkDamageCategoryID);";
                 cmd.Parameters.AddWithValue("@IDCode", individual.idcode);
                 cmd.Parameters.AddWithValue("@Name", individual.name);
+                cmd.Parameters.AddWithValue("@Gender", individual.gender);
                 cmd.Parameters.AddWithValue("@ThumbnailFilename", individual.ThumbnailFilename);
                 cmd.Parameters.AddWithValue("@fkDamageCategoryID", individual.fkdamagecategoryid);
 
@@ -1730,14 +1779,15 @@ namespace Darwin.Database
         {
             using (var cmd = new SQLiteCommand(conn))
             {
-                cmd.CommandText = "INSERT INTO Images(ID, ImageFilename, OriginalImageFilename, DateOfSighting, RollAndFrame, LocationCode, ShortDescription, CropImageFilename, OrderId, Version, Latitude, Longitude, fkIndividualID) " +
-                    "VALUES (NULL, @ImageFilename, @OriginalImageFilename, @DateOfSighting, @RollAndFrame, @LocationCode, @ShortDescription, @CropImageFilename, @OrderId, @Version, @Latitude, @Longitude, @fkIndividualID);";
+                cmd.CommandText = "INSERT INTO Images(ID, ImageFilename, OriginalImageFilename, DateOfSighting, RollAndFrame, LocationCode, ShortDescription, Embedding, CropImageFilename, OrderId, Version, Latitude, Longitude, fkIndividualID) " +
+                    "VALUES (NULL, @ImageFilename, @OriginalImageFilename, @DateOfSighting, @RollAndFrame, @LocationCode, @ShortDescription, @Embedding, @CropImageFilename, @OrderId, @Version, @Latitude, @Longitude, @fkIndividualID);";
                 cmd.Parameters.AddWithValue("@ImageFilename", image.ImageFilename);
                 cmd.Parameters.AddWithValue("@OriginalImageFilename", image.OriginalImageFilename);
                 cmd.Parameters.AddWithValue("@DateOfSighting", image.DateOfSighting);
                 cmd.Parameters.AddWithValue("@RollAndFrame", image.RollAndFrame);
                 cmd.Parameters.AddWithValue("@LocationCode", image.LocationCode);
                 cmd.Parameters.AddWithValue("@ShortDescription", image.ShortDescription);
+                cmd.Parameters.AddWithValue("@Embedding", image.Embedding);
                 cmd.Parameters.AddWithValue("@CropImageFilename", image.CropImageFilename);
                 cmd.Parameters.AddWithValue("@OrderId", image.OrderId);
                 cmd.Parameters.AddWithValue("@Version", image.Version);
@@ -1955,12 +2005,14 @@ namespace Darwin.Database
                 cmd.CommandText = "UPDATE Individuals SET " +
                     "IDCode = @IDCode, " +
                     "Name = @Name, " +
+                    "Gender = @Gender, " +
                     "fkDamageCategoryID = @fkDamageCategoryID, " +
                     "ThumbnailFilename = @ThumbnailFilename " +
                     "WHERE ID = @ID";
 
                 cmd.Parameters.AddWithValue("@IDCode", individual.idcode);
                 cmd.Parameters.AddWithValue("@Name", individual.name);
+                cmd.Parameters.AddWithValue("@Gender", individual.gender);
                 cmd.Parameters.AddWithValue("@fkDamageCategoryID", individual.fkdamagecategoryid);
                 cmd.Parameters.AddWithValue("@ThumbnailFilename", individual.ThumbnailFilename);
 
@@ -1985,6 +2037,7 @@ namespace Darwin.Database
                     "RollAndFrame = @RollAndFrame, " +
                     "LocationCode = @LocationCode, " +
                     "ShortDescription = @ShortDescription, " +
+                    "Embedding = @Embedding, " +
                     "fkIndividualID = @fkIndividualID, " +
                     "CropImageFilename = @CropImageFilename, " +
                     "OrderId = @OrderId, " +
@@ -1999,6 +2052,7 @@ namespace Darwin.Database
                 cmd.Parameters.AddWithValue("@RollAndFrame", image.RollAndFrame);
                 cmd.Parameters.AddWithValue("@LocationCode", image.LocationCode);
                 cmd.Parameters.AddWithValue("@ShortDescription", image.ShortDescription);
+                cmd.Parameters.AddWithValue("@Embedding", image.Embedding);
                 cmd.Parameters.AddWithValue("@fkIndividualID", image.IndividualId);
                 cmd.Parameters.AddWithValue("@CropImageFilename", image.CropImageFilename);
                 cmd.Parameters.AddWithValue("@OrderId", image.OrderId);
@@ -2297,6 +2351,7 @@ namespace Darwin.Database
                         ID INTEGER PRIMARY KEY,
                         IDCode TEXT,
                         Name TEXT,
+                        Gender TEXT,
                         ThumbnailFilename TEXT DEFAULT NULL,
                         fkDamageCategoryID INTEGER
                     );
@@ -2311,6 +2366,7 @@ namespace Darwin.Database
                         RollAndFrame TEXT,
                         LocationCode TEXT,
                         ShortDescription TEXT,
+                        Embedding TEXT,
                         OrderId INTEGER,
                         Version INTEGER DEFAULT 1,
                         Latitude REAL,
@@ -2475,7 +2531,10 @@ namespace Darwin.Database
                 if (version < 6)
                     UpgradeToVersion6(conn);
 
-                UpgradeToVersion7(conn);
+                if (version < 7)
+                    UpgradeToVersion7(conn);
+
+                UpgradeToVersion8(conn);
             }
         }
 
@@ -2688,8 +2747,31 @@ namespace Darwin.Database
             catch { }
         }
 
+        private void UpgradeToVersion8(SQLiteConnection conn)
+        {
+            try
+            {
+                using (var transaction = conn.BeginTransaction())
+                {
+                    const string Version8Updates =
+                    @"ALTER TABLE Individuals ADD COLUMN Gender TEXT DEFAULT NULL;
+
+                    ALTER TABLE Images ADD COLUMN Embedding TEXT DEFAULT NULL;";
+
+                    using (var cmd = new SQLiteCommand(conn))
+                    {
+                        cmd.CommandText = Version8Updates;
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    transaction.Commit();
+                }
+
+                SetVersion(conn, 8);
+            }
+            catch { }
+        }
+
         #endregion
     }
 }
- 
- 

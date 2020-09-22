@@ -793,7 +793,13 @@ namespace Darwin.Wpf.ViewModel
 
 			LoadCoordinateFeaturePoints();
 
-			TraceFinalized = true; //***006PD moved from beginning of function
+			TraceFinalized = true; // ***006PD moved from beginning of function
+
+			if (Options.CurrentUserOptions.MatchingScheme == MatchingSchemeType.MachineLearning)
+			{
+				UpdateDatabaseFin();
+				DatabaseFin.PrimaryImage.Embedding = MLSupport.GetImageEmbedding(DatabaseFin.PrimaryImage);
+			}
 
 			TraceTool = TraceToolType.MoveFeature;
 		}

@@ -15,6 +15,7 @@
 // along with DARWIN.  If not, see<https://www.gnu.org/licenses/>.
 
 using Darwin.Database;
+using Darwin.Helpers;
 using Darwin.Model;
 using Newtonsoft.Json.Converters;
 using System;
@@ -63,12 +64,23 @@ namespace Darwin.Wpf.ViewModel
             }
         }
 
+        private bool _showRecomputeEmbeddings;
+        public bool ShowRecomputeEmbeddings
+        {
+            get => _showRecomputeEmbeddings;
+            set
+            {
+                _showRecomputeEmbeddings = value;
+                RaisePropertyChanged("ShowRecomputeEmbeddings");
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public CurrentCatalogSchemeViewModel(DarwinDatabase database)
         {
             Database = database;
-
+            ShowRecomputeEmbeddings = Options.CurrentUserOptions.MatchingScheme == MatchingSchemeType.MachineLearning;
             SelectedScheme = new CatalogScheme(database.CatalogScheme);
         }
 
@@ -140,6 +152,34 @@ namespace Darwin.Wpf.ViewModel
                             Database.UpdateOutline(image, true);
                         }
                     }
+                }
+
+                Database.InvalidateCache();
+            }
+        }
+
+        public void RecomputeAllEmbeddings()
+        {
+            if (Database != null)
+            {
+                foreach (var individual in Database.AllFins)
+                {
+                    var loadedIndividual = CatalogSupport.FullyLoadFin(individual);
+
+                    if (loadedIndividual.Images != null)
+                    {
+                        foreach (var image in loadedIndividual.Images)
+                        {
+                            image.Embedding = MLSupport.GetImageEmbedding(image);
+                            Database.UpdateImage(image, true);
+                        }
+                    }
+
+                    CatalogSupport.UnloadFin(loadedIndividual);
+                    // Wait for the garbage collector after we just dereferenced some objects,
+                    // otherwise we end up maxing RAM if we have a large database.
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
                 }
 
                 Database.InvalidateCache();

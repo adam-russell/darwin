@@ -24,17 +24,113 @@ namespace Darwin.Matching
 {
     public static class MatchFactorPresets
     {
-        private static List<IEnumerable<FeaturePointType>> GetVerticalFeaturePointCombinations()
+        public static List<MatchFactor> CreateFinMatchFactors(RegistrationMethodType registrationMethod, bool useFullFinError,
+            UpdateDisplayOutlinesDelegate updateOutlines)
         {
-            var result = new List<IEnumerable<FeaturePointType>>()
-            {
-                new List<FeaturePointType>() { FeaturePointType.Tip, FeaturePointType.Notch },
-                new List<FeaturePointType>() { FeaturePointType.Nasion, FeaturePointType.PointOfInflection },
-                new List<FeaturePointType>() { FeaturePointType.Tip, FeaturePointType.UpperLip },
-                new List<FeaturePointType>() { FeaturePointType.Notch, FeaturePointType.UpperLip }
-            };
+            var matchFactors = new List<MatchFactor>();
 
-            return result;
+            // TODO: Move this elsewhere, change for Fins/Bears?
+            var controlPoints = new List<FeaturePointType> { FeaturePointType.LeadingEdgeBegin, FeaturePointType.Tip, FeaturePointType.PointOfInflection };
+
+            switch (registrationMethod)
+            {
+                case RegistrationMethodType.Original3Point:
+                    // use beginning of leading edge, tip and largest trailing notch
+                    // to map unknown outline to database outline, and then use
+                    // version of meanSqError... that trims leading and trailing
+                    // edge points to equalize number of points on each contour,
+                    // and finally compute error between "corresponding" pairs of
+                    // mapped points
+                    matchFactors.Add(MatchFactor.CreateOutlineFactor(
+                        1.0f,
+                        controlPoints,
+                        OutlineErrorFunctions.MeanSquaredErrorBetweenOutlineSegments,
+                        OutlineErrorFunctions.FindErrorBetweenFins_Original3Point,
+                        updateOutlines));
+                    break;
+                case RegistrationMethodType.TrimFixedPercent:
+                    // use a series of calls to meanSqError..., each with different amounts
+                    // of the leading edge of each fin "ignored" in order to find the BEST
+                    // choice of "leading edge beginning point" correspondence.  This prevents
+                    // "bulging" of outlines due to long or short placement of the
+                    // beginning of the trace.  Also, the version of meanSqError... used
+                    // is one that walks the unknown fin outline point by point, and 
+                    // computes the "closest point" on the database outline by finding
+                    // the intersection of a perpendicular from the unknown outline point.
+                    // This helps minimize errors due to nonuniform point spacing created
+                    // during the mapping process.
+                    matchFactors.Add(MatchFactor.CreateOutlineFactor(
+                        1.0f,
+                        controlPoints,
+                        OutlineErrorFunctions.MeanSquaredErrorBetweenOutlineSegments,
+                        OutlineErrorFunctions.FindErrorBetweenFins,
+                        updateOutlines));
+                    break;
+                /*removed - JHS
+                            case TRIM_OPTIMAL :
+                                // use an optimization process (essentially Newton-Raphson) to
+                                // shorten the leading edges of each fin to produce a correspondence
+                                // that yeilds the BEST match.  A fin Outline walking approach
+                                // is used to conpute the meanSqError....
+                                result = Match::findErrorBetweenFinsJHS(
+                                            thisDBFin, timeTaken, regSegmentsUsed,
+                                            useFullFinError);
+                                break;
+                */
+                case RegistrationMethodType.TrimOptimalTotal:
+                    // use an optimization process (essentially Newton-Raphson) to
+                    // shorten the leading AND trailing edges of each fin to produce a correspondence
+                    // that yeilds the BEST match.  A fin Outline walking approach
+                    // is used to compute the meanSqError....
+                    matchFactors.Add(MatchFactor.CreateOutlineFactor(
+                        1.0f,
+                        controlPoints,
+                        OutlineErrorFunctions.MeanSquaredErrorBetweenOutlineSegments,
+                        OutlineErrorFunctions.FindErrorBetweenFinsOptimal,
+                        updateOutlines,
+                        new OutlineMatchOptions
+                        {
+                            MoveTip = false,
+                            MoveEndsInAndOut = false,
+                            UseFullFinError = useFullFinError
+                        }));
+
+                    break;
+                case RegistrationMethodType.TrimOptimalTip:
+                    matchFactors.Add(MatchFactor.CreateOutlineFactor(
+                        1.0f,
+                        controlPoints,
+                        OutlineErrorFunctions.MeanSquaredErrorBetweenOutlineSegments,
+                        OutlineErrorFunctions.FindErrorBetweenFinsOptimal,
+                        updateOutlines,
+                        new OutlineMatchOptions
+                        {
+                            MoveTip = true,
+                            MoveEndsInAndOut = false,
+                            UseFullFinError = useFullFinError
+                        }));
+                    break;
+                case RegistrationMethodType.TrimOptimalArea: //***1.85 - new area based metric option
+                    matchFactors.Add(MatchFactor.CreateOutlineFactor(
+                        1.0f,
+                        controlPoints,
+                        OutlineErrorFunctions.AreaBasedErrorBetweenOutlineSegments,
+                        OutlineErrorFunctions.FindErrorBetweenFinsOptimal,
+                        updateOutlines,
+                        new OutlineMatchOptions
+                        {
+                            MoveTip = true,
+                            MoveEndsInAndOut = false,
+                            UseFullFinError = useFullFinError
+                        }));
+                    break;
+                case RegistrationMethodType.TrimOptimalInOut:
+                case RegistrationMethodType.TrimOptimalInOutTip:
+                default:
+                    throw new NotImplementedException();
+            }
+
+            return matchFactors;
         }
 
         public static List<MatchFactor> CreateBearMatchFactors(DarwinDatabase database)
@@ -119,6 +215,13 @@ namespace Darwin.Matching
                     UseRemappedOutline = false
                 }));
 
+            return matchFactors;
+        }
+
+        public static List<MatchFactor> CreateBearMachineLearningMatchFactors(DarwinDatabase database)
+        {
+            var matchFactors = new List<MatchFactor>();
+            matchFactors.Add(MatchFactor.CreateMachineLearningFactor(MachineLearningErrorFunctions.ComputeEmbeddingL2Distance, 1.0f, null));
             return matchFactors;
         }
 
@@ -252,6 +355,19 @@ namespace Darwin.Matching
                 }));
 
             return matchFactors;
+        }
+
+        private static List<IEnumerable<FeaturePointType>> GetVerticalFeaturePointCombinations()
+        {
+            var result = new List<IEnumerable<FeaturePointType>>()
+            {
+                new List<FeaturePointType>() { FeaturePointType.Tip, FeaturePointType.Notch },
+                new List<FeaturePointType>() { FeaturePointType.Nasion, FeaturePointType.PointOfInflection },
+                new List<FeaturePointType>() { FeaturePointType.Tip, FeaturePointType.UpperLip },
+                new List<FeaturePointType>() { FeaturePointType.Notch, FeaturePointType.UpperLip }
+            };
+
+            return result;
         }
     }
 }

@@ -47,6 +47,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
         <converters:ComparisonConverter x:Key="ComparisonConverter" />
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
         <converters:BooleanToHiddenVisibilityConverter x:Key="BooleanToHiddenVisibilityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -85,7 +86,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             </Button>
                         </StackPanel>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="10">
+                    <StackPanel Orientation="Horizontal" Margin="10" Visibility="{Binding ShowOutlineOptions, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel Orientation="Vertical">
                             <Label>Select a Search Method</Label>
                             <RadioButton GroupName="RegistrationMethod" IsChecked="{Binding Path=RegistrationMethod, Mode=TwoWay, Converter={StaticResource ComparisonConverter}, ConverterParameter={x:Static matching:RegistrationMethodType.TrimFixedPercent}}">

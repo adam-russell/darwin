@@ -34,7 +34,9 @@ namespace Darwin
         public static string MissingImageUri = "/Resources/Images/fnf.png";
 
         //public static string MLModelFilename = "bear_coordinates_regular_noscale_flip.tflite";
-        public static string MLModelFilename = "resnetv2_noscale_flip_3.tflite";
+        public const string MLModelFilename_BearFeatureIdentification = "resnetv2_noscale_flip_3.tflite";
+        public const string MLModelFilename_BearClassification = "bear_classification_v1.tflite";
+        public const int MLModel_BearClassification_ImageDim = 224;
 
         public static string DocumentationUrl
         {
