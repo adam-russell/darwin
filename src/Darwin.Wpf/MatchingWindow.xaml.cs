@@ -59,14 +59,28 @@ namespace Darwin.Wpf
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            // TODO -- shouldn't be hardcoded
-            if (_vm.Database.CatalogScheme.FeatureSetType != Features.FeatureSetType.Bear)
+            bool matchSettingsGood = false;
+            try
             {
-                _vm.Match.SetMatchOptions(_vm.RegistrationMethod,
-                    (_vm.RangeOfPoints == RangeOfPointsType.AllPoints) ? true : false);
+                this.IsHitTestVisible = false;
+                Mouse.OverrideCursor = Cursors.Wait;
+
+                // TODO -- shouldn't be hardcoded
+                if (_vm.Database.CatalogScheme.FeatureSetType != Features.FeatureSetType.Bear)
+                {
+                    _vm.Match.SetMatchOptions(_vm.RegistrationMethod,
+                        (_vm.RangeOfPoints == RangeOfPointsType.AllPoints) ? true : false);
+                }
+
+                matchSettingsGood = _vm.Match.VerifyMatchSettings();
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+                this.IsHitTestVisible = true;
             }
 
-            if (!_vm.Match.VerifyMatchSettings())
+            if (!matchSettingsGood)
             {
                 if (Options.CurrentUserOptions.MatchingScheme == Darwin.Model.MatchingSchemeType.MachineLearning)
                 {

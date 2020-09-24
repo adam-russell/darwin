@@ -638,21 +638,12 @@ namespace Darwin.Database
 
         public override bool ContainsImageEmbeddings()
         {
-            if (AllFins == null || AllFins.Count < 1)
+            var count = SelectCountImagesWithNoEmbeddings();
+
+            if (count < 1)
                 return true;
 
-            foreach (var individual in AllFins)
-            {
-                foreach (var image in individual.Images)
-                {
-                    if (image == null || string.IsNullOrEmpty(image.Embedding))
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
+            return false;
         }
 
         public override bool ContainsAllFeatureTypes(List<FeatureType> featureTypes)
@@ -1290,6 +1281,30 @@ namespace Darwin.Database
                     conn.Close();
 
                     return images;
+                }
+            }
+        }
+
+        private long SelectCountImagesWithNoEmbeddings()
+        {
+            using (var conn = new SQLiteConnection(_connectionString))
+            {
+                using (var cmd = new SQLiteCommand(conn))
+                {
+                    conn.Open();
+
+                    long count = 0;
+                    cmd.CommandText = "SELECT COUNT(*) FROM Images WHERE Embedding IS NULL OR LENGTH(Embedding) < 1;";
+
+                    using (var rdr = cmd.ExecuteReader())
+                    {
+                        if (rdr.Read())
+                            count = Convert.ToInt64(rdr[0]);
+                    }
+
+                    conn.Close();
+
+                    return count;
                 }
             }
         }
