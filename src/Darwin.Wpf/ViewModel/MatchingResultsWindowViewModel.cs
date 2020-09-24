@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -34,6 +35,10 @@ namespace Darwin.Wpf.ViewModel
 {
     public class MatchingResultsWindowViewModel : INotifyPropertyChanged
     {
+        // Smaller = less memory, but lower res if it's smaller than the initial displays.  Clicking
+        // always opens a window with the full res image.
+        private const int ImageSourceDecodeHeight = 300;
+
         private bool _autoScroll;
         public bool AutoScroll
         {
@@ -102,17 +107,6 @@ namespace Darwin.Wpf.ViewModel
             }
         }
 
-        //private ImageSource _selectedImageSource;
-        //public ImageSource SelectedImageSource
-        //{
-        //    get => _selectedImageSource;
-        //    set
-        //    {
-        //        _selectedImageSource = value;
-        //        RaisePropertyChanged("SelectedImageSource");
-        //    }
-        //}
-
         private ImageSource _unknownImageSource;
         public ImageSource UnknownImageSource
         {
@@ -121,6 +115,28 @@ namespace Darwin.Wpf.ViewModel
             {
                 _unknownImageSource = value;
                 RaisePropertyChanged("UnknownImageSource");
+            }
+        }
+
+        private ImageSource _unknownOriginalImageSource;
+        public ImageSource UnknownOriginalImageSource
+        {
+            get => _unknownOriginalImageSource;
+            set
+            {
+                _unknownOriginalImageSource = value;
+                RaisePropertyChanged("UnknownOriginalImageSource");
+            }
+        }
+
+        private ImageSource _unknownCropImageSource;
+        public ImageSource UnknownCropImageSource
+        {
+            get => _unknownCropImageSource;
+            set
+            {
+                _unknownCropImageSource = value;
+                RaisePropertyChanged("UnknownCropImageSource");
             }
         }
 
@@ -189,9 +205,9 @@ namespace Darwin.Wpf.ViewModel
                 RaisePropertyChanged("UnknownShowOriginalImage");
 
                 if (_unknownShowOriginalImage && DatabaseFin.PrimaryImage.OriginalFinImage != null)
-                    UnknownImageSource = DatabaseFin.PrimaryImage.OriginalFinImage.ToImageSource();
+                    UnknownImageSource = DatabaseFin.PrimaryImage.OriginalFinImage.ToImageSource(ImageSourceDecodeHeight);
                 else
-                    UnknownImageSource = DatabaseFin.PrimaryImage.FinImage.ToImageSource();
+                    UnknownImageSource = DatabaseFin.PrimaryImage.FinImage.ToImageSource(ImageSourceDecodeHeight);
             }
         }
 
@@ -371,8 +387,22 @@ namespace Darwin.Wpf.ViewModel
 
             DatabaseFin = unknownFin;
 
+            if (DatabaseFin.PrimaryImage.Contour == null || DatabaseFin.PrimaryImage.ClippedContour == null)
+                DatabaseFin.PrimaryImage.LoadContour();
+
             if (DatabaseFin != null && DatabaseFin.PrimaryImage.FinImage != null)
-                UnknownImageSource = DatabaseFin.PrimaryImage.FinImage.ToImageSource();
+            {
+                UnknownImageSource = DatabaseFin.PrimaryImage.FinImage.ToImageSource(ImageSourceDecodeHeight);
+                UnknownOriginalImageSource = DatabaseFin.PrimaryImage.OriginalFinImage?.ToImageSource(ImageSourceDecodeHeight);
+
+                if (DatabaseFin.PrimaryImage.CropImage == null)
+                {
+                    Trace.WriteLine("Generating crop...");
+                    DatabaseFin.PrimaryImage.GenerateCropImage();
+                }
+
+                UnknownCropImageSource = DatabaseFin.PrimaryImage.CropImage?.ToImageSource(ImageSourceDecodeHeight);
+            }
 
             MatchResults = matchResults;
             Database = database;

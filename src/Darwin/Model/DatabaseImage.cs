@@ -42,6 +42,16 @@ namespace Darwin.Model
         public Contour ClippedContour { get; set; }
 
         public string CropImageFilename { get; set; }
+        public string CropImageFilenameUri
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(CropImageFilename))
+                    return AppSettings.MissingImageUri;
+
+                return Path.Combine(Options.CurrentUserOptions.CurrentCatalogPath, CropImageFilename);
+            }
+        }
 
         private Outline _finOutline;
         public Outline FinOutline //  008OL

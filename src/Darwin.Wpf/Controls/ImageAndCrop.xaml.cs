@@ -46,6 +46,19 @@ namespace Darwin.Wpf.Controls
             }
         }
 
+        public static readonly DependencyProperty ShowCarouselButtonsProperty =
+            DependencyProperty.Register("ShowCarouselButtons",
+                typeof(bool),
+                typeof(ImageAndCrop),
+                new FrameworkPropertyMetadata(true,
+                        FrameworkPropertyMetadataOptions.AffectsRender));
+
+        public bool ShowCarouselButtons
+        {
+            set { SetValue(ShowCarouselButtonsProperty, value); }
+            get { return (bool)GetValue(ShowCarouselButtonsProperty); }
+        }
+
         private DatabaseImage _selectedImage;
         public DatabaseImage SelectedImage
         {
@@ -56,28 +69,6 @@ namespace Darwin.Wpf.Controls
                 RaisePropertyChanged("SelectedImage");
                 RaisePropertyChanged("ImageFilenameUri");
                 RaisePropertyChanged("OriginalImageFilenameUri");
-            }
-        }
-
-        public string ImageFilenameUri
-        {
-            get
-            {
-                if (SelectedImage == null || string.IsNullOrEmpty(SelectedImage.ImageFilenameUri))
-                    return AppSettings.MissingImageUri;
-
-                return SelectedImage.ImageFilenameUri;
-            }
-        }
-
-        public string OriginalImageFilenameUri
-        {
-            get
-            {
-                if (SelectedImage == null || string.IsNullOrEmpty(SelectedImage.OriginalImageFilenameUri))
-                    return AppSettings.MissingImageUri;
-
-                return SelectedImage.OriginalImageFilenameUri;
             }
         }
 
@@ -92,12 +83,25 @@ namespace Darwin.Wpf.Controls
             }
         }
 
+        private bool _carouselButtonsEnabled;
+        public bool CarouselButtonsEnabled
+        {
+            get => _carouselButtonsEnabled;
+            set
+            {
+                _carouselButtonsEnabled = value;
+                RaisePropertyChanged("CarouselButtonsEnabled");
+            }
+        }
+
         public ImageAndCrop()
         {
             // TODO
             ImageBoxHeight = 300;
 
             InitializeComponent();
+
+            CarouselButtonsEnabled = false;
         }
 
         static void OnChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
@@ -110,7 +114,12 @@ namespace Darwin.Wpf.Controls
             if (Images != null)
                 Images.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(Images_CollectionChanged);
 
-            SelectedImage = Images?.FirstOrDefault();
+            SelectDatabaseImage(Images?.FirstOrDefault());
+
+            if (Images != null && Images.Count > 1)
+                CarouselButtonsEnabled = true;
+            else
+                CarouselButtonsEnabled = false;
         }
 
         protected void Images_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -122,45 +131,35 @@ namespace Darwin.Wpf.Controls
 
         private void ViewImageButton_Click(object sender, RoutedEventArgs e)
         {
-            if (DatabaseIndividual != null)
+            if (DatabaseIndividual != null && SelectedImage != null)
             {
-                var image = ((Button)sender).DataContext as DatabaseImage;
+                var finCopy = new DatabaseFin(DatabaseIndividual);
+                var imageCopy = new DatabaseImage(SelectedImage);
+                DatabaseImage.FullyLoadDatabaseImage(imageCopy);
+                finCopy.SetPrimaryImage(imageCopy);
 
-                if (image != null)
-                {
-                    var finCopy = new DatabaseFin(DatabaseIndividual);
-                    var imageCopy = new DatabaseImage(image);
-                    DatabaseImage.FullyLoadDatabaseImage(imageCopy);
-                    finCopy.SetPrimaryImage(imageCopy);
-
-                    var vm = new TraceWindowViewModel(finCopy, MainWindow.CurrentDatabase, "Viewing " + finCopy.IDCode, MainWindow.CurrentInstance);
-                    TraceWindow traceWindow = new TraceWindow(vm);
-                    traceWindow.Show();
-                }
+                var vm = new TraceWindowViewModel(finCopy, MainWindow.CurrentDatabase, "Viewing " + finCopy.IDCode, MainWindow.CurrentInstance);
+                TraceWindow traceWindow = new TraceWindow(vm);
+                traceWindow.Show();
             }
         }
 
         private void ViewOriginalImageButton_Click(object sender, RoutedEventArgs e)
         {
             // Little hacky
-            if (DatabaseIndividual != null)
+            if (DatabaseIndividual != null && SelectedImage != null)
             {
-                var image = ((Button)sender).DataContext as DatabaseImage;
+                var finCopy = new DatabaseFin(DatabaseIndividual);
+                var imageCopy = new DatabaseImage(SelectedImage);
+                DatabaseImage.FullyLoadDatabaseImage(imageCopy);
+                finCopy.SetPrimaryImage(imageCopy);
 
-                if (image != null)
-                {
-                    var finCopy = new DatabaseFin(DatabaseIndividual);
-                    var imageCopy = new DatabaseImage(image);
-                    DatabaseImage.FullyLoadDatabaseImage(imageCopy);
-                    finCopy.SetPrimaryImage(imageCopy);
+                finCopy.PrimaryImage.FinOutline.ChainPoints = null;
+                finCopy.PrimaryImage.FinImage = finCopy.PrimaryImage.OriginalFinImage;
+                var vm = new TraceWindowViewModel(finCopy, MainWindow.CurrentDatabase, "Viewing " + finCopy.IDCode + " Original Image", MainWindow.CurrentInstance, true);
 
-                    finCopy.PrimaryImage.FinOutline.ChainPoints = null;
-                    finCopy.PrimaryImage.FinImage = finCopy.PrimaryImage.OriginalFinImage;
-                    var vm = new TraceWindowViewModel(finCopy, MainWindow.CurrentDatabase, "Viewing " + finCopy.IDCode + " Original Image", MainWindow.CurrentInstance, true);
-
-                    TraceWindow traceWindow = new TraceWindow(vm);
-                    traceWindow.Show();
-                }
+                TraceWindow traceWindow = new TraceWindow(vm);
+                traceWindow.Show();
             }
         }
 
@@ -180,6 +179,51 @@ namespace Darwin.Wpf.Controls
             if (handler == null) return;
 
             handler(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void PreviousImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (Images == null || SelectedImage == null)
+                return;
+
+            var idx = Images.IndexOf(SelectedImage);
+
+            if (idx <= 0)
+            {
+                SelectDatabaseImage(Images[Images.Count - 1]);
+            }
+            else
+            {
+                SelectDatabaseImage(Images[idx - 1]);
+            }
+        }
+
+        private void NextImageButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (Images == null || SelectedImage == null)
+                return;
+
+            var idx = Images.IndexOf(SelectedImage);
+
+            if (idx >= Images.Count - 1)
+            {
+                SelectDatabaseImage(Images[0]);
+            }
+            else
+            {
+                SelectDatabaseImage(Images[idx + 1]);
+            }
+        }
+
+        private void SelectDatabaseImage(DatabaseImage image)
+        {
+            if (image == null)
+                return;
+
+            if (image.Contour == null || image.ClippedContour == null)
+                image.LoadContour();
+
+            SelectedImage = image;
         }
     }
 }

@@ -40,5 +40,22 @@ namespace Darwin.Wpf.Extensions
                 return bitmapimage;
             }
         }
+
+        public static BitmapImage ToImageSource(this Bitmap bitmap, int decodeHeight)
+        {
+            using (MemoryStream memory = new MemoryStream())
+            {
+                bitmap.Save(memory, System.Drawing.Imaging.ImageFormat.Bmp);
+                memory.Position = 0;
+                BitmapImage bitmapimage = new BitmapImage();
+                bitmapimage.DecodePixelHeight = decodeHeight;
+                bitmapimage.BeginInit();
+                bitmapimage.StreamSource = memory;
+                bitmapimage.CacheOption = BitmapCacheOption.OnLoad;
+                bitmapimage.EndInit();
+
+                return bitmapimage;
+            }
+        }
     }
 }

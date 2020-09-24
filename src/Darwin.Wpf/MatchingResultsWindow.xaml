@@ -73,11 +73,11 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
             </Button>-->
             <controls:ImageAndCrop Grid.Row="1" x:Name="UnknownImageAndCrop" DatabaseIndividual="{Binding Path=SelectedDBIndividual}" Images="{Binding Path=SelectedDBIndividual.Images}" />
             
-            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10,10,10,10" HorizontalAlignment="Center">
+            <!--<StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10,10,10,10" HorizontalAlignment="Center">
                 <ToggleButton x:Name="SelectedShowOriginalImage" IsChecked="{Binding SelectedShowOriginalImage}">
                     Show Original Image
                 </ToggleButton>
-            </StackPanel>
+            </StackPanel>-->
         </Grid>
         <Grid Grid.Row="0" Grid.Column="1">
             <Grid.RowDefinitions>
@@ -86,15 +86,45 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Label Grid.Row="0" Content="{Binding UnknownLabelText}" />
-            <Button Grid.Row="1" x:Name="ViewUnknownImageButton" Click="ViewUnknownImageButton_Click" Cursor="Hand" Margin="0" Padding="1" Background="Transparent" BorderThickness="0">
+            <!--<Button Grid.Row="1" x:Name="ViewUnknownImageButton" Click="ViewUnknownImageButton_Click" Cursor="Hand" Margin="0" Padding="1" Background="Transparent" BorderThickness="0">
                 <Image x:Name="UnknownImage" Source="{Binding Path=UnknownImageSource}" />
-            </Button>
-            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10,10,10,10" HorizontalAlignment="Center">
+            </Button>-->
+
+            <TabControl Grid.Row="1"  TabStripPlacement="Bottom">
+                <TabItem Header="Crop Image">
+                    <Button Click="ViewUnknownImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="1" Margin="0">
+                        <Image Source="{Binding Path=UnknownCropImageSource}" />
+                    </Button>
+                </TabItem>
+                <TabItem Header="Full Image">
+                    <Button x:Name="ViewImageButton" Click="ViewUnknownImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="1" Margin="0">
+                        <Image Source="{Binding Path=UnknownImageSource}" />
+                    </Button>
+                </TabItem>
+                <TabItem Header="Outline">
+                    <Button Click="ViewOutlineInformationButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0">
+                        <Viewbox Margin="10">
+                            <fe:PointVisuals x:Name="OutlineDisplay" IsHitTestVisible="False" Width="{Binding DatabaseFin.PrimaryImage.ClippedContour.XMax}"  Height="{Binding DatabaseFin.PrimaryImage.ClippedContour.YMax}"
+                                                 Background="Transparent"
+                                                 PointSize="3"
+                                                 ItemsSource="{Binding DatabaseFin.PrimaryImage.ClippedContour.Points}"
+                                                 Brushes="{StaticResource brushes}" />
+                        </Viewbox>
+                    </Button>
+                </TabItem>
+                <TabItem Header="Original Image">
+                    <Button x:Name="ViewUnknownOriginalImageButton" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="1" Margin="0">
+                        <Image Source="{Binding Path=UnknownOriginalImageSource}" />
+                    </Button>
+                </TabItem>
+            </TabControl>
+
+            <!--<StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10,10,10,10" HorizontalAlignment="Center">
                 <ToggleButton x:Name="UnknownShowOriginalImage" IsChecked="{Binding UnknownShowOriginalImage}">
                     Show Original Image
                 </ToggleButton>
-                <Button x:Name="UnknownMatchSelectedFinOrientation" Click="UnknownMatchSelectedFinOrientation_Click" Content="{Binding MatchSelectedOrientationText}" />
-            </StackPanel>
+                <Button x:Name="UnknownMatchSelectedFinOrientation" Click="UnknownMatchSelectedFinOrientation_Click" Content="{Binding MatchSelectedOrientationText}" Visibility="{Binding ShowOutlineRegistration, Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </StackPanel>-->
         </Grid>
 
         <GridSplitter Height="5" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" />
@@ -135,7 +165,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             <GridViewColumn DisplayMemberBinding="{Binding IDCode}">
                                 <GridViewColumnHeader
                                     Content="ID Code" Padding="5,0,0,0" HorizontalContentAlignment="Left"
-                                    MinWidth="55"/>
+                                    MinWidth="90"/>
                             </GridViewColumn>
                             <GridViewColumn DisplayMemberBinding="{Binding Name}">
                                 <GridViewColumnHeader Content="Name" Padding="5,0,0,0" HorizontalContentAlignment="Left"
@@ -144,7 +174,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             <GridViewColumn DisplayMemberBinding="{Binding DateOfSighting}">
                                 <GridViewColumnHeader
                                     Content="Date" Padding="5,0,0,0" HorizontalContentAlignment="Left"
-                                    MinWidth="50"/>
+                                    MinWidth="125"/>
                             </GridViewColumn>
                             <GridViewColumn DisplayMemberBinding="{Binding LocationCode}">
                                 <GridViewColumnHeader
@@ -153,7 +183,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             </GridViewColumn>
                             <GridViewColumn DisplayMemberBinding="{Binding DamageCategory}">
                                 <GridViewColumnHeader
-                                    Content="Damage" Padding="5,0,0,0" HorizontalContentAlignment="Left"
+                                    Content="Category" Padding="5,0,0,0" HorizontalContentAlignment="Left"
                                     MinWidth="50"/>
                             </GridViewColumn>
                         </GridView>

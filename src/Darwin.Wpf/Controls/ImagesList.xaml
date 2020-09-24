@@ -83,7 +83,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                                     </Button>
                                 </TabItem>
                                 <TabItem Header="Original Image">
-                                    <Button x:Name="ViewOriginalImageButton" Click="ViewOriginalImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0">
+                                    <Button x:Name="ViewOriginalImageButton" Click="ViewOriginalImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="1" Margin="0">
                                         <!--<Image Source="{Binding OriginalFinImage, Converter={StaticResource ImageSourceConverter}}" />-->
                                         <Image>
                                             <Image.Source>

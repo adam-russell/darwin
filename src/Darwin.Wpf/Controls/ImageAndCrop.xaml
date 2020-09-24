@@ -26,36 +26,48 @@
         <Grid.RowDefinitions>
             <RowDefinition />
         </Grid.RowDefinitions>
-        <TabControl Grid.Row="0" TabStripPlacement="Bottom">
-            <TabItem Header="Image">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition />
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Button x:Name="PreviousImageButton" Grid.Column="0" Style="{StaticResource ToolbarButton}" Margin="0" ToolTip="Previous image"
+                Visibility="{Binding RelativeSource={RelativeSource AncestorType=UserControl},Path=ShowCarouselButtons,Converter={StaticResource BooleanToVisibilityConverter}}"
+                Click="PreviousImageButton_Click" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CarouselButtonsEnabled}">
+            <Label FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" Padding="0" FontSize="18">&#xE76B;</Label>
+        </Button>
+        <TabControl Grid.Column="1" TabStripPlacement="Bottom">
+            <TabItem Header="Crop Image">
+                <Button Click="ViewImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="1" Margin="0">
+                    <Image Source="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=SelectedImage.CropImageFilenameUri}" />
+                </Button>
+            </TabItem>
+            <TabItem Header="Full Image">
                 <Button x:Name="ViewImageButton" Click="ViewImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="1" Margin="0">
-                    <Image>
-                        <Image.Source>
-                            <BitmapImage x:Name="SelectedBitmapImage" DecodePixelHeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxHeight}" UriSource="{Binding RelativeSource={RelativeSource Self}, Path=ImageFilenameUri}" />
-                        </Image.Source>
-                    </Image>
+                    <Image Source="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=SelectedImage.ImageFilenameUri}" />
                 </Button>
             </TabItem>
             <TabItem Header="Outline">
                 <Button x:Name="OutlineButton" Cursor="Hand" Click="OutlineButton_Click" Background="Transparent" BorderThickness="0">
                     <Viewbox Margin="10">
-                        <fe:PointVisuals IsHitTestVisible="False" Width="{Binding SelectedImage.ClippedContour.XMax}"  Height="{Binding ClippedContour.YMax}"
-                                             Background="Transparent"
-                                             PointSize="3"
-                                             ItemsSource="{Binding SelectedImage.ClippedContour.Points}"
-                                             Brushes="{StaticResource brushes}" />
+                        <fe:PointVisuals x:Name="OutlineDisplay" IsHitTestVisible="False" Width="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=SelectedImage.ClippedContour.XMax}"  Height="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=SelectedImage.ClippedContour.YMax}"
+                                                 Background="Transparent"
+                                                 PointSize="3"
+                                                 ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=SelectedImage.ClippedContour.Points}"
+                                                 Brushes="{StaticResource brushes}" />
                     </Viewbox>
                 </Button>
             </TabItem>
             <TabItem Header="Original Image">
-                <Button x:Name="ViewOriginalImageButton" Click="ViewOriginalImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0">
-                    <Image>
-                        <Image.Source>
-                            <BitmapImage DecodePixelHeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxHeight}" UriSource="{Binding RelativeSource={RelativeSource Self}, Path=OriginalImageFilenameUri}" />
-                        </Image.Source>
-                    </Image>
+                <Button x:Name="ViewOriginalImageButton" Click="ViewOriginalImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="1" Margin="0">
+                    <Image Source="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=SelectedImage.OriginalImageFilenameUri}" />
                 </Button>
             </TabItem>
         </TabControl>
+        <Button x:Name="NextImageButton" Grid.Column="2" Style="{StaticResource ToolbarButton}" Margin="0" ToolTip="Next image"
+                Visibility="{Binding RelativeSource={RelativeSource AncestorType=UserControl},Path=ShowCarouselButtons,Converter={StaticResource BooleanToVisibilityConverter}}"
+                Click="NextImageButton_Click" IsEnabled="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=CarouselButtonsEnabled}">
+            <Label FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Center" Padding="0" FontSize="18">&#xE76C;</Label>
+        </Button>
     </Grid>
 </UserControl>
