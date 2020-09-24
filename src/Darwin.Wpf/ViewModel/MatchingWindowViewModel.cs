@@ -28,8 +28,19 @@ using System.Windows;
 
 namespace Darwin.Wpf.ViewModel
 {
-    public class MatchingWindowViewModel : INotifyPropertyChanged
+    public class MatchingWindowViewModel : BaseViewModel
     {
+        private int _windowHeight;
+        public int WindowHeight
+        {
+            get => _windowHeight;
+            set
+            {
+                _windowHeight = value;
+                RaisePropertyChanged("WindowHeight");
+            }
+        }
+
         private ObservableCollection<Category> _categories;
         public ObservableCollection<Category> Categories
         {
@@ -82,6 +93,17 @@ namespace Darwin.Wpf.ViewModel
             {
                 _showOutlineOptions = value;
                 RaisePropertyChanged("ShowOutlineOptions");
+            }
+        }
+
+        private bool _showOutlines;
+        public bool ShowOutlines
+        {
+            get => _showOutlines;
+            set
+            {
+                _showOutlines = value;
+                RaisePropertyChanged("ShowOutlines");
             }
         }
 
@@ -207,28 +229,6 @@ namespace Darwin.Wpf.ViewModel
             }
         }
 
-        //private double _contourXOffset;
-        //public double ContourXOffset
-        //{
-        //    get => _contourXOffset;
-        //    set
-        //    {
-        //        _contourXOffset = value;
-        //        RaisePropertyChanged("ContourXOffset");
-        //    }
-        //}
-
-        //private double _contourYOffset;
-        //public double ContourYOffset
-        //{
-        //    get => _contourYOffset;
-        //    set
-        //    {
-        //        _contourYOffset = value;
-        //        RaisePropertyChanged("ContourYOffset");
-        //    }
-        //}
-
         private double _contourWidth;
         public double ContourWidth
         {
@@ -250,8 +250,6 @@ namespace Darwin.Wpf.ViewModel
                 RaisePropertyChanged("ContourHeight");
             }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public MatchingWindowViewModel(DatabaseFin databaseFin,
             DarwinDatabase database)
@@ -286,6 +284,16 @@ namespace Darwin.Wpf.ViewModel
                     true);
             }
 
+            if (Options.CurrentUserOptions.MatchingScheme == MatchingSchemeType.MachineLearning)
+            {
+                ShowOutlines = false;
+                WindowHeight = 234;
+            }
+            else
+            {
+                ShowOutlines = true;
+                WindowHeight = 434;
+            }
             UpdateOutlines(DatabaseFin.PrimaryImage.FinOutline.ChainPoints, null);
 
             ProgressBarVisibility = Visibility.Hidden;
@@ -333,14 +341,6 @@ namespace Darwin.Wpf.ViewModel
                     });
                 }
             }
-        }
-
-        private void RaisePropertyChanged(string propertyName)
-        {
-            var handler = PropertyChanged;
-            if (handler == null) return;
-
-            handler(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

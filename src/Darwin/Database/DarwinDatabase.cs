@@ -88,17 +88,9 @@ namespace Darwin.Database
         public abstract void InvalidateCache();
 
         public abstract void SetCatalogScheme(CatalogScheme catalogScheme);
-        
-        //private abstract void UpdateDBIndividual(DBIndividual individual);
 
         public abstract DatabaseFin GetFin(long id);
         public abstract List<DatabaseFin> GetAllFins();
-
-        //public abstract DatabaseFin GetItemAbsolute(int pos);
-
-        //public abstract DatabaseFin GetItem(int pos);
-        // virtual DatabaseFin<ColorImage>* getItemByName(std::string name) = 0;
-
-        protected DatabaseStatusType mDBStatus; //***1.85
+        public abstract long GetIndividualsCount();
     }
 }

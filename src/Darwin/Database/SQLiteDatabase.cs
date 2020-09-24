@@ -222,6 +222,11 @@ namespace Darwin.Database
             return fins;
         }
 
+        public override long GetIndividualsCount()
+        {
+            return SelectIndividualsCount();
+        }
+
         public override long Add(DatabaseFin fin)
         {
             InvalidateAllFins();
@@ -794,6 +799,30 @@ namespace Darwin.Database
                     conn.Close();
 
                     return individuals;
+                }
+            }
+        }
+
+        private long SelectIndividualsCount()
+        {
+            using (var conn = new SQLiteConnection(_connectionString))
+            {
+                using (var cmd = new SQLiteCommand(conn))
+                {
+                    long count = 0;
+
+                    conn.Open();
+
+                    cmd.CommandText = "SELECT COUNT(*) FROM Individuals;";
+
+                    var rdr = cmd.ExecuteReader();
+
+                    if (rdr.Read())
+                        count = Convert.ToInt64(rdr[0]);
+
+                    conn.Close();
+
+                    return count;
                 }
             }
         }

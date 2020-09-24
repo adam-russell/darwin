@@ -53,6 +53,8 @@ namespace Darwin.Wpf
 
             _vm = vm;
             this.DataContext = _vm;
+            // Binding this does weird things with the startup location
+            this.Height = _vm.WindowHeight;
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)

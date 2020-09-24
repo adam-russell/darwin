@@ -165,7 +165,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             <GridViewColumn DisplayMemberBinding="{Binding IDCode}">
                                 <GridViewColumnHeader
                                     Content="ID Code" Padding="5,0,0,0" HorizontalContentAlignment="Left"
-                                    MinWidth="90"/>
+                                    MinWidth="100"/>
                             </GridViewColumn>
                             <GridViewColumn DisplayMemberBinding="{Binding Name}">
                                 <GridViewColumnHeader Content="Name" Padding="5,0,0,0" HorizontalContentAlignment="Left"
@@ -174,7 +174,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             <GridViewColumn DisplayMemberBinding="{Binding DateOfSighting}">
                                 <GridViewColumnHeader
                                     Content="Date" Padding="5,0,0,0" HorizontalContentAlignment="Left"
-                                    MinWidth="125"/>
+                                    MinWidth="130"/>
                             </GridViewColumn>
                             <GridViewColumn DisplayMemberBinding="{Binding LocationCode}">
                                 <GridViewColumnHeader

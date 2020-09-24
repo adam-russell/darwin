@@ -1981,7 +1981,7 @@ namespace Darwin.Wpf
 			{
 				MessageBox.Show("You must trace your image before it can be matched.", "Not Traced", MessageBoxButton.OK, MessageBoxImage.Error);
 			}
-			else if (_vm.Database.AllFins.Count < 1)
+			else if (_vm.Database.GetIndividualsCount() < 1)
 			{
 				var result = MessageBox.Show("The database is empty, so there is nothing to match against." + Environment.NewLine +
 					string.Format("Would you like to just add this {0} to the database?", _vm.Database.CatalogScheme.IndividualTerminology), "Nothing to Match", MessageBoxButton.YesNo);
@@ -1991,6 +1991,8 @@ namespace Darwin.Wpf
 			}
 			else
 			{
+				MatchingWindow matchingWindow = null;
+
 				try
 				{
 					this.IsHitTestVisible = false;
@@ -2005,21 +2007,21 @@ namespace Darwin.Wpf
 					_vm.UpdateDatabaseFin();
 
 					var matchingWindowVM = new MatchingWindowViewModel(_vm.DatabaseFin, _vm.Database);
-					var matchingWindow = new MatchingWindow(matchingWindowVM);
-
-					var mainWindow = Application.Current.MainWindow as MainWindow;
-
-					if (mainWindow != null)
-						matchingWindow.Owner = mainWindow;
-
-					this.Close();
-					matchingWindow.Show();
+					matchingWindow = new MatchingWindow(matchingWindowVM);
 				}
 				finally
 				{
 					Mouse.OverrideCursor = null;
 					this.IsHitTestVisible = true;
 				}
+
+				var mainWindow = Application.Current.MainWindow as MainWindow;
+
+				if (mainWindow != null)
+					 matchingWindow.Owner = mainWindow;
+
+				this.Close();
+				matchingWindow.Show();
 			}
         }
 

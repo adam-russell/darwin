@@ -364,7 +364,10 @@ namespace Darwin.Wpf.ViewModel
 					//AddToDatabaseVisibility = Visibility.Visible;
 					TraceStep = TraceStepType.TraceOutline;
 				}
-            }
+
+				if (Options.CurrentUserOptions.MatchingScheme == MatchingSchemeType.MachineLearning)
+					TopToolbarVisibility = Visibility.Collapsed;
+			}
 		}
 
 		private Visibility _addToDatabaseVisibility;
@@ -582,7 +585,11 @@ namespace Darwin.Wpf.ViewModel
 
 		private TraceWindowViewModel()
         {
-			TopToolbarVisibility = Visibility.Visible;
+			if (Options.CurrentUserOptions.MatchingScheme == MatchingSchemeType.MachineLearning)
+				TopToolbarVisibility = Visibility.Collapsed;
+			else
+				TopToolbarVisibility = Visibility.Visible;
+
 			TraceToolsVisibility = Visibility.Visible;
 			SaveVisibility = Visibility.Visible;
 			MatchVisibility = Visibility.Visible;
