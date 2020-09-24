@@ -47,6 +47,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
         <converters:ComparisonConverter x:Key="ComparisonConverter" />
         <converters:GridViewColumnWidthConverter x:Key="GridViewColumnWidthConverter"/>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -67,9 +68,11 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Label Grid.Row="0" Content="{Binding SelectedLabelText}" />
-            <Button Grid.Row="1" x:Name="ViewSelectedImageButton" Click="ViewSelectedImageButton_Click" Cursor="Hand" Margin="0" Padding="1" Background="Transparent" BorderThickness="0">
+            <!--<Button Grid.Row="1" x:Name="ViewSelectedImageButton" Click="ViewSelectedImageButton_Click" Cursor="Hand" Margin="0" Padding="1" Background="Transparent" BorderThickness="0">
                 <Image x:Name="SelectedImage" Source="{Binding Path=SelectedImageSource}" />
-            </Button>
+            </Button>-->
+            <controls:ImageAndCrop Grid.Row="1" x:Name="UnknownImageAndCrop" DatabaseIndividual="{Binding Path=SelectedDBIndividual}" Images="{Binding Path=SelectedDBIndividual.Images}" />
+            
             <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="10,10,10,10" HorizontalAlignment="Center">
                 <ToggleButton x:Name="SelectedShowOriginalImage" IsChecked="{Binding SelectedShowOriginalImage}">
                     Show Original Image
@@ -182,9 +185,9 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 </StackPanel>
             </Grid>
 
-            <GridSplitter Grid.Row="0" Grid.Column="1" Width="5" HorizontalAlignment="Stretch"/>
+            <GridSplitter Grid.Row="0" Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Visibility="{Binding ShowOutlineRegistration, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
-            <Grid Grid.Row="0" Grid.Column="2" Margin="10,0,10,0">
+            <Grid Grid.Row="0" Grid.Column="2" Margin="10,0,10,0" Visibility="{Binding ShowOutlineRegistration, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition/>

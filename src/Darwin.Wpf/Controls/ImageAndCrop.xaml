@@ -1,0 +1,61 @@
+﻿<UserControl x:Class="Darwin.Wpf.Controls.ImageAndCrop"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:fe="clr-namespace:Darwin.Wpf.FrameworkElements"
+             xmlns:converters="clr-namespace:Darwin.Wpf.ValueConverters"
+             xmlns:local="clr-namespace:Darwin.Wpf.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <x:Array Type="Brush" x:Key="brushes">
+            <x:Static Member="Brushes.Lime" />
+            <x:Static Member="Brushes.Crimson" />
+            <x:Static Member="Brushes.Yellow" />
+            <x:Static Member="Brushes.Cyan" />
+            <x:Static Member="Brushes.Blue" />
+            <x:Static Member="Brushes.Magenta" />
+        </x:Array>
+        <converters:ImageSourceConverter x:Key="ImageSourceConverter" />
+        <converters:ImagePathConverter x:Key="ImagePathConverter" />
+        <converters:NullConverter x:Key="NullConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <TabControl Grid.Row="0" TabStripPlacement="Bottom">
+            <TabItem Header="Image">
+                <Button x:Name="ViewImageButton" Click="ViewImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="1" Margin="0">
+                    <Image>
+                        <Image.Source>
+                            <BitmapImage x:Name="SelectedBitmapImage" DecodePixelHeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxHeight}" UriSource="{Binding RelativeSource={RelativeSource Self}, Path=ImageFilenameUri}" />
+                        </Image.Source>
+                    </Image>
+                </Button>
+            </TabItem>
+            <TabItem Header="Outline">
+                <Button x:Name="OutlineButton" Cursor="Hand" Click="OutlineButton_Click" Background="Transparent" BorderThickness="0">
+                    <Viewbox Margin="10">
+                        <fe:PointVisuals IsHitTestVisible="False" Width="{Binding SelectedImage.ClippedContour.XMax}"  Height="{Binding ClippedContour.YMax}"
+                                             Background="Transparent"
+                                             PointSize="3"
+                                             ItemsSource="{Binding SelectedImage.ClippedContour.Points}"
+                                             Brushes="{StaticResource brushes}" />
+                    </Viewbox>
+                </Button>
+            </TabItem>
+            <TabItem Header="Original Image">
+                <Button x:Name="ViewOriginalImageButton" Click="ViewOriginalImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0">
+                    <Image>
+                        <Image.Source>
+                            <BitmapImage DecodePixelHeight="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxHeight}" UriSource="{Binding RelativeSource={RelativeSource Self}, Path=OriginalImageFilenameUri}" />
+                        </Image.Source>
+                    </Image>
+                </Button>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

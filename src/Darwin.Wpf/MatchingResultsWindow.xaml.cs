@@ -242,22 +242,22 @@ namespace Darwin.Wpf
             CheckNextPreviousEnabled();
         }
 
-        private void ViewSelectedImageButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (_vm.SelectedResult != null)
-            {
-                var fin = _vm.FullyLoadFinByID(_vm.SelectedResult.DatabaseID);
+        //private void ViewSelectedImageButton_Click(object sender, RoutedEventArgs e)
+        //{
+        //    if (_vm.SelectedResult != null)
+        //    {
+        //        var fin = _vm.FullyLoadFinByID(_vm.SelectedResult.DatabaseID);
 
-                fin.PrimaryImage.FinOutline.ChainPoints = null;
+        //        fin.PrimaryImage.FinOutline.ChainPoints = null;
 
-                if (_vm.SelectedShowOriginalImage)
-                    fin.PrimaryImage.FinImage = fin.PrimaryImage.OriginalFinImage;
+        //        if (_vm.SelectedShowOriginalImage)
+        //            fin.PrimaryImage.FinImage = fin.PrimaryImage.OriginalFinImage;
 
-                var vm = new TraceWindowViewModel(fin, _vm.Database, "Viewing Selected: " + fin.IDCode, null, true);
-                TraceWindow traceWindow = new TraceWindow(vm);
-                traceWindow.Show();
-            }
-        }
+        //        var vm = new TraceWindowViewModel(fin, _vm.Database, "Viewing Selected: " + fin.IDCode, null, true);
+        //        TraceWindow traceWindow = new TraceWindow(vm);
+        //        traceWindow.Show();
+        //    }
+        //}
 
         private void ViewUnknownImageButton_Click(object sender, RoutedEventArgs e)
         {

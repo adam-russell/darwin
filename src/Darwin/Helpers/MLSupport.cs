@@ -281,7 +281,7 @@ namespace Darwin.Helpers
             Trace.WriteLine("done.");
         }
 
-        public static (Bitmap, Bitmap) CreateClassificationImageAndMask(DatabaseImage image, int datasetImageWidth = 299, int datasetImageHeight = 299)
+        public static (Bitmap, Bitmap) CreateClassificationImageAndMask(DatabaseImage image, int datasetImageWidth = 299, int datasetImageHeight = 299, bool generateMask = false)
         {
             int xMin, xMax, yMin, yMax;
             var cropImage = image.CreateCropImage(out xMin, out yMin, out xMax, out yMax, image.Contour);
@@ -294,16 +294,17 @@ namespace Darwin.Helpers
             float contourRatio = (float)(1 / ratio);
             image.Contour.ApplyNonProportionalScale(contourRatio, contourRatio);
 
-            if (image.Contour.Length < 1)
-                Trace.WriteLine("Hello");
+            Bitmap mask = null;
 
-            var mask = BitmapHelper.CreateMaskImageFromContour(mlImage, image.Contour);
-
+            if (generateMask)
+            {
+                mask = BitmapHelper.CreateMaskImageFromContour(mlImage, image.Contour);
+                mask = BitmapHelper.Pad(mask, datasetImageWidth, datasetImageHeight, Color.Black);
+            }
             //mask = BitmapHelper.ResizeKeepAspectRatio(mask, datasetImageWidth, datasetImageHeight);
 
             // Now pad the images so they're the "full" desired size
             mlImage = BitmapHelper.Pad(mlImage, datasetImageWidth, datasetImageHeight, Color.Black);
-            mask = BitmapHelper.Pad(mask, datasetImageWidth, datasetImageHeight, Color.Black);
 
             return (mlImage, mask);
         }
@@ -449,12 +450,23 @@ namespace Darwin.Helpers
         public static string GetImageEmbedding(DatabaseImage image)
         {
             image.Contour.ApplyScale();
-            (var imageToEncode, var mask) = CreateClassificationImageAndMask(image, AppSettings.MLModel_BearClassification_ImageDim, AppSettings.MLModel_BearClassification_ImageDim);
+            (var imageToEncode, var mask) = CreateClassificationImageAndMask(image,
+                AppSettings.MLModel_BearClassification_ImageDim,
+                AppSettings.MLModel_BearClassification_ImageDim,
+                AppSettings.MLModelFilename_BearClassification_UseMask);
+
+            var model = new MLModel(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), AppSettings.MLModelFilename_BearClassification));
 
             var directImageToEncode = new DirectBitmap(imageToEncode);
-            var directMask = new DirectBitmap(mask);
-
             var imageArray = directImageToEncode.ToScaledTorchRGBPreprocessInput();
+
+            if (!AppSettings.MLModelFilename_BearClassification_UseMask)
+            {
+                var encodingImageOnly = model.Run(imageArray);
+                return FloatHelper.ConvertToBase64String(encodingImageOnly);
+            }
+
+            var directMask = new DirectBitmap(mask);
             var maskArray = directMask.ToScaledTorchRGBPreprocessInput();
 
             // Create a 4 channel float array out of the image and the mask
@@ -475,11 +487,10 @@ namespace Darwin.Helpers
                 }
             }
 
-            var model = new MLModel(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), AppSettings.MLModelFilename_BearClassification));
 
-            var encoding = model.Run(combinedArray);
+            var encodingImageAndMask = model.Run(combinedArray);
 
-            return FloatHelper.ConvertToBase64String(encoding);
+            return FloatHelper.ConvertToBase64String(encodingImageAndMask);
         }
 
         public static async Task<Contour> DetectContour(Bitmap bitmap, string filename)

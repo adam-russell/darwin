@@ -295,7 +295,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="*"/>
-                                    <!--<ColumnDefinition Width="*" />-->
+                                    <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto" />
@@ -324,7 +324,15 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
 
                                 <Label Grid.Row="1" Grid.Column="2" Padding="1" Style="{StaticResource FormLabel}">Category:</Label>
                                 <ComboBox Grid.Row="2" Grid.Column="2" ItemsSource="{Binding Path=DarwinDatabase.Categories}" DisplayMemberPath="Name" SelectedValuePath="Name"
-                              SelectedValue="{Binding Path=SelectedFin.DamageCategory}" Margin="0,5,10,5" />
+                                    SelectedValue="{Binding Path=SelectedFin.DamageCategory}" Margin="0,5,10,5" />
+
+                                <Label Grid.Row="1" Grid.Column="3" Style="{StaticResource FormLabel}">Gender:</Label>
+                                <ComboBox Grid.Row="2" Grid.Column="3" SelectedValue="{Binding Path=SelectedFin.Gender}" Margin="0,5,10,5">
+                                    <ComboBoxItem>Unknown</ComboBoxItem>
+                                    <ComboBoxItem>Female</ComboBoxItem>
+                                    <ComboBoxItem>Male</ComboBoxItem>
+                                </ComboBox>
+                                
                                 <!--<Label Grid.Row="3" Grid.Column="1" Padding="1" Style="{StaticResource FormLabel}">Location Code:</Label>
                             <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Path=SelectedFin.LocationCode, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,10,5"  />
 

@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="bear_classification_v1.tflite">
+    <None Update="bear_classification.tflite">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="resnetv2_noscale_flip_3.tflite">

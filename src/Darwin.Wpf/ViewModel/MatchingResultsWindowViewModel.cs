@@ -91,16 +91,27 @@ namespace Darwin.Wpf.ViewModel
             }
         }
 
-        private ImageSource _selectedImageSource;
-        public ImageSource SelectedImageSource
+        private DatabaseFin _selectedDBIndividual;
+        public DatabaseFin SelectedDBIndividual
         {
-            get => _selectedImageSource;
+            get => _selectedDBIndividual;
             set
             {
-                _selectedImageSource = value;
-                RaisePropertyChanged("SelectedImageSource");
+                _selectedDBIndividual = value;
+                RaisePropertyChanged("SelectedDBIndividual");
             }
         }
+
+        //private ImageSource _selectedImageSource;
+        //public ImageSource SelectedImageSource
+        //{
+        //    get => _selectedImageSource;
+        //    set
+        //    {
+        //        _selectedImageSource = value;
+        //        RaisePropertyChanged("SelectedImageSource");
+        //    }
+        //}
 
         private ImageSource _unknownImageSource;
         public ImageSource UnknownImageSource
@@ -132,6 +143,17 @@ namespace Darwin.Wpf.ViewModel
             {
                 _showInfoColumns = value;
                 RaisePropertyChanged("ShowInfoColumns");
+            }
+        }
+
+        private bool _showOutlineRegistration;
+        public bool ShowOutlineRegistration
+        {
+            get => _showOutlineRegistration;
+            set
+            {
+                _showOutlineRegistration = value;
+                RaisePropertyChanged("ShowOutlineRegistration");
             }
         }
 
@@ -334,6 +356,8 @@ namespace Darwin.Wpf.ViewModel
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
 
+            ShowOutlineRegistration = Options.CurrentUserOptions.MatchingScheme != MatchingSchemeType.MachineLearning;
+
             // TODO: These should really come from the window
             ContourWidth = 200;
             ContourHeight = 200;
@@ -360,6 +384,7 @@ namespace Darwin.Wpf.ViewModel
             }
         }
 
+        // TODO: Re-factor this out?
         public DatabaseFin FullyLoadFinByID(long id)
         {
             DatabaseFin finCopy = null;
@@ -378,12 +403,13 @@ namespace Darwin.Wpf.ViewModel
             {
                 UpdateOutlines(SelectedResult.unknownContour, SelectedResult.dbContour);
 
-                DatabaseFin selectedFin = FullyLoadFinByID(SelectedResult.DatabaseID);
+                SelectedDBIndividual = Database.AllFins.Where(f => f.ID == SelectedResult.DatabaseID).FirstOrDefault();
+                //DatabaseFin selectedFin = FullyLoadFinByID(SelectedResult.DatabaseID);
 
-                if (SelectedShowOriginalImage)
-                    SelectedImageSource = selectedFin.PrimaryImage.OriginalFinImage.ToImageSource();
-                else
-                    SelectedImageSource = selectedFin.PrimaryImage.FinImage.ToImageSource();
+                //if (SelectedShowOriginalImage)
+                //    SelectedImageSource = selectedFin.PrimaryImage.OriginalFinImage.ToImageSource();
+                //else
+                //    SelectedImageSource = selectedFin.PrimaryImage.FinImage.ToImageSource();
             }
         }
 

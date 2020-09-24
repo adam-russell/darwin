@@ -62,7 +62,7 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                             <!--<Image Source="{Binding FinImage, Converter={StaticResource ImageSourceConverter}}" />-->
                             <TabControl TabStripPlacement="Bottom" Height="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ImageBoxHeight}">
                                 <TabItem Header="Image">
-                                    <Button x:Name="ViewImageButton" Click="ViewImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0">
+                                    <Button x:Name="ViewImageButton" Click="ViewImageButton_Click" Cursor="Hand" Background="Transparent" BorderThickness="0" Padding="1" Margin="0">
                                         <!--<Image x:Name="SelectedImageSource" Source="{Binding FinImage, Converter={StaticResource ImageSourceConverter}}" />-->
                                         <Image>
                                             <Image.Source>
@@ -98,32 +98,5 @@ along with DARWIN.  If not, see https://www.gnu.org/licenses/
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-
-        <!--<StatusBar Grid.Row="2" Background="{StaticResource LightBackground}" Height="36">
-            <StatusBar.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                    </Grid>
-                </ItemsPanelTemplate>
-            </StatusBar.ItemsPanel>
-            <StatusBarItem Grid.Column="0">
-                <TextBlock Name="StatusBarMessage" />
-            </StatusBarItem>
-            <StatusBarItem Grid.Column="1">
-                <StackPanel Orientation="Horizontal" Margin="0,0,5,0">
-                    --><!--<TextBlock FontFamily="{StaticResource FontAwesome}" HorizontalAlignment="Center" VerticalAlignment="Center">&#xf03e;</TextBlock>--><!--
-                    <Slider Width="180" Orientation="Horizontal" VerticalAlignment="Center" Minimum="-4" Maximum="4" x:Name="ZoomSlider"/>
-                    --><!--<TextBlock FontFamily="{StaticResource FontAwesome}" FontSize="22" VerticalAlignment="Center">&#xf03e;</TextBlock>--><!--
-                </StackPanel>
-            </StatusBarItem>
-            --><!--<StatusBarItem Grid.Column="2">
-                <TextBlock Foreground="DarkGray" FontFamily="Segoe MDL2 Assets" Text="&#xE788;" FontSize="24" VerticalAlignment="Bottom" Margin="0,0,3,0"/>
-            </StatusBarItem>--><!--
-        </StatusBar>-->
     </Grid>
 </UserControl>
